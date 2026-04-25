@@ -359,18 +359,9 @@ export default function App() {
 
 
       {/* Theme toggle — simple pill, no animation */}
-      {cinDone&&<button id="theme-toggle" onClick={toggleTheme}
-        aria-label="Toggle theme"
-        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
-        <span className="tgl-track">
-          <span className="tgl-icon sun">☀️</span>
-          <span className="tgl-icon moon">🌙</span>
-          <span className="tgl-thumb"/>
-        </span>
-      </button>}
 
       {cinDone&&<ParticleBackground theme={theme}/>}
-      {cinDone&&<Navbar activeTab={activeTab} onTabChange={onTab}/>}
+      {cinDone&&<Navbar activeTab={activeTab} onTabChange={onTab} onToggleTheme={toggleTheme}/>}
 
       <main style={{paddingTop:nh,position:'relative',zIndex:1}}>
         {/* Section pages — navbar tab clicks */}

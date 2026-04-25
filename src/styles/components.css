@@ -87,6 +87,11 @@
   font-family:'Orbitron',monospace; font-size:.95rem; font-weight:900; letter-spacing:.08em;
   background:linear-gradient(135deg,var(--c1),var(--c2));
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  transition:transform .2s ease, filter .2s ease !important;
+}
+.ns-nav-brand:hover {
+  transform:scale(1.05);
+  filter:brightness(1.2) drop-shadow(0 0 12px var(--c1g));
 }
 [data-theme="light"] .ns-nav-brand {
   background:linear-gradient(135deg,#c2770a,#6d28d9);
@@ -106,6 +111,14 @@
   border-radius:1px; box-shadow:0 0 8px var(--c1g);
   transition:left .3s cubic-bezier(.34,1.56,.64,1), right .3s cubic-bezier(.34,1.56,.64,1) !important;
 }
+.about-card-inner, .modal-box, .ns-footer,
+#back-to-top {
+  transition:
+    background-color .42s cubic-bezier(.4,0,.2,1),
+    border-color     .38s cubic-bezier(.4,0,.2,1),
+    color            .30s cubic-bezier(.4,0,.2,1),
+    box-shadow       .30s ease !important;
+}
 .ns-nav-tab:hover, .ns-nav-tab.active { color:var(--t1); }
 .ns-nav-tab:hover::after, .ns-nav-tab.active::after { left:13px; right:13px; }
 .ns-nav-tab.active { color:var(--c1); }
@@ -121,7 +134,8 @@
 [data-theme="light"] .ns-mobile-logo-ns { mix-blend-mode:multiply; }
 .ns-mobile-logo-gl { height:22px; width:auto; background:rgba(255,255,255,.85); padding:2px 4px; border-radius:4px; }
 [data-theme="light"] .ns-mobile-logo-gl { background:transparent; }
-.ns-mobile-brand { font-family:'Orbitron',monospace; font-size:.8rem; font-weight:900; }
+.ns-mobile-brand { font-family:'Orbitron',monospace; font-size:.8rem; font-weight:900; transition:transform .2s ease !important; }
+.ns-mobile-brand:active { transform:scale(0.95); }
 .ns-mobile-brand span { background:linear-gradient(135deg,var(--c1),var(--c2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
 .ns-mobile-tabs { display:flex; overflow-x:auto; gap:0; padding:0 4px; scrollbar-width:none; -ms-overflow-style:none; }
 .ns-mobile-tabs::-webkit-scrollbar { display:none; }

@@ -95,7 +95,7 @@ body,
 .ns-navbar, .ns-navbar-mobile,
 .activity-card, .team-card, .timeline-card,
 .about-card-inner, .modal-box, .ns-footer,
-#theme-toggle, #back-to-top {
+#back-to-top {
   transition:
     background-color .42s cubic-bezier(.4,0,.2,1),
     border-color     .38s cubic-bezier(.4,0,.2,1),
@@ -168,56 +168,6 @@ button, a { touch-action:manipulation; -webkit-tap-highlight-color:transparent; 
   transition:none !important;
 }
 
-/* ── THEME TOGGLE — simple pill ─────────
-   NO animation on click — just smooth CSS
-────────────────────────────────────────── */
-#theme-toggle {
-  position:fixed; bottom:28px; left:28px;
-  width:68px; height:34px; border-radius:17px;
-  background:var(--card2);
-  border:1.5px solid var(--bdr2);
-  display:flex; align-items:center;
-  padding:0 5px;
-  cursor:pointer; z-index:9000;
-  pointer-events:all !important;
-  touch-action:manipulation;
-  box-shadow:var(--sh1);
-  overflow:hidden;
-}
-#theme-toggle:hover {
-  border-color:var(--c1) !important;
-  box-shadow:0 0 20px var(--c1g) !important;
-}
-/* Pill track */
-.tgl-track {
-  display:flex; align-items:center; justify-content:space-between;
-  width:100%; position:relative; pointer-events:none; padding:0 1px;
-}
-.tgl-icon {
-  font-size:.82rem; line-height:1; z-index:1; user-select:none;
-  transition:opacity .3s ease;
-}
-.tgl-icon.sun  { opacity:.45; }
-.tgl-icon.moon { opacity:1;   }
-[data-theme="light"] .tgl-icon.sun  { opacity:1; }
-[data-theme="light"] .tgl-icon.moon { opacity:.45; }
-/* Sliding thumb */
-.tgl-thumb {
-  position:absolute; top:50%; transform:translateY(-50%);
-  left:2px;
-  width:24px; height:24px; border-radius:50%;
-  background:linear-gradient(135deg,var(--c1),var(--c2));
-  box-shadow:0 0 8px var(--c1g);
-  pointer-events:none; z-index:2;
-  transition:left .32s cubic-bezier(.34,1.56,.64,1),
-             background .4s ease,
-             box-shadow .3s ease !important;
-}
-[data-theme="light"] .tgl-thumb {
-  left:calc(100% - 26px);
-  background:linear-gradient(135deg,#f59e0b,#b86800);
-  box-shadow:0 0 8px rgba(245,158,11,.55);
-}
 
 /* ── BACK TO TOP ──────────────────────── */
 #back-to-top {
@@ -257,7 +207,5 @@ button, a { touch-action:manipulation; -webkit-tap-highlight-color:transparent; 
 @media (max-width:768px) {
   .section { padding:68px 0; }
   .container { padding:0 16px; }
-  #back-to-top, #theme-toggle { bottom:18px; }
-  #back-to-top  { right:18px; }
-  #theme-toggle { left:18px; }
+  #back-to-top { bottom:18px; }
 }
