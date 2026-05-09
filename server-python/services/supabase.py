@@ -31,12 +31,15 @@ class SupabaseService:
             response.raise_for_status()
 
     async def insert_membership(self, form_data: Dict[str, Any]) -> None:
+        """Insert into membership_forms table"""
         await self._insert("membership_forms", form_data)
 
     async def insert_recruitment(self, form_data: Dict[str, Any]) -> None:
+        """Insert into recruitment_forms table"""
         await self._insert("recruitment_forms", form_data)
 
     async def insert_core_team_application(self, form_data: Dict[str, Any]) -> None:
+        """Insert into core_team_applications table"""
         await self._insert("core_team_applications", form_data)
 
 

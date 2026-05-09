@@ -21,15 +21,3 @@ Thumbs.db
 # Vite
 *.local
 .vercel
-
-# Java
-target/
-*.log
-
-# Python
-__pycache__/
-*.pyc
-.env
-.venv/
-env/
-venv/

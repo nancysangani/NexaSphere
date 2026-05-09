@@ -254,6 +254,7 @@ export default function MembershipPage({ onBack }) {
       
       const email = form.collegeEmail.trim();
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) missing.push('collegeEmail');
+      if (email && !email.endsWith('@glbajajgroup.org')) missing.push('collegeEmail');
     }
     if (step === 2) {
       if (form.groups.length === 0) missing.push('groups');
@@ -476,6 +477,11 @@ export default function MembershipPage({ onBack }) {
               type="email"
               maxLength={100}
             />
+            {form.collegeEmail && !form.collegeEmail.endsWith('@glbajajgroup.org') && (
+              <div style={{ color: '#ef4444', fontSize: '.82rem', marginTop: 4 }}>
+                Please use your official GL Bajaj email (@glbajajgroup.org)
+              </div>
+            )}
           </Field>
 
           <Field label="University Roll Number" required>
@@ -759,7 +765,10 @@ export default function MembershipPage({ onBack }) {
                 </div>
                 <div style={{ color:'var(--t2)', fontSize:'.88rem', lineHeight:1.6, marginBottom:24 }}>
                   A membership form has already been submitted from this device.<br/>
-                  If you believe this is an error, please <strong>contact NexaSphere team directly</strong>.
+                  If you need to update your application, please contact us at{' '}
+                  <a href="mailto:nexasphere@glbajajgroup.org" style={{ color:'var(--c1)', fontWeight:600 }}>
+                    nexasphere@glbajajgroup.org
+                  </a>
                 </div>
 
                 <div style={{ display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }}>
@@ -772,21 +781,6 @@ export default function MembershipPage({ onBack }) {
                   >
                     Join WhatsApp Community
                   </a>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAlreadySubmitted(false);
-                      setForm({
-                        fullName: '', collegeEmail: '', rollNumber: '', course: '', courseOther: '', branch: '', branchOther: '', section: '', sectionOther: '', semester: '', whatsapp: '',
-                        groups: [], whyJoin: ''
-                      });
-                      setStep(0);
-                    }}
-                    className="btn btn-primary"
-                    style={{ flex:1, minWidth:0, justifyContent:'center' }}
-                  >
-                    Submit Another Form
-                  </button>
                   <a
                     href={LINKEDIN_PAGE}
                     target="_blank"

@@ -18,10 +18,12 @@ public class EventService {
 
     private final EventRepository repo;
     private final AdminEventPublisher publisher;
+    private final Sanitizer sanitizer;
 
-    public EventService(EventRepository repo, AdminEventPublisher publisher) {
+    public EventService(EventRepository repo, AdminEventPublisher publisher, Sanitizer sanitizer) {
         this.repo = repo;
         this.publisher = publisher;
+        this.sanitizer = sanitizer;
     }
 
     public List<EventEntity> getAllEvents() {
@@ -67,10 +69,10 @@ public class EventService {
     }
 
     private void sanitize(EventEntity e) {
-        e.setName(Sanitizer.clean(e.getName()));
-        e.setShortName(Sanitizer.clean(e.getShortName()));
-        e.setDateText(Sanitizer.clean(e.getDateText()));
-        e.setDescription(Sanitizer.clean(e.getDescription()));
+        e.setName(sanitizer.clean(e.getName()));
+        e.setShortName(sanitizer.clean(e.getShortName()));
+        e.setDateText(sanitizer.clean(e.getDateText()));
+        e.setDescription(sanitizer.clean(e.getDescription()));
     }
 
     private EventEntity snapshot(EventEntity src) {

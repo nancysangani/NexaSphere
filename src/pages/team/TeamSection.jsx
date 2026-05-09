@@ -1,71 +1,47 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { teamMembers } from '../../data/teamData';
 import TeamMemberModal from './TeamMemberModal';
-import { IconSpark } from '../../shared/Icons';
-import './TeamSection.css';
-
-const ANTI_GRAVITY_DELAYS = [0, -2.1, -4.2, -1.0, -3.3, -5.5, -0.7, -6.1, -2.8, -4.9, -1.6, -3.8];
-const TILT_ANGLE = 18;
-const TILT_SCALE = 1.06;
-const CLICK_SCALE_DELAY = 140;
-const CLICK_ACTION_DELAY = 110;
+import { IconArrowRight, IconSpark } from '../../shared/Icons';
 
 function MemberCard({ member, idx, onClick }) {
   const ref = useRef(null);
-  const [imgError, setImgError] = useState(false);
+  const agDelay = [-0.0,-2.1,-4.2,-1.0,-3.3,-5.5,-0.7,-6.1,-2.8,-4.9,-1.6,-3.8];
 
-  const handleMouseMove = e => {
-    const card = ref.current;
-    if (!card) return;
-    const rect = card.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    card.style.animationPlayState = 'paused';
-    card.style.transform = `translateY(-14px) rotateX(${-y * TILT_ANGLE}deg) rotateY(${x * TILT_ANGLE}deg) scale(${TILT_SCALE})`;
+  const onMove = e => {
+    const c = ref.current; if (!c) return;
+    const rect = c.getBoundingClientRect();
+    const x = (e.clientX - rect.left)/rect.width  - .5;
+    const y = (e.clientY - rect.top )/rect.height - .5;
+    c.style.animationPlayState = 'paused';
+    c.style.transform = `translateY(-14px) rotateX(${-y*18}deg) rotateY(${x*18}deg) scale(1.06)`;
   };
-
-  const handleMouseLeave = () => {
-    const card = ref.current;
-    if (!card) return;
-    card.style.transform = '';
-    card.style.animationPlayState = '';
+  const onLeave = () => {
+    const c = ref.current; if(!c) return;
+    c.style.transform=''; c.style.animationPlayState='';
   };
-
-  const handleClick = () => {
-    const card = ref.current;
-    if (card) {
-      card.style.transform = 'scale(0.9)';
-      setTimeout(() => {
-        card.style.transform = '';
-      }, CLICK_SCALE_DELAY);
-    }
-    setTimeout(() => onClick(member), CLICK_ACTION_DELAY);
+  const click = () => {
+    const c = ref.current;
+    if(c){c.style.transform='scale(.9)';setTimeout(()=>{c.style.transform='';},140);}
+    setTimeout(()=>onClick(member),110);
   };
 
   return (
-    <div
-      ref={ref}
+    <div ref={ref}
       className="team-card shimmer mag-card"
       style={{
-        animationDelay: `${ANTI_GRAVITY_DELAYS[idx % 12]}s`,
+        cursor:'pointer',perspective:'800px',
+        animation:`ag 7s ease-in-out ${agDelay[idx%12]}s infinite`,
+        willChange:'transform',
+        animationFillMode:'both',
+        opacity:1,
       }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') handleClick();
-      }}
+      onMouseMove={onMove} onMouseLeave={onLeave} onClick={click}
+      role="button" tabIndex={0}
+      onKeyDown={e=>{if(e.key==='Enter'||e.key===' ')click();}}
     >
       <div className="team-card-photo-wrap">
-        <img 
-        src={imgError ? 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(member.name) + '&backgroundColor=CC1111&textColor=ffffff' : member.photo} 
-        alt={member.name} 
-        className="team-card-photo"
-        onError={() => setImgError(true)}
-      />
+        <img src={member.photo} alt={member.name} className="team-card-photo"/>
       </div>
       <div className="team-card-name">{member.name}</div>
       <div className="team-card-role">{member.role}</div>
@@ -74,14 +50,29 @@ function MemberCard({ member, idx, onClick }) {
         <span className="chip-section">§{member.section}</span>
       </div>
       <div className="team-card-hint">Click to view ↗</div>
-      <div className="corner-tl" />
-      <div className="corner-br" />
+      <div className="corner-tl"/><div className="corner-br"/>
     </div>
   );
 }
 
 export default function TeamSection({ onApply }) {
-  const [selectedMember, setSelectedMember] = useState(null);
+  const [sel, setSel] = useState(null);
+
+  useEffect(() => {
+    const elements = document.querySelectorAll('#section-team .pop-flip, #section-team .pop-in, #section-team .pop-word');
+    const obs = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('fired');obs.unobserve(e.target);}});
+    },{threshold:0, rootMargin:'0px 0px -10px 0px'});
+    elements.forEach(el=>obs.observe(el));
+    
+    const fallback = setTimeout(() => {
+      elements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 100) el.classList.add('fired');
+      });
+    }, 120);
+    return()=>{obs.disconnect(); clearTimeout(fallback);};
+  },[]);
 
   return (
     <section className="section" id="section-team">
@@ -89,22 +80,23 @@ export default function TeamSection({ onApply }) {
         <div className="ns-reveal">
           <span className="cin-section-label pop-in">GL Bajaj Group of Institutions · Mathura</span>
           <h2 className="section-title pop-word">Core Team</h2>
-          <p className="section-subtitle pop-in" style={{ animationDelay: '0.1s' }}>
-            The Minds Behind NexaSphere
-          </p>
+          <p className="section-subtitle pop-in" style={{animationDelay:'.1s'}}>The Minds Behind NexaSphere</p>
         </div>
 
         <div className="team-grid cin-container">
-          {teamMembers.map((member, i) => (
-            <MemberCard key={member.id} member={member} idx={i} onClick={setSelectedMember} />
-          ))}
+          {teamMembers.map((m,i)=><MemberCard key={m.id} member={m} idx={i} onClick={setSel}/>)}
         </div>
 
-        <div className="ns-reveal-scale join-banner">
-          <div className="corner-tl" />
-          <div className="corner-br" />
-          <h3>Want to Join NexaSphere?</h3>
-          <p>
+        
+        <div className="ns-reveal-scale" style={{
+          textAlign:'center',marginTop:'56px',padding:'28px',
+          background:'var(--card)',border:'1px solid var(--bdr)',
+          borderRadius:'var(--r3)',maxWidth:'520px',margin:'56px auto 0',
+          position:'relative',overflow:'hidden',
+        }}>
+          <div className="corner-tl"/><div className="corner-br"/>
+          <h3 style={{fontFamily:'Orbitron,monospace',fontSize:'1rem',fontWeight:700,color:'var(--c1)',marginBottom:'8px',letterSpacing:'.05em'}}>Want to Join NexaSphere?</h3>
+          <p style={{color:'var(--t2)',fontSize:'.88rem',marginBottom:'18px',lineHeight:1.65}}>
             We&apos;re looking for passionate students to drive NexaSphere forward. Fill in the form and we&apos;ll reach out!
           </p>
           <button
@@ -118,11 +110,11 @@ export default function TeamSection({ onApply }) {
         </div>
       </div>
 
-      {selectedMember &&
-        createPortal(
-          <TeamMemberModal member={selectedMember} onClose={() => setSelectedMember(null)} />,
-          document.body
-        )}
+      {sel && createPortal(
+        <TeamMemberModal member={sel} onClose={()=>setSel(null)}/>,
+        document.body
+      )}
     </section>
   );
 }
+

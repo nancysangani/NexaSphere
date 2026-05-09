@@ -18,7 +18,7 @@ function MemberCard({ member, idx, onClick }) {
     const x = (e.clientX - rect.left) / rect.width - .5;
     const y = (e.clientY - rect.top) / rect.height - .5;
     c.style.animationPlayState = 'paused';
-    c.style.transform = `translateY(-6px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg) scale(1.03)`;
+    c.style.transform = `translateY(-14px) rotateX(${-y * 18}deg) rotateY(${x * 18}deg) scale(1.06)`;
   };
   const onLeave = () => {
     const c = ref.current; if (!c) return;

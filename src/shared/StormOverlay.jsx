@@ -1,32 +1,39 @@
 import { useEffect, useRef } from 'react';
 
-const NUM_GRAINS = 520;
-const ERUPT_DURATION = 380;
-const COMPRESS_DURATION = 720;
-const SINGULARITY_DURATION = 780;
-const BANG_DURATION = 1300;
-const SETTLE_DURATION = 2000;
-const THEME_SWITCH_DELAY = 620;
+/* ═══════════════════════════════════════════════════════════════
+   NEXASPHERE CINEMATIC STORM v5 — FULL CANVAS, ONE UNIFIED FLOW
 
-function rand(a, b) {
-  return a + Math.random() * (b - a);
-}
-function ease(t) {
-  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-}
-function easeOut(t) {
-  return 1 - (1 - t) ** 3;
-}
-function easeIn(t) {
-  return t * t * t;
-}
-function lerp(a, b, t) {
-  return a + (b - a) * t;
-}
-function clamp(v, a, b) {
-  return Math.max(a, Math.min(b, v));
-}
-andom() * (b - a); }
+   Everything rendered on a single canvas for maximum cohesion.
+
+   Phase 1  ERUPT     (0–380ms)
+     500 sand particles BLAST from all 4 corners simultaneously
+     Thick amber flood fills screen from edges in
+     Unmissable even on dark backgrounds
+
+   Phase 2  COMPRESS  (380–720ms)
+     All particles spiral VIOLENTLY toward center
+     Black-hole pull effect — amber becomes incandescent at center
+     Theme switches at 620ms (completely hidden)
+
+   Phase 3  SINGULARITY (720–780ms)
+     All matter collapses to a bright pinpoint at center
+     Screen-wide white FLASH (2 frames)
+
+   Phase 4  BANG      (780–1300ms)
+     SUPERNOVA — shockwave ring explodes outward from center
+     Full screen flooded with new theme color in 300ms
+     Radial LIGHT RAYS burst from center (star burst)
+     Chromatic aberration rings (RGB split)
+     Debris particles scatter and fade
+
+   Phase 5  SETTLE    (1300–2000ms)
+     Rays fade, debris clears
+     Canvas opacity → 0, real app visible
+═══════════════════════════════════════════════════════════════ */
+
+const N_GRAINS = 520;
+
+function rand(a, b) { return a + Math.random() * (b - a); }
 function ease(t)  { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
 function easeOut(t) { return 1-(1-t)**3; }
 function easeIn(t)  { return t*t*t; }
@@ -94,19 +101,19 @@ export default function StormOverlay({ toTheme, onMidpoint, onDone }) {
     const W=cvs.width, H=cvs.height, cx=W/2, cy=H/2;
     const DIAG = Math.sqrt(W*W+H*H);
 
-    const grains = Array.from({ length: NUM_GRAINS }, (_, i) => spawnGrain(W, H, i));
+    const grains = Array.from({ length:N_GRAINS }, (_,i) => spawnGrain(W,H,i));
 
     
     if (!startTimeRef.current) startTimeRef.current = performance.now();
 
     
     const T = {
-      erupt: 0,
-      compress: ERUPT_DURATION,
-      singularity: COMPRESS_DURATION,
-      bang: SINGULARITY_DURATION,
-      settle: BANG_DURATION,
-      done: SETTLE_DURATION,
+      erupt:       0,
+      compress:    380,
+      singularity: 720,
+      bang:        780,
+      settle:      1300,
+      done:        2000,
     };
 
     let raf;
@@ -131,7 +138,7 @@ export default function StormOverlay({ toTheme, onMidpoint, onDone }) {
       }
 
       /* ── Fire theme switch mid-storm ── */
-      if (elapsed >= THEME_SWITCH_DELAY && !midRef.current) {
+      if (elapsed >= 620 && !midRef.current) {
         midRef.current = true;
         onMidpointRef.current();
       }

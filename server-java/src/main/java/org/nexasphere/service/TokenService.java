@@ -6,18 +6,19 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lombok.extern.slf4j.Slf4j;
 import org.nexasphere.model.SessionInfo;
 import org.nexasphere.model.TokenSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 public class TokenService {
 
+    private static final Logger log = LoggerFactory.getLogger(TokenService.class);
+
     private static final Duration SESSION_TTL = Duration.ofHours(8);
-    private static final long CLEANUP_RATE = 30 * 60 * 1000;
 
     private final ConcurrentHashMap<String, SessionInfo> sessions = new ConcurrentHashMap<>();
     private final SecureRandom secureRandom = new SecureRandom();
@@ -56,7 +57,7 @@ public class TokenService {
         sessions.remove(token);
     }
 
-    @Scheduled(fixedRate = CLEANUP_RATE)
+    @Scheduled(fixedRate = 30 * 60 * 1000) // 30 minutes
     public void scheduledCleanup() {
         int removed = cleanupExpired();
         if (removed > 0) {

@@ -1,4 +1,4 @@
-import nexasphereLogo from '../assets/images/logos/nexasphere-app-logo.png';
+import nexasphereLogo from '../assets/images/logos/nexasphere-logo.png';
 import { PageFlash } from '../shared/MotionLayer';
 
 export default function Wipe({ on, ph }) {

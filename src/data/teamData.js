@@ -1,3 +1,7 @@
+// ── NexaSphere Team Data ──
+// Add LinkedIn, WhatsApp, Instagram URLs where available.
+// Leave as null to hide the button from the modal.
+
 import ayushImg from '../assets/images/team/ayush.png';
 import tanishkImg from '../assets/images/team/tanishk.png';
 import tusharImg from '../assets/images/team/tushar.png';

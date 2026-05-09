@@ -84,7 +84,7 @@
 
 @keyframes glowRing {
   0%   { transform:scale(1);   opacity:.6; }
-  50%  { transform:scale(1.8); opacity:0;  }
+  50%  { transform:scale(1.2); opacity:0;  }
   100% { transform:scale(1);   opacity:0;  }
 }
 
@@ -105,12 +105,12 @@
 }
 
 .pop-in,.pop-left,.pop-right,.pop-scale,.pop-flip,.pop-word,.pop-num { opacity:0; }
-.pop-in.fired    { animation:popIn       .72s var(--t-smooth) forwards; }
-.pop-left.fired  { animation:popLeft     .72s var(--t-smooth) forwards; }
-.pop-right.fired { animation:popRight    .72s var(--t-smooth) forwards; }
-.pop-scale.fired { animation:scaleReveal .65s var(--t-smooth) forwards; }
-.pop-flip.fired  { animation:cardFlip    .65s var(--t-smooth) forwards; }
-.pop-word.fired  { animation:wordReveal  .78s var(--t-smooth) forwards; }
+.pop-in.fired    { animation:popIn       .72s cubic-bezier(.22,1,.36,1) forwards; }
+.pop-left.fired  { animation:popLeft     .72s cubic-bezier(.22,1,.36,1) forwards; }
+.pop-right.fired { animation:popRight    .72s cubic-bezier(.22,1,.36,1) forwards; }
+.pop-scale.fired { animation:scaleReveal .65s cubic-bezier(.22,1,.36,1) forwards; }
+.pop-flip.fired  { animation:cardFlip    .65s cubic-bezier(.22,1,.36,1) forwards; }
+.pop-word.fired  { animation:wordReveal  .78s cubic-bezier(.22,1,.36,1) forwards; }
 .pop-num.fired   { animation:numPop      .60s cubic-bezier(.34,1.56,.64,1) forwards; }
 
 .cin-container>*:nth-child(1) {animation-delay:.04s}
@@ -155,7 +155,7 @@
 .glow-ring {
   position:absolute; inset:-4px; border-radius:inherit;
   border:2px solid var(--c1);
-  animation:glowRing 1.4s ease-in-out infinite;
+  animation:glowRing 0.6s ease-in-out infinite;
   pointer-events:none;
 }
 

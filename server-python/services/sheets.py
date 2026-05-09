@@ -46,12 +46,15 @@ class SheetsService:
         sheet.append_row(row)
 
     async def append_membership(self, form_data: Dict[str, Any]) -> None:
+        """Append to Membership sheet"""
         self._append_to_worksheet("Membership", form_data)
 
     async def append_recruitment(self, form_data: Dict[str, Any]) -> None:
+        """Append to Recruitment sheet"""
         self._append_to_worksheet("Recruitment", form_data)
 
     async def append_core_team_application(self, form_data: Dict[str, Any]) -> None:
+        """Append to Core Team Applications sheet"""
         self._append_to_worksheet("CoreTeamApplications", form_data)
 
 

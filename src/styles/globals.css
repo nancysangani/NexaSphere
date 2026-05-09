@@ -162,24 +162,3 @@ button, a { touch-action: manipulation; -webkit-tap-highlight-color: transparent
   #back-to-top { bottom: 18px; left: 18px; }
 }
 
-.app-main {
-  position: relative;
-  z-index: 1;
-}
-
-.particle-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  transition: opacity 1.2s ease;
-}
-
-.orbs-container {
-  pointer-events: none;
-  z-index: 0;
-}
-

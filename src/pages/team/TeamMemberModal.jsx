@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { DynamicIcon } from '../../shared/Icons';
 
 function CopyPopup({ value, onClose }) {
   const [copied, setCopied] = useState(false);
@@ -24,10 +23,7 @@ function CopyPopup({ value, onClose }) {
     <div className="copy-popup">
       <span className="copy-popup-value">{value}</span>
       <button className="copy-popup-btn" onClick={handleCopy}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <DynamicIcon name={copied ? 'CheckCircle' : 'Copy'} size={14} />
-          {copied ? 'Copied!' : 'Copy'}
-        </span>
+        {copied ? '✅ Copied!' : '📋 Copy'}
       </button>
     </div>
   );
@@ -43,7 +39,6 @@ function getWhatsappDisplay(raw) {
 
 function ModalContent({ member, onClose }) {
   const [activePopup, setActivePopup] = useState(null);
-  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
@@ -64,22 +59,11 @@ function ModalContent({ member, onClose }) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="modal-box">
-        <button className="modal-close" onClick={onClose} aria-label="Close">
-          <DynamicIcon name="X" size={20} />
-        </button>
+        
+        <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
 
-        <div className="modal-glow-orb" style={{ position: 'absolute', top: '-20px', left: '-20px', width: '80px', height: '80px', background: 'radial-gradient(circle, rgba(238,34,34,0.3) 0%, transparent 70%)', filter: 'blur(10px)', pointerEvents: 'none' }} />
-
-        {/* Photo with glowing ring */}
-        <div style={{ position: 'relative', width: '108px', height: '108px', margin: '0 auto 16px' }}>
-          <img 
-          src={imgError ? 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(member.name) + '&backgroundColor=CC1111&textColor=ffffff&size=108' : member.photo} 
-          alt={member.name} 
-          className="modal-photo" 
-          onError={() => setImgError(true)}
-        />
-          <div className="modal-photo-ring" />
-        </div>
+        
+        <img src={member.photo} alt={member.name} className="modal-photo" />
 
         
         <div className="modal-name">{member.name}</div>
@@ -88,15 +72,15 @@ function ModalContent({ member, onClose }) {
         
         <div className="modal-info">
           <div className="modal-info-row">
-            <span className="modal-info-label"><DynamicIcon name="GraduationCap" size={14} /> Year</span>
+            <span className="modal-info-label">🎓 Year</span>
             <span className="modal-info-value">{member.year}</span>
           </div>
           <div className="modal-info-row">
-            <span className="modal-info-label"><DynamicIcon name="GitBranch" size={14} /> Branch</span>
+            <span className="modal-info-label">🔬 Branch</span>
             <span className="modal-info-value">{member.branch}</span>
           </div>
           <div className="modal-info-row">
-            <span className="modal-info-label"><DynamicIcon name="ClipboardList" size={14} /> Section</span>
+            <span className="modal-info-label">📋 Section</span>
             <span className="modal-info-value">{member.section}</span>
           </div>
         </div>
@@ -104,7 +88,7 @@ function ModalContent({ member, onClose }) {
         
         {member.achievements && member.achievements.length > 0 && (
           <div className="modal-achievements">
-            <div className="modal-achievements-title"><DynamicIcon name="Trophy" size={15} /> Achievements</div>
+            <div className="modal-achievements-title">🏆 Achievements</div>
             <ul className="modal-achievements-list">
               {member.achievements.map((ach, idx) => (
                 <li key={idx} className="modal-achievement-item">{ach}</li>
@@ -116,7 +100,7 @@ function ModalContent({ member, onClose }) {
         
         {member.testimonials && member.testimonials.length > 0 && (
           <div className="modal-testimonials">
-            <div className="modal-testimonials-title"><DynamicIcon name="MessageSquare" size={15} /> Testimonials</div>
+            <div className="modal-testimonials-title">💬 Testimonials</div>
             <ul className="modal-testimonials-list">
               {member.testimonials.map((t, idx) => (
                 <li key={idx} className="modal-testimonial-item">
@@ -132,8 +116,13 @@ function ModalContent({ member, onClose }) {
         {hasSocial && (
           <div className="modal-social">
             {member.linkedin && (
-              <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="modal-social-btn btn-linkedin">
-                <DynamicIcon name="Linkedin" size={14} /> LINKEDIN
+              <a
+                href={member.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="modal-social-btn btn-linkedin"
+              >
+                🔗 LinkedIn
               </a>
             )}
 
@@ -146,7 +135,7 @@ function ModalContent({ member, onClose }) {
                     setActivePopup(activePopup === 'whatsapp' ? null : 'whatsapp');
                   }}
                 >
-                  <DynamicIcon name="MessageSquare" size={14} /> WHATSAPP
+                  💬 WhatsApp
                 </button>
                 {activePopup === 'whatsapp' && (
                   <CopyPopup value={whatsappValue} onClose={() => setActivePopup(null)} />
@@ -155,8 +144,13 @@ function ModalContent({ member, onClose }) {
             )}
 
             {member.instagram && (
-              <a href={member.instagram} target="_blank" rel="noopener noreferrer" className="modal-social-btn btn-instagram">
-                <DynamicIcon name="Instagram" size={14} /> INSTAGRAM
+              <a
+                href={member.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="modal-social-btn btn-instagram"
+              >
+                📸 Instagram
               </a>
             )}
 
@@ -169,7 +163,7 @@ function ModalContent({ member, onClose }) {
                     setActivePopup(activePopup === 'email' ? null : 'email');
                   }}
                 >
-                  <DynamicIcon name="Mail" size={14} /> EMAIL
+                  ✉️ Email
                 </button>
                 {activePopup === 'email' && (
                   <CopyPopup value={member.email} onClose={() => setActivePopup(null)} />

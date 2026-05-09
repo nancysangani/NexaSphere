@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, Terminal, Cpu } from 'lucide-react';
 import '../styles/chatbot.css';
 
 const Chatbot = () => {
@@ -10,6 +9,7 @@ const Chatbot = () => {
   ]);
   const scrollRef = useRef(null);
 
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -24,79 +24,51 @@ const Chatbot = () => {
     setInput('');
 
     try {
-      // Simulate slight delay for "intelligence" feel
-      setTimeout(async () => {
-        try {
-          const response = await fetch('http://localhost:8000/ai/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: currentInput }),
-          });
-          const data = await response.json();
-          setMessages(prev => [...prev, { role: 'bot', text: data.reply || 'Analysis complete. Outcome: Optimistic.' }]);
-        } catch (e) {
-          setMessages(prev => [...prev, { role: 'bot', text: 'Nexa-AI: Core Link Failure. Routing through backup protocols...' }]);
-        }
-      }, 600);
+      const response = await fetch('http://localhost:8000/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: currentInput }),
+      });
+      const data = await response.json();
+      setMessages(prev => [...prev, { role: 'bot', text: data.reply }]);
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'bot', text: 'Nexa-AI: System Interrupt. Retry requested.' }]);
+      setMessages(prev => [...prev, { role: 'bot', text: 'Nexa-AI: Core Link Failure. Try again.' }]);
     }
   };
 
   return (
-    <div className={`ns-chatbot-wrapper ${isOpen ? 'is-open' : ''}`}>
+    <div className="ns-chatbot-wrapper">
       {!isOpen ? (
-        <button className="chat-trigger-btn" onClick={() => setIsOpen(true)} aria-label="Open AI Assistant">
+        <button className="chat-trigger-btn" onClick={() => setIsOpen(true)}>
           <div className="pulse-ring"></div>
-          <MessageCircle size={28} color="white" />
+          💬
         </button>
       ) : (
         <div className="chat-window-glass">
           <div className="chat-header">
             <div className="header-status">
-              <div className="status-indicator">
-                <span className="status-dot"></span>
-                <Cpu size={14} className="status-icon-mini" />
-              </div>
-              <div className="header-text">
-                <span className="ai-name">NEXA-AI</span>
-                <span className="ai-version">v2.4.0</span>
-              </div>
+              <span className="status-dot"></span>
+              <span>NEXA-AI</span>
             </div>
-            <button className="close-btn" onClick={() => setIsOpen(false)}>
-              <X size={20} />
-            </button>
+            <button className="close-btn" onClick={() => setIsOpen(false)}>×</button>
           </div>
           
           <div className="chat-messages" ref={scrollRef}>
-            <div className="message-notice">
-              <Terminal size={12} />
-              <span>Secure encrypted channel established</span>
-            </div>
             {messages.map((m, i) => (
-              <div key={i} className={`msg-wrapper ${m.role}`}>
-                <div className="msg-avatar">
-                  {m.role === 'bot' ? <Bot size={16} /> : <div className="user-initial">U</div>}
-                </div>
-                <div className={`msg-bubble ${m.role}`}>
-                  {m.text}
-                </div>
+              <div key={i} className={`msg-bubble ${m.role}`}>
+                {m.text}
               </div>
             ))}
           </div>
 
-          <div className="chat-input-area">
-            <div className="input-inner">
-              <input 
-                value={input} 
-                onChange={(e) => setInput(e.target.value)} 
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Initialize query..."
-              />
-              <button onClick={handleSend} className="send-action-btn" disabled={!input.trim()}>
-                <Send size={18} />
-              </button>
-            </div>
+          <div className="chat-input-container">
+            <input 
+              value={input} 
+              onChange={(e) => setInput(e.target.value)} 
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              placeholder="Query system..."
+            />
+            <button onClick={handleSend} className="send-btn">🚀</button>
           </div>
         </div>
       )}
@@ -104,4 +76,4 @@ const Chatbot = () => {
   );
 };
 
-export default Chatbot;
+export default Chatbot;

@@ -13,6 +13,7 @@ import org.nexasphere.model.events.EventDeletedEvent;
 import org.nexasphere.model.events.EventUpdatedEvent;
 import org.nexasphere.repository.EventRepository;
 import org.nexasphere.service.crud.EventService;
+import org.nexasphere.util.Sanitizer;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -29,7 +30,13 @@ class EventServiceTest {
 
     @Mock EventRepository repo;
     @Mock AdminEventPublisher publisher;
+    @Mock Sanitizer sanitizer;
     @InjectMocks EventService service;
+
+    @BeforeEach
+    void setupSanitizer() {
+        lenient().when(sanitizer.clean(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
     private EventEntity sampleEvent() {
         EventEntity e = new EventEntity();

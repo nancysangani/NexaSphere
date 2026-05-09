@@ -26,10 +26,6 @@
   
   --nh:  64px;
   --nhm: 88px;
-
-  /* Global Transitions */
-  --t-smooth: .4s cubic-bezier(.4, 0, .2, 1);
-  --t-fast:   .25s cubic-bezier(.4, 0, .2, 1);
 }
 
 :root,

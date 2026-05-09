@@ -1214,7 +1214,10 @@ export default function RecruitmentPage({ onBack }) {
                 <div style={{ color: 'var(--t1)', fontWeight: 700, fontSize: '1rem', marginBottom: 12 }}>Application Already Submitted</div>
                 <div style={{ color: 'var(--t2)', fontSize: '.88rem', lineHeight: 1.65, marginBottom: 24 }}>
                   An application form has already been submitted from this device.<br/>
-                  If you believe this is an error, please <strong>contact NexaSphere team directly</strong>.
+                  If you need to update your application, please contact us at{' '}
+                  <a href="mailto:nexasphere@glbajajgroup.org" style={{ color: 'var(--c1)', fontWeight: 600 }}>
+                    nexasphere@glbajajgroup.org
+                  </a>
                 </div>
 
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -1229,23 +1232,6 @@ export default function RecruitmentPage({ onBack }) {
                       Core Team Screening <IconArrowRight />
                     </span>
                   </a>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAlreadySubmitted(false);
-                      setForm({
-                        fullName: '', collegeEmail: '', whatsapp: '', year: '', branch: '', branchOther: '', section: '', sectionOther: '',
-                        role: '', interests: [], skills: '', comms: '', campusExp: '', campusExpDetails: '', links: '',
-                        commitHours: '', attendCampus: '', assessmentOk: '', whyJoin: '', anythingElse: '',
-                        declarations: { truth: false, time: false, participate: false, disagree: false }
-                      });
-                      setStep(0);
-                    }}
-                    className="btn btn-primary"
-                    style={{ flex: 1, minWidth: 0, justifyContent: 'center' }}
-                  >
-                    Submit Another Application
-                  </button>
                   <a
                     href={LINKEDIN_PAGE || 'https://www.linkedin.com/showcase/glbajaj-nexasphere/'}
                     target="_blank"
