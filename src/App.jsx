@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import './styles/themes.css';
 import './styles/globals.css';
 import './styles/animations.css';
+import './styles/chatbot.css';
 import './styles/components.css';
 import './styles/aurora.css';
 import './styles/motion.css';
 
 import ParticleBackground  from './shared/ParticleBackground';
 import GeometricGridBackground from './shared/GeometricGridBackground';
+import ScrollProgress      from './shared/ScrollProgress';
 import Navbar              from './shared/Navbar';
 import HeroSection         from './pages/home/HeroSection';
 import ActivitiesSection   from './pages/activities/ActivitiesSection';
@@ -18,9 +20,10 @@ import Footer              from './shared/Footer';
 import ActivityDetailPage  from './pages/activities/ActivityDetailPage';
 import EventDetailPage     from './pages/events/EventDetailPage';
 import CinematicOpening    from './shared/CinematicOpening';
+import Chatbot             from './shared/Chatbot';
 import {
   AmbientOrbs, SectionDivider, PageFlash, BannerOrbs,
-  useScrollProgress, useNsReveal, useHeroParallax,
+  useNsReveal, useHeroParallax,
   useNavScrollTint, useGlobalMouseParallax, useMagneticCards,
 } from './shared/MotionLayer';
 import ActivitiesPage      from './pages/activities/ActivitiesPage';
@@ -30,7 +33,6 @@ import TeamPage            from './pages/team/TeamPage';
 import ContactPage         from './pages/contact/ContactPage';
 import RecruitmentPage     from './pages/recruitment/RecruitmentPage';
 import MembershipPage      from './pages/membership/MembershipPage';
-import AdminPage           from './pages/admin/AdminPage';
 
 import { activityPages }   from './data/activities/index';
 import { events as fallbackEvents } from './data/eventsData';
@@ -103,14 +105,14 @@ function Cursor() {
 
     const tick = () => {
       
-      s.ox += (s.mx - s.ox) * 0.18;
-      s.oy += (s.my - s.oy) * 0.18;
+      s.ox += (s.mx - s.ox) * 1.00;
+      s.oy += (s.my - s.oy) * 1.00;
 
       
       s.floatPhase += 0.022;
-      s.floatY = Math.sin(s.floatPhase) * 6
-               + Math.sin(s.floatPhase * 1.7) * 3
-               + Math.sin(s.floatPhase * 0.5) * 4;
+         s.floatY = Math.sin(s.floatPhase) * 2
+         + Math.sin(s.floatPhase * 1.7) * 1
+         + Math.sin(s.floatPhase * 0.5) * 1;
 
       const fy = s.oy + s.floatY;
 
@@ -175,11 +177,11 @@ function Cursor() {
 
       
       <div ref={orbRef} style={{
-        position:'fixed', pointerEvents:'none', zIndex:10005,
+        position:'fixed', pointerEvents:'none', zIndex:100000,
         width:'18px', height:'18px', borderRadius:'50%',
         background:'radial-gradient(circle at 35% 35%, #fff 0%, #CC1111 40%, #880000 100%)',
         boxShadow:'0 0 10px rgba(204,17,17,.9), 0 0 24px rgba(204,17,17,.5), 0 0 50px rgba(136,0,0,.3)',
-        transition:'transform .18s cubic-bezier(.34,1.56,.64,1), opacity .2s',
+        transition:'transform .08s cubic-bezier(.34,1.56,.64,1), opacity .2s',
       }}>
         
         <div style={{
@@ -194,7 +196,8 @@ function Cursor() {
 }
 
 export default function App() {
-  const [cinDone,  setCinDone]  = useState(false);
+  // Skip intro for returning visitors; set flag on first completion
+  const [cinDone,  setCinDone]  = useState(() => !!localStorage.getItem('ns_intro_seen'));
   const [activeTab,setActiveTab]= useState('Home');
   const [mobile,   setMobile]   = useState(window.innerWidth<=768);
   const [wipeOn,   setWipeOn]   = useState(false);
@@ -202,7 +205,6 @@ export default function App() {
   const [page,     setPage]     = useState(null);
   const [theme,    setTheme]    = useState(()=>localStorage.getItem('ns-theme')||'dark');
   const [eventsData,setEventsData]=useState(fallbackEvents);
-  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname === '/admin';
   
   useEffect(()=>{
     document.documentElement.setAttribute('data-theme',theme);
@@ -306,8 +308,6 @@ export default function App() {
     return()=>{obs.disconnect();window.removeEventListener('mousemove',onMove);};
   },[cinDone,page]);
 
-  
-  useScrollProgress();
   useNsReveal([cinDone, page]);
   useHeroParallax();
   useNavScrollTint();
@@ -389,108 +389,71 @@ export default function App() {
   const nh=mobile?MNH:DNH;
   const cur=page?.activityKey?activityPages[page.activityKey]:null;
 
+  
   return (
     <>
-      
-      {!cinDone&&<CinematicOpening theme={theme} onDone={()=>setCinDone(true)}/>}
+      {/* Move Chatbot to the very top to bypass all other logic */}
+      <Chatbot /> 
 
-      {cinDone&&<div id="scroll-progress"/>}
+      {!cinDone && <CinematicOpening theme={theme} onDone={() => {
+        localStorage.setItem('ns_intro_seen', '1');
+        setCinDone(true);
+      }}/>}
+
+      {cinDone && <ScrollProgress />}
       <Cursor/>
       <Wipe on={wipeOn} ph={wipePh}/>
 
-      
-      {cinDone&&<AmbientOrbs theme={theme}/>}
+      {cinDone && <AmbientOrbs theme={theme}/>}
+      {cinDone && <GeometricGridBackground theme={theme} />}
+      {cinDone && <ParticleBackground theme={theme}/>}
+      {cinDone && <Navbar activeTab={activeTab} onTabChange={onTab} onToggleTheme={toggleTheme} theme={theme} onApply={openApply} onJoin={openJoin}/>}
 
-      {cinDone&&<GeometricGridBackground theme={theme} />}
-      {cinDone&&<ParticleBackground theme={theme}/>}
-      {cinDone&&<Navbar activeTab={activeTab} onTabChange={onTab} onToggleTheme={toggleTheme} theme={theme}/>}
-
-      <main style={{paddingTop:nh,position:'relative',zIndex:1}}>
-        {isAdminRoute && (
-          <PageIn k="pg-admin">
-            <AdminPage/>
-          </PageIn>
-        )}
-        {!isAdminRoute && (
-          <>
-        
-        {page?.type==='section'&&page.section==='Activities'&&(
-          <PageIn k="pg-activities">
-            <ActivitiesPage onNavigate={onNavigate} onBack={onBackHome}/>
-          </PageIn>
-        )}
-        {page?.type==='section'&&page.section==='Events'&&(
-          <PageIn k="pg-events">
-            <EventsPage onBack={onBackHome} onEventClick={onKSSClick} events={eventsData}/>
-          </PageIn>
-        )}
-        {page?.type==='section'&&page.section==='About'&&(
-          <PageIn k="pg-about">
-            <AboutPage onBack={onBackHome}/>
-          </PageIn>
-        )}
-        {page?.type==='section'&&page.section==='Team'&&(
-          <PageIn k="pg-team">
-            <TeamPage onBack={onBackHome} onApply={openApply}/>
-          </PageIn>
-        )}
-        
-        {page?.type==='activity'&&cur&&(
-          <PageIn k={`a-${page.activityKey}`}>
-            <ActivityDetailPage activity={cur} onBack={()=>nav(()=>setPage({type:'section',section:'Activities'}))} onSelectEvent={onEvent}/>
-          </PageIn>
-        )}
-        {page?.type==='event'&&page.event&&cur&&(
-          <PageIn k={`e-${page.event?.id}`}>
-            {(() => {
-              
-              let displayEvent = page.event;
-              const isKssEvent = page.event.id === 1 || page.event.id === 'kss-153' || String(page.event.shortName || '').toLowerCase().includes('kss');
-              if (page.activityKey === 'Insight Session' && isKssEvent) {
-                
-                displayEvent = cur.conductedEvents?.find(e => e.id === 'kss-153') || page.event;
-              }
-              return <EventDetailPage event={displayEvent} activityColor={cur.color} activityIcon={cur.icon} onBack={onBackAct}/>;
-            })()}
-          </PageIn>
-        )}
-        
-
-        {page?.type==='section' && page.section==='Contact' && (
-          <PageIn k="pg-contact">
-            <ContactPage onBack={onBackHome}/>
-          </PageIn>
-        )}
-        {page?.type==='apply' && (
-          <PageIn k="pg-apply">
-            <RecruitmentPage onBack={onBackHome}/>
-          </PageIn>
-        )}
-        {page?.type==='join' && (
-          <PageIn k="pg-join">
-            <MembershipPage onBack={onBackHome}/>
-          </PageIn>
-        )}
-        {!page&&cinDone&&(
-          <PageIn k="main">
-            <HeroSection onTabChange={onTab} onApply={openApply} onJoin={openJoin} theme={theme}/>
-            <SectionDivider/>
-            <ActivitiesSection onNavigate={onNavigate}/>
-            <SectionDivider/>
-            <EventsSection onEventClick={onKSSClick} events={eventsData}/>
-            <SectionDivider/>
-            <AboutSection/>
-            <SectionDivider/>
-            <TeamSection onApply={openApply}/>
-            <Footer/>
-          </PageIn>
-        )}
-          </>
+      <main style={{paddingTop:nh, position:'relative', zIndex:1}}>
+        {/* If page is null, show home sections. Otherwise show the specific page. */}
+        {page ? (
+           <PageIn k={page.type + (page.section || page.activityKey)}>
+             {page.section === 'Activities' && <ActivitiesPage onNavigate={onNavigate} onBack={onBackHome}/>}
+             {page.section === 'Events' && <EventsPage onBack={onBackHome} onEventClick={onKSSClick} events={eventsData}/>}
+             {page.section === 'About' && <AboutPage onBack={onBackHome}/>}
+             {page.section === 'Team' && <TeamPage onBack={onBackHome} onApply={openApply}/>}
+             {page.section === 'Contact' && <ContactPage onBack={onBackHome}/>}
+             {page.type === 'activity' && cur && <ActivityDetailPage activity={cur} onBack={onBackMain} onSelectEvent={onEvent}/>}
+             {page.type === 'apply' && <RecruitmentPage onBack={onBackHome}/>}
+             {page.type === 'join' && <MembershipPage onBack={onBackHome}/>}
+             {/* 404 fallback for unknown page types */}
+             {page.type && !['section','activity','event','apply','join'].includes(page.type) && <NotFoundPage onGoHome={onBackHome}/>}
+           </PageIn>
+        ) : (
+          cinDone && (
+            <PageIn k="main">
+              <HeroSection onTabChange={onTab} onApply={openApply} onJoin={openJoin} theme={theme}/>
+              <SectionDivider/>
+              <ActivitiesSection onNavigate={onNavigate}/>
+              <SectionDivider/>
+              <EventsSection onEventClick={onKSSClick} events={eventsData}/>
+              <SectionDivider/>
+              <AboutSection/>
+              <SectionDivider/>
+              <TeamSection onApply={openApply}/>
+              <Footer/>
+            </PageIn>
+          )
         )}
       </main>
 
-      {cinDone&&<button id="back-to-top" aria-label="Back to top">↑</button>}
+      {cinDone && <button id="back-to-top" aria-label="Back to top">↑</button>}
     </>
   );
 }
 
+function NotFoundPage({ onGoHome }) {
+  return (
+    <div style={{minHeight:'80vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center',padding:'40px 24px'}}>
+      <div style={{fontFamily:"'Orbitron',monospace",fontSize:'clamp(5rem,18vw,10rem)',fontWeight:900,background:'linear-gradient(135deg,#CC1111 0%,#EE2222 50%,#FF4444 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',lineHeight:1,marginBottom:'16px'}}>404</div>
+      <h2 style={{fontFamily:"'Orbitron',monospace",fontSize:'clamp(1rem,3vw,1.5rem)',fontWeight:700,color:'var(--t1)',marginBottom:'12px'}}>Page Not Found</h2>
+      <p style={{color:'var(--t2)',fontSize:'1rem',maxWidth:'380px',lineHeight:1.7,marginBottom:'32px'}}>The page you&apos;re looking for doesn&apos;t exist or may have moved.</p>
+      <button className="btn btn-primary" onClick={onGoHome} style={{cursor:'pointer'}}>← Go Home</button>
+    </div>
+  );
+}

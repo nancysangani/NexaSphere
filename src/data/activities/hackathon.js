@@ -1,19 +1,19 @@
-// â”€â”€ Hackathon Activity Data â”€â”€
+// Hackathon Activity Data
 // To add a new conducted event: copy a block from conductedEvents and fill in details.
 // To add an upcoming event: copy a block from upcomingEvents and fill in details.
 
 const hackathon = {
   id: 'hackathon',
-  icon: 'âš¡',
+  icon: 'Zap',
   title: 'Hackathon',
   tagline: 'Build. Break. Repeat.',
   color: '#CC1111',
   gradient: 'linear-gradient(135deg, #CC1111, #880000)',
   description:
-    'Intense coding marathons where teams race against the clock to build innovative solutions. From ideation to deployment in hours â€” this is where legends are born.',
+    'Intense coding marathons where teams race against the clock to build innovative solutions. From ideation to deployment in hours - this is where legends are born.',
 
   conductedEvents: [
-    // â”€â”€ Paste completed hackathon events here â”€â”€
+    // Paste completed hackathon events here
     // {
     //   id: 'hackathon-1',
     //   name: 'Hackathon 1.0',

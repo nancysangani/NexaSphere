@@ -4,6 +4,7 @@ import { useEventListener } from '../hooks/useEventListener';
 import { EVENTS } from '../services/eventEmitter';
 import { ActivityEventForm } from '../components/ActivityEventForm';
 import { Skeleton } from '../components/Skeleton';
+import { AdminIcon } from '../components/AdminIcon';
 
 const ACTIVITIES = [
   { key: 'hackathon', name: 'Hackathon' },
@@ -102,8 +103,9 @@ export function ActivityEventsManager() {
                   className="btn-icon danger"
                   onClick={() => handleDelete(event.id)}
                   disabled={deleting === event.id}
+                  aria-label="Delete activity event"
                 >
-                  {deleting === event.id ? '...' : '🗑️'}
+                  {deleting === event.id ? '...' : <AdminIcon name="Trash" size={16} />}
                 </button>
               </div>
             </div>

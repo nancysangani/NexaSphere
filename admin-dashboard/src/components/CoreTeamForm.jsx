@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../services/api';
+import { AdminIcon } from './AdminIcon';
 
 const ROLES = ['President', 'Vice President', 'Secretary', 'Technical Lead', 'Design Lead', 'Marketing Lead', 'Member'];
 const empty = { name: '', role: 'Member', branch: '', year: '', email: '', linkedin: '', photo: '' };
@@ -30,7 +31,7 @@ export function CoreTeamForm({ onClose }) {
       <div className="modal">
         <div className="modal-header">
           <h3>Add Core Team Member</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"><AdminIcon name="X" size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="form">
           <div className="form-row">

@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { AdminIcon } from './AdminIcon';
 
 const links = [
-  { to: '/dashboard', label: '🏠 Dashboard' },
-  { to: '/dashboard/events', label: '📅 Events' },
-  { to: '/dashboard/activity-events', label: '🎯 Activity Events' },
-  { to: '/dashboard/core-team', label: '👥 Core Team' },
+  { to: '/dashboard', label: 'Dashboard', icon: 'Dashboard' },
+  { to: '/dashboard/events', label: 'Events', icon: 'Calendar' },
+  { to: '/dashboard/activity-events', label: 'Activity Events', icon: 'Target' },
+  { to: '/dashboard/core-team', label: 'Core Team', icon: 'Users' },
 ];
 
 export function Sidebar() {
@@ -18,13 +19,14 @@ export function Sidebar() {
         <span>NexaSphere Admin</span>
       </div>
       <nav className="sidebar-nav">
-        {links.map(({ to, label }) => (
+        {links.map(({ to, label, icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/dashboard'}
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
           >
+            <AdminIcon name={icon} size={16} />
             {label}
           </NavLink>
         ))}

@@ -5,6 +5,7 @@ import { useEventListener } from '../hooks/useEventListener';
 import { EVENTS } from '../services/eventEmitter';
 import { EventForm } from '../components/EventForm';
 import { Skeleton } from '../components/Skeleton';
+import { AdminIcon } from '../components/AdminIcon';
 
 const STATUS_COLORS = { upcoming: '#3b82f6', ongoing: '#22c55e', completed: '#6b7280', cancelled: '#ef4444' };
 
@@ -64,7 +65,7 @@ export function EventsManager() {
           {events.map(event => (
             <div key={event.id} className="list-item">
               <div className="list-item-left">
-                <span className="item-icon">{event.icon || '📅'}</span>
+                <span className="item-icon"><AdminIcon name={event.icon || 'Calendar'} size={22} /></span>
                 <div>
                   <div className="item-name">{event.name}</div>
                   <div className="item-meta">{event.dateText} {event.location && `· ${event.location}`}</div>
@@ -74,13 +75,14 @@ export function EventsManager() {
                 <span className="status-badge" style={{ background: STATUS_COLORS[event.status] || '#6b7280' }}>
                   {event.status}
                 </span>
-                <button className="btn-icon" onClick={() => openEdit(event)}>✏️</button>
+                <button className="btn-icon" onClick={() => openEdit(event)} aria-label="Edit event"><AdminIcon name="Pencil" size={16} /></button>
                 <button
                   className="btn-icon danger"
                   onClick={() => handleDelete(event.id)}
                   disabled={deleting === event.id}
+                  aria-label="Delete event"
                 >
-                  {deleting === event.id ? '...' : '🗑️'}
+                  {deleting === event.id ? '...' : <AdminIcon name="Trash" size={16} />}
                 </button>
               </div>
             </div>

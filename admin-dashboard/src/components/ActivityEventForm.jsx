@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../services/api';
+import { AdminIcon } from './AdminIcon';
 
 const empty = { name: '', date: '', description: '', participants: '', result: '' };
 
@@ -29,7 +30,7 @@ export function ActivityEventForm({ activityKey, onClose }) {
       <div className="modal">
         <div className="modal-header">
           <h3>Add Activity Event</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"><AdminIcon name="X" size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="form">
           <div className="form-row">

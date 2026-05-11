@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { IconArrowLeft, IconArrowRight, IconBolt, IconShieldCheck, IconUsers } from '../../shared/Icons';
+import { DynamicIcon, IconArrowLeft, IconArrowRight, IconBolt, IconShieldCheck, IconUsers } from '../../shared/Icons';
+import Footer from '../../shared/Footer';
 
 const WHATSAPP_COMMUNITY = 'https://chat.whatsapp.com/Jjc5cuUKENu0RC1vWSEs20';
 const LINKEDIN_PAGE      = 'https://www.linkedin.com/showcase/glbajaj-nexasphere/';
@@ -251,6 +252,7 @@ export default function MembershipPage({ onBack }) {
       
       const email = form.collegeEmail.trim();
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) missing.push('collegeEmail');
+      if (email && !email.endsWith('@glbajajgroup.org')) missing.push('collegeEmail');
     }
     if (step === 2) {
       if (form.groups.length === 0) missing.push('groups');
@@ -351,7 +353,7 @@ export default function MembershipPage({ onBack }) {
             padding: '14px 18px',
             display: 'flex', alignItems: 'flex-start', gap: 12,
           }}>
-            <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>âš ï¸</span>
+            <span style={{ display: 'flex', color: '#ffb400', flexShrink: 0 }}><DynamicIcon name="AlertTriangle" size={22} /></span>
             <div style={{ lineHeight: 1.75 }}>
               <div style={{ fontFamily: 'Orbitron,monospace', fontSize: '.75rem', letterSpacing: '.1em', color: 'var(--t1)', marginBottom: 6, textTransform: 'uppercase' }}>
                 Important — Read Before Proceeding
@@ -396,7 +398,7 @@ export default function MembershipPage({ onBack }) {
                 borderRadius: 'var(--r2)',
                 padding: '10px 14px',
               }}>
-                <span style={{ fontSize: '1.2rem' }}>{d.icon}</span>
+                <span style={{ display: 'flex', color: 'var(--c1)' }}><DynamicIcon name={d.icon} size={20} /></span>
                 <span style={{ fontSize: '.88rem', color: 'var(--t2)', fontFamily: 'Rajdhani,sans-serif', fontWeight: 600 }}>{d.label}</span>
               </div>
             ))}
@@ -473,6 +475,11 @@ export default function MembershipPage({ onBack }) {
               type="email"
               maxLength={100}
             />
+            {form.collegeEmail && !form.collegeEmail.endsWith('@glbajajgroup.org') && (
+              <div style={{ color: '#ef4444', fontSize: '.82rem', marginTop: 4 }}>
+                Please use your official GL Bajaj email (@glbajajgroup.org)
+              </div>
+            )}
           </Field>
 
           <Field label="University Roll Number" required>
@@ -750,13 +757,16 @@ export default function MembershipPage({ onBack }) {
                 background:'rgba(255,45,120,.08)', border:'1px solid rgba(255,45,120,.22)',
                 borderRadius:'var(--r3)', padding:'20px 22px', textAlign:'center',
               }}>
-                <div style={{ fontSize:'1.4rem', marginBottom:10 }}>âš ï¸</div>
+                <div style={{ display:'flex', justifyContent:'center', color:'#ff2d78', marginBottom:10 }}><DynamicIcon name="AlertTriangle" size={22} /></div>
                 <div style={{ color:'var(--t1)', fontSize:'.98rem', fontWeight:600, marginBottom:16 }}>
                   Membership Form Already Submitted
                 </div>
                 <div style={{ color:'var(--t2)', fontSize:'.88rem', lineHeight:1.6, marginBottom:24 }}>
                   A membership form has already been submitted from this device.<br/>
-                  If you believe this is an error, please <strong>contact NexaSphere team directly</strong>.
+                  If you need to update your application, please contact us at{' '}
+                  <a href="mailto:nexasphere@glbajajgroup.org" style={{ color:'var(--c1)', fontWeight:600 }}>
+                    nexasphere@glbajajgroup.org
+                  </a>
                 </div>
 
                 <div style={{ display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }}>
@@ -764,7 +774,7 @@ export default function MembershipPage({ onBack }) {
                     href={WHATSAPP_COMMUNITY}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn btn-primary"
+                    className="btn btn-whatsapp"
                     style={{ flex:1, minWidth:0, justifyContent:'center' }}
                   >
                     Join WhatsApp Community
@@ -781,7 +791,7 @@ export default function MembershipPage({ onBack }) {
                 </div>
               </div>
             ) : done ? (
-              /* â”€â”€ Success screen â”€â”€ */
+              /* ── Success screen ── */
               <div style={{ display:'grid', gap:18 }}>
                 <div style={{
                   background:'linear-gradient(135deg,rgba(123,111,255,.08),rgba(0,212,255,.06))',
@@ -894,7 +904,7 @@ export default function MembershipPage({ onBack }) {
                         submit();
                       }}
                     >
-                      {busy ? 'Submittingâ€¦' : 'Submit Membership Form'}
+                      {busy ? 'Submitting…' : 'Submit Membership Form'}
                     </button>
                   )}
                 </div>
@@ -905,12 +915,12 @@ export default function MembershipPage({ onBack }) {
 
         <div className="pop-in" style={{
           marginTop:18, textAlign:'center',
-          color:'var(--t3)', fontFamily:'Space Mono,monospace',
-          fontSize:'.62rem', letterSpacing:'.18em',
-          textTransform:'uppercase', opacity:.9,
+          color:'var(--t3)', fontSize:'.82rem',
         }}>
-          Powered by NexaSphere
+          Need help? Contact NexaSphere team via WhatsApp or email nexasphere@glbajajgroup.org
         </div>
+
+        <Footer />
       </div>
     </div>
   );

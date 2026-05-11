@@ -74,8 +74,6 @@ export function BannerOrbs({ color = 'rgba(0,212,255,.06)' }) {
     </>
   );
 }
-
-/* ── useScrollProgress ───────────────────────────────── */
 export function useScrollProgress() {
   useEffect(() => {
     const bar = document.getElementById('scroll-progress');

@@ -17,7 +17,7 @@
 | Resource               | Link                                                                           |
 | ---------------------- | ------------------------------------------------------------------------------ |
 | 🌐 **Live Website**    | [https://nexa-sphere-sigma.vercel.app/](https://nexa-sphere-sigma.vercel.app/)|
-| 🔑 **Admin Dashboard** | [https://admin-nexasphere.vercel.app](https://admin-nexasphere.vercel.app)     |
+| 🔑 **Admin Dashboard** | [https://admin-dashboard-navy-pi-22.vercel.app/](https://admin-dashboard-navy-pi-22.vercel.app/)     |
 | 📧 **Contact**         | nexasphere@glbajajgroup.org                                                    |
 | 💼 **Institution**     | GL Bajaj Group of Institutions, Mathura                                        |
 
@@ -456,7 +456,7 @@ railway up
 ```
 ADMIN_EMAIL=nexasphere@glbajajgroup.org
 ADMIN_PASSWORD=Admin@123
-CORS_ORIGIN=https://nexasphere-glbajaj.vercel.app,https://admin-nexasphere.vercel.app
+CORS_ORIGIN=https://nexasphere-glbajaj.vercel.app,https://admin-dashboard-navy-pi-22.vercel.app/
 DB_URL=jdbc:postgresql://[host]:5432/railway
 DB_DRIVER=org.postgresql.Driver
 DB_USER=postgres

@@ -228,8 +228,9 @@ function MapSection() {
 
 /* ── Message form CTA ── */
 function MessageCTA() {
-  const [name, setName]     = useState('');
-  const [copied, setCopied] = useState(false);
+  const [name,    setName]    = useState('');
+  const [message, setMessage] = useState('');
+  const [copied,  setCopied]  = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(EMAIL).then(() => {
@@ -239,7 +240,9 @@ function MessageCTA() {
   };
 
   const subject = encodeURIComponent(`Hi NexaSphere${name ? ` — ${name}` : ''}`);
-  const body    = encodeURIComponent(`Hello NexaSphere Team,\n\n[Your message here]\n\nBest,\n${name || 'Your Name'}`);
+  const body    = encodeURIComponent(
+    `Hello NexaSphere Team,\n\n${message || '[Your message here]'}\n\nBest,\n${name || 'Your Name'}`
+  );
 
   return (
     <div className="pop-scale message-cta-box" style={{ maxWidth: 600, margin: '0 auto' }}>
@@ -258,8 +261,8 @@ function MessageCTA() {
         </p>
       </div>
 
-      
-      <div style={{ marginBottom: 16 }}>
+      {/* Name field */}
+      <div style={{ marginBottom: 12 }}>
         <input
           value={name}
           onChange={e => setName(e.target.value)}
@@ -269,14 +272,33 @@ function MessageCTA() {
             background: 'var(--card2)', border: '1px solid var(--bdr2)',
             borderRadius: 'var(--r2)', color: 'var(--t1)',
             fontFamily: 'Rajdhani,sans-serif', fontSize: '.95rem',
-            outline: 'none',
+            outline: 'none', boxSizing: 'border-box',
           }}
           onFocus={e => { e.target.style.borderColor = 'var(--c1b)'; e.target.style.boxShadow = 'var(--sh1)'; }}
           onBlur={e  => { e.target.style.borderColor = 'var(--bdr2)'; e.target.style.boxShadow = 'none'; }}
         />
       </div>
 
-      
+      {/* Message body field */}
+      <div style={{ marginBottom: 16 }}>
+        <textarea
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          placeholder="Your message — what would you like to tell us?"
+          rows={5}
+          style={{
+            width: '100%', padding: '12px 16px',
+            background: 'var(--card2)', border: '1px solid var(--bdr2)',
+            borderRadius: 'var(--r2)', color: 'var(--t1)',
+            fontFamily: 'Rajdhani,sans-serif', fontSize: '.95rem',
+            outline: 'none', resize: 'vertical', boxSizing: 'border-box',
+          }}
+          onFocus={e => { e.target.style.borderColor = 'var(--c1b)'; e.target.style.boxShadow = 'var(--sh1)'; }}
+          onBlur={e  => { e.target.style.borderColor = 'var(--bdr2)'; e.target.style.boxShadow = 'none'; }}
+        />
+      </div>
+
+      {/* Action buttons */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
         <a
           href={`mailto:${EMAIL}?subject=${subject}&body=${body}`}

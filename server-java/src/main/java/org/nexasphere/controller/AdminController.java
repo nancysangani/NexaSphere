@@ -1,22 +1,22 @@
 package org.nexasphere.controller;
 
-import java.time.Instant;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-
 import org.nexasphere.model.TokenSession;
 import org.nexasphere.service.AdminAuthService;
-import org.nexasphere.service.TokenService;
+import org.nexasphere.service.LoginRateLimitService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Collections;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -24,30 +24,49 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController {
 
     private final AdminAuthService adminAuthService;
-    private final TokenService tokenService;
+    private final LoginRateLimitService rateLimitService;
 
-    public AdminController(AdminAuthService adminAuthService, TokenService tokenService) {
+    public AdminController(AdminAuthService adminAuthService, LoginRateLimitService rateLimitService) {
         this.adminAuthService = adminAuthService;
-        this.tokenService = tokenService;
+        this.rateLimitService = rateLimitService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        String email = request.email().trim();
-        String password = request.password();
-
-        if (!adminAuthService.isValidCredentials(email, password)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
+        String clientIp = getClientIp(servletRequest);
+        if (!rateLimitService.tryConsume(clientIp)) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many login attempts. Please try again later.");
         }
+        TokenSession session = adminAuthService.login(request.email().trim(), request.password());
+        return new LoginResponse(session.token(), session.sessionInfo().email());
+    }
 
-        TokenSession session = tokenService.createSession(email);
-        Instant expiresAt = session.sessionInfo().expiresAt();
-        return ResponseEntity.ok(new LoginResponse(session.token(), expiresAt));
+    private String getClientIp(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null || xfHeader.isEmpty()) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0];
+    }
+
+    @PostMapping("/logout")
+    public Map<String, Boolean> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            adminAuthService.logout(token);
+        }
+        return Collections.singletonMap("ok", true);
+    }
+
+    @GetMapping("/me")
+    public Map<String, String> me() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return Collections.singletonMap("email", auth.getName());
     }
 
     @GetMapping("/ping")
-    public PingResponse ping() {
-        return new PingResponse("ok");
+    public Map<String, String> ping() {
+        return Collections.singletonMap("status", "ok");
     }
 
     public record LoginRequest(
@@ -56,9 +75,6 @@ public class AdminController {
     ) {
     }
 
-    public record LoginResponse(String token, Instant expiresAt) {
-    }
-
-    public record PingResponse(String status) {
+    public record LoginResponse(String token, String email) {
     }
 }

@@ -78,7 +78,9 @@ body {
 }
 
 .nav-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 12px;
   border-radius: var(--radius);
   color: var(--text2);
@@ -195,7 +197,7 @@ body {
   gap: 16px;
 }
 
-.stat-icon { font-size: 28px; }
+.stat-icon { display: flex; color: var(--red); }
 .stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
 .stat-label { color: var(--text2); font-size: 12px; margin-top: 4px; }
 
@@ -217,6 +219,10 @@ body {
   font-size: 13px;
   font-weight: 500;
   transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   text-align: center;
 }
 
@@ -241,7 +247,7 @@ body {
 .list-item-left { display: flex; align-items: center; gap: 12px; }
 .list-item-right { display: flex; align-items: center; gap: 8px; }
 
-.item-icon { font-size: 22px; }
+.item-icon { display: flex; color: var(--red); }
 .item-name { font-weight: 500; font-size: 14px; }
 .item-meta { color: var(--text2); font-size: 12px; margin-top: 2px; }
 
@@ -352,7 +358,10 @@ body {
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 4px;
-  font-size: 16px;
+  color: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.15s;
   line-height: 1;
 }
@@ -450,7 +459,9 @@ body {
   border: none;
   color: var(--text2);
   cursor: pointer;
-  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
   padding: 2px 6px;
   border-radius: 4px;

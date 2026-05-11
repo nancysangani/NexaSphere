@@ -1,23 +1,25 @@
 import { useEffect } from 'react';
 import { BannerOrbs } from '../../shared/MotionLayer';
+import Footer from '../../shared/Footer';
+import { DynamicIcon } from '../../shared/Icons';
 
 const WHATSAPP = 'https://chat.whatsapp.com/Jjc5cuUKENu0RC1vWSEs20';
 const LINKEDIN = 'https://www.linkedin.com/showcase/glbajaj-nexasphere/';
 const NEXASPHERE_EMAIL = 'nexasphere@glbajajgroup.org';
 
 const values = [
-  { label: 'Innovation', icon: '💡', desc: 'Pushing boundaries and exploring what\'s possible.' },
-  { label: 'Collaboration', icon: '🤝', desc: 'Building together is always better than building alone.' },
-  { label: 'Learning', icon: '📚', desc: 'Every session, event, and conversation is a lesson.' },
-  { label: 'Growth', icon: '🌱', desc: 'Personal and professional development at every step.' },
-  { label: 'Community', icon: '🌐', desc: 'A tight-knit circle of people who lift each other up.' },
-  { label: 'Technology', icon: '⚡', desc: 'Technology is our language and our playground.' },
+  { label: 'Innovation', icon: 'Lightbulb', desc: 'Pushing boundaries and exploring what\'s possible.' },
+  { label: 'Collaboration', icon: 'Handshake', desc: 'Building together is always better than building alone.' },
+  { label: 'Learning', icon: 'BookOpen', desc: 'Every session, event, and conversation is a lesson.' },
+  { label: 'Growth', icon: 'Sprout', desc: 'Personal and professional development at every step.' },
+  { label: 'Community', icon: 'Globe', desc: 'A tight-knit circle of people who lift each other up.' },
+  { label: 'Technology', icon: 'Zap', desc: 'Technology is our language and our playground.' },
 ];
 
 const milestones = [
-  { year: '2026', label: 'Founded', desc: 'NexaSphere was architected and formed at GL Bajaj Group of Institutions, Mathura.', icon: '🚀' },
-  { year: 'Mar 2026', label: 'KSS #153', desc: 'Inaugural Knowledge Sharing Session on Impact of AI — 3 presenters, 5 volunteers, full house.', icon: '🧠' },
-  { year: 'Coming Soon', label: 'Expanding', desc: 'Hackathons, workshops, open-source days and more — all in the pipeline.', icon: '🔭' },
+  { year: '2026', label: 'Founded', desc: 'NexaSphere was architected and formed at GL Bajaj Group of Institutions, Mathura.', icon: 'Rocket' },
+  { year: 'Mar 2026', label: 'KSS #153', desc: 'Inaugural Knowledge Sharing Session on Impact of AI — 3 presenters, 5 volunteers, full house.', icon: 'Brain' },
+  { year: 'Coming Soon', label: 'Expanding', desc: 'Hackathons, workshops, open-source days and more — all in the pipeline.', icon: 'Telescope' },
 ];
 
 export default function AboutPage({ onBack }) {
@@ -91,17 +93,17 @@ export default function AboutPage({ onBack }) {
               <div className="corner-tl" /><div className="corner-br" />
               <div style={{ fontFamily: "'Orbitron', monospace", fontSize: '.7rem', color: 'var(--c1)', fontWeight: 700, letterSpacing: '.1em', marginBottom: '20px', textTransform: 'uppercase' }}>By the Numbers</div>
               {[
-                { label: 'Core Team Members', value: '12', icon: '👥' },
-                { label: 'Activity Tracks', value: '7', icon: '⚡' },
-                { label: 'Events Conducted', value: '1', icon: '🎯' },
-                { label: 'Ideas in Pipeline', value: '∞', icon: '💡' },
+                { label: 'Core Team Members', value: '12', icon: 'Users' },
+                { label: 'Activity Tracks', value: '7', icon: 'Zap' },
+                { label: 'Events Conducted', value: '1', icon: 'Target' },
+                { label: 'Ideas in Pipeline', value: '∞', icon: 'Lightbulb' },
               ].map(s => (
                 <div key={s.label} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '12px 0', borderBottom: '1px solid var(--bdr)',
-                }}>
+                  }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--t2)', fontSize: '.88rem' }}>
-                    <span>{s.icon}</span> {s.label}
+                    <DynamicIcon name={s.icon} size={16} /> {s.label}
                   </span>
                   <span style={{ fontFamily: "'Orbitron', monospace", fontWeight: 900, color: 'var(--c1)', fontSize: '1.1rem' }}>{s.value}</span>
                 </div>
@@ -126,7 +128,9 @@ export default function AboutPage({ onBack }) {
                   animation: `ag 7s ease-in-out ${-i * 1.4}s infinite`,
                 }}
               >
-                <div className="ns-value-icon" style={{ fontSize: '1.8rem', marginBottom: '10px', display:'inline-block' }}>{v.icon}</div>
+                <div className="ns-value-icon" style={{ marginBottom: '10px', display:'inline-flex', color: 'var(--c1)' }}>
+                  <DynamicIcon name={v.icon} size={30} />
+                </div>
                 <div style={{ fontFamily: "'Orbitron', monospace", fontSize: '.72rem', fontWeight: 700, color: 'var(--c1)', marginBottom: '6px', letterSpacing: '.06em', textTransform: 'uppercase' }}>{v.label}</div>
                 <p style={{ fontSize: '.82rem', color: 'var(--t2)', lineHeight: 1.65 }}>{v.desc}</p>
               </div>
@@ -145,7 +149,7 @@ export default function AboutPage({ onBack }) {
                 <div className="timeline-dot" style={i === 2 ? { background: 'transparent', border: '2px solid var(--c1)', animation: 'pulse 2s infinite' } : {}} />
                 <div className={`timeline-card fired ${i % 2 === 0 ? 'pop-left' : 'pop-right'}`} style={{ animationDelay: `${i * .12}s` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '1.4rem' }}>{m.icon}</span>
+                    <span style={{ display: 'flex', color: 'var(--c1)' }}><DynamicIcon name={m.icon} size={22} /></span>
                     <div>
                       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '.62rem', color: 'var(--t3)', letterSpacing: '.15em' }}>{m.year}</div>
                       <div className="timeline-event-name">{m.label}</div>
@@ -164,12 +168,14 @@ export default function AboutPage({ onBack }) {
             Connect With Us
           </div>
           <div className="about-actions">
-            <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="btn btn-whatsapp">💬 Join WhatsApp</a>
-            <a href={LINKEDIN} target="_blank" rel="noopener noreferrer" className="btn btn-linkedin">🔗 LinkedIn</a>
-            <a href={`mailto:${NEXASPHERE_EMAIL}`} className="btn btn-outline">📧 Email Us</a>
+            <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="btn btn-whatsapp"><DynamicIcon name="MessageSquare" size={16} style={{ marginRight: '8px' }} /> Join WhatsApp</a>
+            <a href={LINKEDIN} target="_blank" rel="noopener noreferrer" className="btn btn-linkedin"><DynamicIcon name="ExternalLink" size={16} style={{ marginRight: '8px' }} /> LinkedIn</a>
+            <a href={`mailto:${NEXASPHERE_EMAIL}`} className="btn btn-outline"><DynamicIcon name="Mail" size={16} style={{ marginRight: '8px' }} /> Email Us</a>
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

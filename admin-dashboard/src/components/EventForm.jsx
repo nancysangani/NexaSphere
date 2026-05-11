@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { api } from '../services/api';
+import { AdminIcon } from './AdminIcon';
 
 const STATUSES = ['upcoming', 'ongoing', 'completed', 'cancelled'];
 
-const empty = { name: '', dateText: '', description: '', icon: '📅', status: 'upcoming', location: '', registrationLink: '' };
+const empty = { name: '', dateText: '', description: '', icon: 'Calendar', status: 'upcoming', location: '', registrationLink: '' };
 
 export function EventForm({ event, onClose }) {
   const [form, setForm] = useState(event ? { ...event } : empty);
@@ -35,7 +36,7 @@ export function EventForm({ event, onClose }) {
       <div className="modal">
         <div className="modal-header">
           <h3>{event?.id ? 'Edit Event' : 'New Event'}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"><AdminIcon name="X" size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="form">
           <div className="form-row">
@@ -48,7 +49,7 @@ export function EventForm({ event, onClose }) {
           </div>
           <div className="form-row">
             <label>Icon</label>
-            <input value={form.icon} onChange={e => set('icon', e.target.value)} placeholder="Emoji" />
+            <input value={form.icon} onChange={e => set('icon', e.target.value)} placeholder="Icon name, e.g. Brain or Calendar" />
           </div>
           <div className="form-row">
             <label>Status</label>

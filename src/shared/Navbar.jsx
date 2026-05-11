@@ -32,7 +32,7 @@ function ThemeToggle({ theme, onToggle }) {
   );
 }
 
-export default function Navbar({ activeTab, onTabChange, onToggleTheme, theme }) {
+export default function Navbar({ activeTab, onTabChange, onToggleTheme, theme, onApply, onJoin }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobile,   setMobile]   = useState(window.innerWidth <= 768);
 
@@ -66,6 +66,8 @@ export default function Navbar({ activeTab, onTabChange, onToggleTheme, theme })
             {t}
           </button>
         ))}
+        <button className="ns-mobile-tab ns-mobile-cta" onClick={onJoin} aria-label="Join as Member">Join</button>
+        <button className="ns-mobile-tab ns-mobile-cta ns-mobile-cta-apply" onClick={onApply} aria-label="Apply for Core Team">Apply</button>
       </div>
     </nav>
   );
@@ -92,6 +94,10 @@ export default function Navbar({ activeTab, onTabChange, onToggleTheme, theme })
               </li>
             ))}
           </ul>
+          <div className="ns-nav-ctas">
+            <button className="btn btn-sm btn-outline ns-nav-cta-btn" onClick={onJoin} aria-label="Join as Member">Join</button>
+            <button className="btn btn-sm btn-primary ns-nav-cta-btn" onClick={onApply} aria-label="Apply for Core Team">Apply</button>
+          </div>
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         </div>
       </div>

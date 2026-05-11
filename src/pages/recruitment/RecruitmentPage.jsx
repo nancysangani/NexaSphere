@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { IconArrowLeft, IconArrowRight, IconBolt, IconShieldCheck, IconSpark, IconUsers } from '../../shared/Icons';
+import { DynamicIcon, IconArrowLeft, IconArrowRight, IconBolt, IconShieldCheck, IconSpark, IconUsers } from '../../shared/Icons';
+import Footer from '../../shared/Footer';
 
-/* â”€â”€ Roles & Responsibilities slide-over modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Roles & Responsibilities slide-over modal ───────────────────────────── */
 function RolesGuideModal({ onClose }) {
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -11,7 +12,7 @@ function RolesGuideModal({ onClose }) {
     return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
   }, [onClose]);
 
-  const sec = (emoji, title, children) => (
+  const sec = (icon, title, children) => (
     <div style={{ marginBottom: 28 }}>
       <div style={{
         fontFamily: 'Orbitron,monospace', fontSize: '.75rem', letterSpacing: '.14em',
@@ -19,7 +20,7 @@ function RolesGuideModal({ onClose }) {
         display: 'flex', alignItems: 'center', gap: 8,
         borderBottom: '1px solid var(--bdr)', paddingBottom: 8,
       }}>
-        <span style={{ fontSize: '1rem' }}>{emoji}</span> {title}
+        <DynamicIcon name={icon} size={16} /> {title}
       </div>
       {children}
     </div>
@@ -30,8 +31,8 @@ function RolesGuideModal({ onClose }) {
       background: 'var(--card2)', border: '1px solid var(--bdr)', borderRadius: 'var(--r2)',
       padding: '14px 16px', marginBottom: 10, position: 'relative', overflow: 'hidden',
     }}>
-      <div style={{ fontFamily: 'Rajdhani,sans-serif', fontWeight: 700, fontSize: '1rem', color: 'var(--t1)', marginBottom: 4 }}>
-        {icon} {name}
+      <div style={{ fontFamily: 'Rajdhani,sans-serif', fontWeight: 700, fontSize: '1rem', color: 'var(--t1)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <DynamicIcon name={icon} size={16} /> {name}
       </div>
       {domain && <div style={{ fontSize: '.78rem', color: 'var(--c1)', marginBottom: 8, fontFamily: 'Space Mono,monospace' }}>Domain: {domain}</div>}
       <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 4 }}>
@@ -76,10 +77,10 @@ function RolesGuideModal({ onClose }) {
         }}>
           <div>
             <div style={{ fontFamily: 'Orbitron,monospace', fontSize: '.95rem', fontWeight: 700, color: 'var(--t1)' }}>
-              ðŸŽ¯ Core Team Structure & Roles
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><DynamicIcon name="Target" size={16} /> Core Team Structure & Roles</span>
             </div>
             <div style={{ fontSize: '.78rem', color: 'var(--t3)', marginTop: 4 }}>
-              NexaSphere â€” GL Bajaj Group of Institutions Â· Last Updated: 25/01/2026
+              NexaSphere — GL Bajaj Group of Institutions · Last Updated: 25/01/2026
             </div>
           </div>
           <button
@@ -91,7 +92,7 @@ function RolesGuideModal({ onClose }) {
               color: 'var(--t1)', fontSize: '1.1rem', display: 'flex',
               alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}
-          >âœ•</button>
+          ><DynamicIcon name="X" size={18} /></button>
         </div>
 
         
@@ -101,91 +102,91 @@ function RolesGuideModal({ onClose }) {
             All roles function under NexaSphere governance and college approval where applicable.
           </p>
 
-          {sec('🧠', '1. Technical Leadership Team', <>
-            {role('🔹', 'Technical Lead (Overall)', 'Cloud, AI/ML, Android, Web, Cybersecurity', [
+          {sec('Brain', '1. Technical Leadership Team', <>
+            {role('Target', 'Technical Lead (Overall)', 'Cloud, AI/ML, Android, Web, Cybersecurity', [
               'Maintain overall technical quality across all NexaSphere initiatives',
               'Guide and mentor all Domain Leads',
               'Review and approve session content, workshop plans, and project roadmaps',
               'Ensure learning remains hands-on, practical, and industry-aligned',
               'Act as the final technical decision-maker',
             ])}
-            {role('🔹', 'Domain Lead', 'One specific domain', [
+            {role('Globe', 'Domain Lead', 'One specific domain', [
               'Plan and conduct domain-specific sessions & workshops',
               'Lead hands-on projects and mentor members in their domain',
               'Stay updated with tools and trends',
               'Align activities with Technical Lead\'s roadmap',
             ])}
-            {role('☁️', 'Cloud Lead', 'Google Cloud, Firebase, DevOps, AWS', [
+            {role('Cloud', 'Cloud Lead', 'Google Cloud, Firebase, DevOps, AWS', [
               'Conduct Cloud study jams & labs',
               'Organize certification prep sessions',
               'Manage demo environments and guide cloud-based projects',
             ])}
-            {role('🤖', 'AI / ML Lead', 'AI, ML, Generative AI', [
+            {role('Brain', 'AI / ML Lead', 'AI, ML, Generative AI', [
               'Design structured AI/ML learning paths',
               'Conduct workshops with live demos',
               'Mentor AI projects and promote responsible AI practices',
             ])}
-            {role('📱', 'Android Lead', 'Android, Kotlin, Jetpack', [
+            {role('Smartphone', 'Android Lead', 'Android, Kotlin, Jetpack', [
               'Conduct Android workshops and run live coding sessions',
               'Mentor mobile app projects',
               'Support hackathons (mobile tech)',
             ])}
-            {role('🌐', 'Web / Full-Stack Lead', 'Frontend, Backend, MERN', [
+            {role('Code2', 'Web / Full-Stack Lead', 'Frontend, Backend, MERN', [
               'Deliver web workshops and guide full-stack learning paths',
               'Maintain GitHub repositories',
               'Provide technical support in events',
             ])}
-            {role('🔐', 'Cybersecurity Lead', 'Cybersecurity, Ethical Hacking', [
+            {role('ShieldCheck', 'Cybersecurity Lead', 'Cybersecurity, Ethical Hacking', [
               'Conduct security awareness sessions',
               'Organize CTF workshops',
               'Teach secure coding fundamentals',
             ])}
           </>)}
 
-          {sec('🎨', '2. Product & Creative Team', <>
-            {role('🎨', 'UI/UX Lead', null, [
+          {sec('Palette', '2. Product & Creative Team', <>
+            {role('Palette', 'UI/UX Lead', null, [
               'Conduct design workshops',
               'Promote user-centric thinking',
               'Collaborate with tech teams',
             ])}
-            {role('🧩', 'Product Management Lead', null, [
+            {role('Puzzle', 'Product Management Lead', null, [
               'Bridge tech and user needs',
               'Guide MVP development',
               'Support hackathons with product strategy',
             ])}
-            {role('🎥', 'Media & Design Lead', null, [
+            {role('Camera', 'Media & Design Lead', null, [
               'Design posters & certificates',
               'Handle photography & reels',
               'Maintain NexaSphere brand consistency',
             ])}
           </>)}
 
-          {sec('📋', '3. Operations & Management Team', <>
-            {role('📅', 'Event Management Lead', null, [
+          {sec('ClipboardList', '3. Operations & Management Team', <>
+            {role('Calendar', 'Event Management Lead', null, [
               'Plan and execute events end-to-end',
               'Manage timelines & logistics',
               'Coordinate across teams',
             ])}
-            {role('📅', 'Event Management Co-Lead', null, [
+            {role('Calendar', 'Event Management Co-Lead', null, [
               'Assist in execution and handle on-ground coordination',
               'Manage contingencies',
             ])}
-            {role('📢', 'Marketing & Social Media Lead', null, [
+            {role('Megaphone', 'Marketing & Social Media Lead', null, [
               'Promote initiatives and manage official platforms',
               'Increase reach & engagement',
             ])}
-            {role('✍️', 'Content & Documentation Lead', null, [
+            {role('PenLine', 'Content & Documentation Lead', null, [
               'Write event reports & announcements',
               'Maintain internal documentation and collect feedback',
               'Design two certificates per event (Top 3 Performer + Participation)',
               'Provide official certificates to Core Team members for events they organised',
             ])}
-            {role('🌍', 'Community & Outreach Lead', null, [
+            {role('Globe', 'Community & Outreach Lead', null, [
               'Manage onboarding and build partnerships',
               'Drive engagement initiatives',
               'Represent student voice',
             ])}
-            {role('🙋', 'Volunteers & Coordinators', null, [
+            {role('Users', 'Volunteers & Coordinators', null, [
               'Support event execution and handle registrations',
               'Assist participants and provide technical/logistical support',
             ])}
@@ -358,7 +359,9 @@ function MultiSelectChips({ options, values, onToggle }) {
               fontSize: '.82rem',
             }}
           >
-            {active ? 'âœ“ ' : ''}{opt}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              {active ? <DynamicIcon name="CheckCircle" size={13} /> : null}{opt}
+            </span>
           </button>
         );
       })}
@@ -430,7 +433,7 @@ export default function RecruitmentPage({ onBack }) {
   const steps = useMemo(() => ([
     {
       title: 'About NexaSphere',
-      subtitle: 'NexaSphere Core Team Recruitment â€” 2026',
+      subtitle: 'NexaSphere Core Team Recruitment — 2026',
       icon: <IconBolt style={{ width: 18, height: 18 }} />,
       requiredKeys: [],
       render: () => (
@@ -443,13 +446,13 @@ export default function RecruitmentPage({ onBack }) {
             padding: '14px 18px',
             display: 'flex', alignItems: 'flex-start', gap: 12,
           }}>
-            <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>âš ï¸</span>
+            <span style={{ display: 'flex', color: '#ffb400', flexShrink: 0 }}><DynamicIcon name="AlertTriangle" size={22} /></span>
             <div style={{ lineHeight: 1.75 }}>
               <div style={{
                 fontFamily: 'Orbitron,monospace', fontSize: '.75rem',
                 letterSpacing: '.1em', color: 'var(--t1)', marginBottom: 6, textTransform: 'uppercase',
               }}>
-                Important â€” Read Before Proceeding
+                Important — Read Before Proceeding
               </div>
               <div style={{ fontSize: '.9rem', color: 'var(--t2)' }}>
                 This application form can be filled <b style={{ color: 'var(--t1)' }}>only once</b> per device.
@@ -461,7 +464,7 @@ export default function RecruitmentPage({ onBack }) {
           </div>
 
           <p style={{ color: 'var(--t2)' }}>
-            We are building the Core Team for <span className="grad-text" style={{ fontWeight: 700 }}>NexaSphere</span> â€” the central tech community
+            We are building the Core Team for <span className="grad-text" style={{ fontWeight: 700 }}>NexaSphere</span> — the central tech community
             that brings together GDG On Campus activities, cloud programs, workshops, hackathons, and multi-domain learning on campus.
           </p>
           <div style={{
@@ -482,7 +485,7 @@ export default function RecruitmentPage({ onBack }) {
               marginBottom: 10,
             }}>Important notes</div>
             <ul style={{ paddingLeft: 18, display: 'grid', gap: 8, color: 'var(--t2)' }}>
-              <li>By filling this form, you are committing <b>4â€“6 hours/week</b> to NexaSphere activities.</li>
+              <li>By filling this form, you are committing <b>4–6 hours/week</b> to NexaSphere activities.</li>
               <li>Attendance support will be provided for lectures missed due to officially approved events.</li>
               <li>Short test / trial activities may be conducted to evaluate credibility, consistency, and teamwork.</li>
               <li>Only serious, responsible, and committed students should apply.</li>
@@ -499,7 +502,7 @@ export default function RecruitmentPage({ onBack }) {
                 <IconBolt style={{ width: 34, height: 34 }} />
               </div>
               <div className="activity-title">Weekly Commitment</div>
-              <div className="activity-desc">4â€“6 hours, consistent.</div>
+              <div className="activity-desc">4–6 hours, consistent.</div>
             </div>
             <div className="activity-card" style={{ cursor: 'default' }}>
               <div className="card-accent-line"/>
@@ -681,7 +684,7 @@ export default function RecruitmentPage({ onBack }) {
                   className="btn btn-outline btn-sm"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 >
-                  ðŸ”Ž View Roles & Responsibilities
+                  <DynamicIcon name="Search" size={14} /> View Roles & Responsibilities
                 </button>
               </div>
             </div>
@@ -721,7 +724,7 @@ export default function RecruitmentPage({ onBack }) {
             <TextArea
               value={form.skills}
               onChange={v => setForm(f => ({ ...f, skills: v }))}
-              placeholder={'Example:\nPython â€“ Intermediate\nJava â€“ Beginner\nHTML â€“ Advanced\nKotlin â€“ Beginner'}
+              placeholder={'Example:\nPython – Intermediate\nJava – Beginner\nHTML – Advanced\nKotlin – Beginner'}
               rows={6}
             />
           </Field>
@@ -734,7 +737,7 @@ export default function RecruitmentPage({ onBack }) {
             <TextArea
               value={form.comms}
               onChange={v => setForm(f => ({ ...f, comms: v }))}
-              placeholder={'Example:\nEnglish â€“ Basic\nHindi â€“ Fluent\nBoth â€“ Moderate'}
+              placeholder={'Example:\nEnglish – Basic\nHindi – Fluent\nBoth – Moderate'}
               rows={4}
             />
           </Field>
@@ -752,7 +755,7 @@ export default function RecruitmentPage({ onBack }) {
               <Input
                 value={form.campusExpDetails}
                 onChange={v => setForm(f => ({ ...f, campusExpDetails: v }))}
-                placeholder="e.g. Leo Club â€“ Event Coordinator"
+                placeholder="e.g. Leo Club – Event Coordinator"
                 maxLength={100}
               />
             </Field>
@@ -785,7 +788,7 @@ export default function RecruitmentPage({ onBack }) {
       requiredKeys: ['commitHours', 'attendCampus', 'assessmentOk'],
       render: () => (
         <div style={{ display: 'grid', gap: 18 }}>
-          <Field label="Are you willing to commit 4â€“6 hours per week consistently?" required>
+          <Field label="Are you willing to commit 4–6 hours per week consistently?" required>
             <PillRadio options={COMMIT_OPTIONS} value={form.commitHours} onChange={v => setForm(f => ({ ...f, commitHours: v }))} />
           </Field>
           <Field label="Are you comfortable attending meetings, events, and sessions on campus?" required>
@@ -808,7 +811,7 @@ export default function RecruitmentPage({ onBack }) {
             <TextArea
               value={form.whyJoin}
               onChange={v => setForm(f => ({ ...f, whyJoin: v }))}
-              placeholder="Share your motivation, what youâ€™ll bring, and what you want to learn."
+              placeholder="Share your motivation, what you'll bring, and what you want to learn."
               rows={6}
             />
           </Field>
@@ -834,7 +837,7 @@ export default function RecruitmentPage({ onBack }) {
             <div style={{ display: 'grid', gap: 10 }}>
               {[
                 { k: 'truth', label: 'I confirm that all details provided are true.' },
-                { k: 'time', label: 'I understand the time commitment (4â€“6 hours/week).' },
+                { k: 'time', label: 'I understand the time commitment (4–6 hours/week).' },
                 { k: 'participate', label: 'I agree to participate in test sessions and team activities.' },
                 { k: 'disagree', label: 'I do not agree to the above declaration.' },
               ].map(opt => {
@@ -879,7 +882,7 @@ export default function RecruitmentPage({ onBack }) {
                         color: active ? 'var(--c1)' : 'transparent',
                         fontSize: '.8rem',
                       }}>
-                        âœ“
+                        <DynamicIcon name="CheckCircle" size={12} />
                       </span>
                       <span style={{ fontSize: '.98rem', fontWeight: 600 }}>{opt.label}</span>
                     </div>
@@ -1108,7 +1111,7 @@ export default function RecruitmentPage({ onBack }) {
           lineHeight: 1.75,
           animationDelay: '.12s',
         }}>
-          A 7-step application process. Complete all sections carefully â€” shortlisted candidates will be contacted for the next steps.
+          A 7-step application process. Complete all sections carefully — shortlisted candidates will be contacted for the next steps.
         </p>
         <div className="apply-divider" style={{ marginTop: 34, maxWidth: 780 }}/>
       </div>
@@ -1161,7 +1164,7 @@ export default function RecruitmentPage({ onBack }) {
                     ) : null}
                   </div>
                   <div style={{ color: 'var(--t2)', fontSize: '.9rem' }}>
-                    {done ? 'Thank you for applying to NexaSphere â€“ GL Bajaj Group of Institutions' : current.subtitle}
+                    {done ? 'Thank you for applying to NexaSphere — GL Bajaj Group of Institutions' : current.subtitle}
                   </div>
                 </div>
               </div>
@@ -1207,11 +1210,14 @@ export default function RecruitmentPage({ onBack }) {
                 padding: '20px 22px',
                 textAlign: 'center',
               }}>
-                <div style={{ fontSize: '1.4rem', marginBottom: 10 }}>âš ï¸</div>
+                <div style={{ display: 'flex', justifyContent: 'center', color: '#ff2d78', marginBottom: 10 }}><DynamicIcon name="AlertTriangle" size={22} /></div>
                 <div style={{ color: 'var(--t1)', fontWeight: 700, fontSize: '1rem', marginBottom: 12 }}>Application Already Submitted</div>
                 <div style={{ color: 'var(--t2)', fontSize: '.88rem', lineHeight: 1.65, marginBottom: 24 }}>
                   An application form has already been submitted from this device.<br/>
-                  If you believe this is an error, please <strong>contact NexaSphere team directly</strong>.
+                  If you need to update your application, please contact us at{' '}
+                  <a href="mailto:nexasphere@glbajajgroup.org" style={{ color: 'var(--c1)', fontWeight: 600 }}>
+                    nexasphere@glbajajgroup.org
+                  </a>
                 </div>
 
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -1223,7 +1229,7 @@ export default function RecruitmentPage({ onBack }) {
                     style={{ flex: 1, minWidth: 0, justifyContent: 'center' }}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      Core Team Screening Room <IconArrowRight />
+                      Core Team Screening <IconArrowRight />
                     </span>
                   </a>
                   <a
@@ -1249,12 +1255,12 @@ export default function RecruitmentPage({ onBack }) {
                   textAlign: 'center',
                 }}>
                   <div className="corner-tl"/><div className="corner-br"/>
-                  <div style={{ fontSize: '2rem', marginBottom: 12 }}>âœ…</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--c1)', marginBottom: 12 }}><DynamicIcon name="CheckCircle" size={32} /></div>
                   <div style={{ fontFamily: 'Orbitron,monospace', fontSize: '1rem', color: 'var(--t1)', fontWeight: 700, marginBottom: 12 }}>
                     Application Submitted Successfully
                   </div>
                   <p style={{ color: 'var(--t2)', lineHeight: 1.8, maxWidth: 520, margin: '0 auto' }}>
-                    Thank you for applying to the NexaSphere Core Team â€” GL Bajaj Group of Institutions.
+                    Thank you for applying to the NexaSphere Core Team - GL Bajaj Group of Institutions.
                     <br/><br/>
                     Your application has been recorded. Shortlisted candidates will be contacted regarding the next steps, which may include a short assessment or trial session.
                     <br/><br/>
@@ -1357,7 +1363,7 @@ export default function RecruitmentPage({ onBack }) {
                         submit();
                       }}
                     >
-                      {busy ? 'Submittingâ€¦' : 'Submit Application'}
+                      {busy ? 'Submitting...' : 'Submit Application'}
                     </button>
                   )}
                 </div>
@@ -1379,6 +1385,8 @@ export default function RecruitmentPage({ onBack }) {
           Powered by NexaSphere
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

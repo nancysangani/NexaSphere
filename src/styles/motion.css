@@ -87,8 +87,8 @@
   from { transform: translateY(-100%); opacity:0; }
   to   { transform: translateY(0);     opacity:1; }
 }
-.ns-navbar        { animation: navSlideIn .6s cubic-bezier(.22,1,.36,1) both; }
-.ns-navbar-mobile { animation: navSlideIn .6s cubic-bezier(.22,1,.36,1) both; }
+.ns-navbar        { animation: navSlideIn .6s cubic-bezier(.22,1,.36,1) both; opacity:1 !important; transform: translateY(0) !important; }
+.ns-navbar-mobile { animation: navSlideIn .6s cubic-bezier(.22,1,.36,1) both; opacity:1 !important; transform: translateY(0) !important; }
 
 .ns-nav-tab {
   transition: color .18s, transform .2s cubic-bezier(.34,1.56,.64,1) !important;

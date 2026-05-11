@@ -4,6 +4,7 @@ import { useEventListener } from '../hooks/useEventListener';
 import { EVENTS } from '../services/eventEmitter';
 import { CoreTeamForm } from '../components/CoreTeamForm';
 import { Skeleton } from '../components/Skeleton';
+import { AdminIcon } from '../components/AdminIcon';
 
 export function CoreTeamManager() {
   const [members, setMembers] = useState([]);
@@ -68,8 +69,9 @@ export function CoreTeamManager() {
                 className="btn-icon danger"
                 onClick={() => handleRemove(member.id)}
                 disabled={deleting === member.id}
+                aria-label="Remove team member"
               >
-                {deleting === member.id ? '...' : '🗑️'}
+                {deleting === member.id ? '...' : <AdminIcon name="Trash" size={16} />}
               </button>
             </div>
           ))}

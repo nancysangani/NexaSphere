@@ -21,6 +21,29 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '512kb' }));
 
+function requestLogger(req, res, next) {
+  const start = process.hrtime.bigint();
+  const { method, path } = req;
+
+  res.on('finish', () => {
+    const duration = Number(process.hrtime.bigint() - start) / 1e6;
+    const status = res.statusCode;
+    const message = `[${method}] ${path} → ${status} (${Math.round(duration)}ms)`;
+
+    if (status >= 500) {
+      console.error(message);
+    } else if (status >= 400) {
+      console.warn(message);
+    } else {
+      console.log(message);
+    }
+  });
+
+  next();
+}
+
+app.use(requestLogger);
+
 const sessions = new Map();
 const adminEvents = new EventEmitter();
 adminEvents.on('CORE_TEAM_MEMBER_ADDED', (event) => console.log(`[EVENT] CORE_TEAM_MEMBER_ADDED:`, event));
@@ -35,7 +58,7 @@ const defaultContent = {
       date: 'March 14, 2025',
       description: 'NexaSphere\'s inaugural Knowledge Sharing Session focused on the impact of AI.',
       status: 'completed',
-      icon: '🧠',
+      icon: 'Brain',
       tags: ['AI', 'Learning', 'Community'],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -151,7 +174,7 @@ function sanitizeEvent(input = {}) {
     date: toSafeString(input.date, 80),
     description: toSafeString(input.description, 1200),
     status,
-    icon: toSafeString(input.icon || '📌', 8),
+    icon: toSafeString(input.icon || 'Pin', 32),
     tags,
   };
 }
@@ -185,7 +208,7 @@ async function listEventsStore() {
       date: r.date_text || r.date,
       description: r.description,
       status: r.status,
-      icon: r.icon || '📌',
+      icon: r.icon || 'Pin',
       tags: Array.isArray(r.tags) ? r.tags : [],
       createdAt: r.created_at,
       updatedAt: r.updated_at,
@@ -222,7 +245,7 @@ async function createEventStore(event) {
       date: row.date_text,
       description: row.description,
       status: row.status,
-      icon: row.icon || '📌',
+      icon: row.icon || 'Pin',
       tags: Array.isArray(row.tags) ? row.tags : [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -257,7 +280,7 @@ async function updateEventStore(id, patch) {
       date: row.date_text,
       description: row.description,
       status: row.status,
-      icon: row.icon || '📌',
+      icon: row.icon || 'Pin',
       tags: Array.isArray(row.tags) ? row.tags : [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -706,6 +729,12 @@ if (!process.env.VERCEL) {
       // eslint-disable-next-line no-console
       console.log(`NexaSphere server listening on http://localhost:${port}`);
     });
+  });
+} else {
+  // Vercel/Render style deployments rely on the platform to start the server.
+  app.listen(port, () => {
+    // eslint-disable-next-line no-console
+    console.log(`NexaSphere server listening on http://localhost:${port}`);
   });
 }
 

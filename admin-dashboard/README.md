@@ -33,11 +33,12 @@ Also add the admin dashboard URL to `CORS_ORIGIN` in the Java backend environmen
 - Event-driven UI — no page reloads on mutations
 - Skeleton loaders, toast notifications, confirm dialogs
 - Auto-redirect to login on session expiry
-# 👨‍💼 NexaSphere Admin Dashboard
+## 👨‍💼 NexaSphere Admin Dashboard
 
 ## Standalone React + Vite Application
 
-> **Complete admin interface** for managing NexaSphere community events, activities, and team members
+ > **Complete admin interface** for managing NexaSphere community events,
+ > activities and team members
 
 <br/>
 

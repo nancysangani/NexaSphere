@@ -15,9 +15,11 @@ import java.util.List;
 public class CoreTeamController {
 
     private final CoreTeamRepository repo;
+    private final Sanitizer sanitizer;
 
-    public CoreTeamController(CoreTeamRepository repo) {
+    public CoreTeamController(CoreTeamRepository repo, Sanitizer sanitizer) {
         this.repo = repo;
+        this.sanitizer = sanitizer;
     }
 
     @GetMapping
@@ -28,7 +30,7 @@ public class CoreTeamController {
     @PostMapping
     public ResponseEntity<CoreTeamMemberEntity> add(@Valid @RequestBody CoreTeamMemberEntity member) {
         member.setId(null);
-        member.setName(Sanitizer.clean(member.getName()));
+        member.setName(sanitizer.clean(member.getName()));
         return ResponseEntity.status(HttpStatus.CREATED).body(repo.save(member));
     }
 
