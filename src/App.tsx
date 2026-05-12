@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import './styles/themes.css';
 import './styles/globals.css';
 import './styles/animations.css';
@@ -141,7 +141,7 @@ export default function App() {
         </>
       </main>
 
-      {cinDone && <button id="back-to-top" aria-label="Back to top">↑</button>}
+      {cinDone && <button id="back-to-top" aria-label="Back to top">Γåæ</button>}
     </>
   );
 }
