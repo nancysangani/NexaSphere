@@ -1,11 +1,11 @@
 package org.nexasphere.service.crud;
 
 import org.nexasphere.model.entity.EventEntity;
-import org.nexasphere.model.events.EventCreatedEvent;
-import org.nexasphere.model.events.EventDeletedEvent;
-import org.nexasphere.model.events.EventUpdatedEvent;
+import org.nexasphere.event.EventCreatedEvent;
+import org.nexasphere.event.EventDeletedEvent;
+import org.nexasphere.event.EventUpdatedEvent;
 import org.nexasphere.repository.EventRepository;
-import org.nexasphere.service.AdminEventPublisher;
+import org.nexasphere.event.AdminEventPublisher;
 import org.nexasphere.util.Sanitizer;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class EventService {
 
     private final EventRepository repo;

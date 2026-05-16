@@ -16,8 +16,8 @@
 
 | Resource               | Link                                                                           |
 | ---------------------- | ------------------------------------------------------------------------------ |
-| 🌐 **Live Website**    | [https://nexa-sphere-sigma.vercel.app/](https://nexa-sphere-sigma.vercel.app/)|
-| 🔑 **Admin Dashboard** | [https://admin-dashboard-navy-pi-22.vercel.app/](https://admin-dashboard-navy-pi-22.vercel.app/)     |
+| 🌐 **Live Website**    | [nexasphere-glbajaj.vercel.app](https://nexasphere-glbajaj.vercel.app/) |
+| 🔑 **Admin Dashboard** | [admin-nexasphere.vercel.app](https://admin-nexasphere.vercel.app/) |
 | 📧 **Contact**         | nexasphere@glbajajgroup.org                                                    |
 | 💼 **Institution**     | GL Bajaj Group of Institutions, Mathura                                        |
 
@@ -119,7 +119,6 @@ nexasphere/
 │   ├── package.json
 │   ├── vite.config.js
 │   ├── vercel.json
-│   ├── netlify.toml
 │   └── index.html
 │
 └── README.md                        ← This File
@@ -201,7 +200,7 @@ ADMIN_EMAIL=nexasphere@glbajajgroup.org
 ADMIN_PASSWORD=Admin@123
 
 # CORS Configuration
-CORS_ORIGIN=http://localhost:5173,https://nexasphere-glbajaj.vercel.app
+CORS_ORIGIN=http://localhost:5173,https://nexasphere-glbajaj.vercel.app,https://admin-nexasphere.vercel.app
 
 # Database (Development - H2)
 DB_URL=jdbc:h2:mem:nexaspheredb
@@ -271,7 +270,7 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # CORS & Server
-CORS_ORIGIN=http://localhost:5173,https://nexasphere-glbajaj.vercel.app
+CORS_ORIGIN=http://localhost:5173,https://nexasphere-glbajaj.vercel.app,https://admin-nexasphere.vercel.app
 ```
 
 <br/>
@@ -456,11 +455,11 @@ railway up
 ```
 ADMIN_EMAIL=nexasphere@glbajajgroup.org
 ADMIN_PASSWORD=Admin@123
-CORS_ORIGIN=https://nexasphere-glbajaj.vercel.app,https://admin-dashboard-navy-pi-22.vercel.app/
-DB_URL=jdbc:postgresql://[host]:5432/railway
+CORS_ORIGIN=https://nexasphere-glbajaj.vercel.app,https://admin-nexasphere.vercel.app
+DB_URL=jdbc:postgresql://[provided-by-railway]:5432/railway
 DB_DRIVER=org.postgresql.Driver
-DB_USER=postgres
-DB_PASS=[from-dashboard]
+DB_USER=[provided-by-railway]
+DB_PASS=[provided-by-railway]
 ```
 
 <br/>
@@ -704,11 +703,11 @@ All rights reserved. Not for external distribution.
   </tr>
   <tr>
     <td>🌐 Website</td>
-    <td>https://nexa-sphere-sigma.vercel.app</td>
+    <td>nexasphere-glbajaj.vercel.app</td>
   </tr>
   <tr>
     <td>👨‍💼 Admin Panel</td>
-    <td>https://admin-nexasphere.vercel.app</td>
+    <td>admin-nexasphere.vercel.app</td>
   </tr>
 </table>
 

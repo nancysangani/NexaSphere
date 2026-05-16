@@ -242,8 +242,30 @@ server-python/
 │   ├── __init__.py
 │   └── forms.py                    ← Pydantic schemas
 │
-└── README.md
-```
+├── README.md
+└── seed_db.py                      ← Dummy Data Seeder
+
+<br/>
+
+---
+
+## 🤖 Recommendation Engine
+
+<br/>
+
+The Python backend also powers a highly intelligent **Hybrid Recommendation Engine** using `scikit-learn` (TF-IDF Vectorizer and Cosine Similarity).
+
+### How to Run:
+1. Ensure `scikit-learn`, `pandas`, `redis`, and `SQLAlchemy` are installed (already in `requirements.txt`).
+2. Run the server using `uvicorn main:app --reload`.
+3. Open `http://localhost:8000/docs` to test `GET /recommend/events/{user_id}`.
+
+### Robust Caching (Built-in Redis Fallback)
+The engine automatically attempts to connect to Redis using the `REDIS_URL` environment variable for performance optimization. 
+**If Redis is unavailable (e.g., throwing ConnectionError 10061), the system gracefully logs `Redis unavailable, using local cache` and falls back to a global in-memory Python dictionary cache.** This ensures the application never crashes during testing or deployment even without Redis installed.
+
+### Mock Data Fallback
+If you haven't configured a PostgreSQL database, the engine falls back to a realistic set of mock users (e.g., User `101` with `web, react` interests) and mock events to test the collaborative and content-based logic instantly.
 
 <br/>
 

@@ -28,22 +28,29 @@ If asked about something unrelated to tech or NexaSphere, politely steer the con
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is not configured")
-
-genai.configure(api_key=API_KEY)
-
-model = genai.GenerativeModel(
-    model_name='gemini-3.1-flash-lite-preview',
-    system_instruction=SYSTEM_PROMPT
-)
+    logger.warning("GEMINI_API_KEY is not configured. AI Chat will not work.")
+    model = None
+else:
+    genai.configure(api_key=API_KEY)
+    model = genai.GenerativeModel(
+        model_name='gemini-3.1-flash-lite-preview'
+    )
 
 app = FastAPI(title="NexaSphere AI Core")
-from routers import forms
+
+@app.get("/")
+async def root():
+    return {"message": "NexaSphere AI Core API is running. Visit /docs for Swagger API documentation."}
+
+from routers import forms, recommend
 app.include_router(forms.router)
+app.include_router(recommend.router)
 # 3. CORS Configuration
+origins = os.getenv("CORS_ORIGIN", "http://localhost:5173,http://localhost:5174,https://nexasphere-glbajaj.vercel.app,https://admin-nexasphere.vercel.app,https://nexa-sphere-sigma.vercel.app,https://admin-dashboard-navy-pi-22.vercel.app").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,8 +63,12 @@ class ChatRequest(BaseModel):
 @app.post("/ai/chat")
 async def chat_with_ai(request: ChatRequest):
     try:
-        # We send the user message to the model initialized with system instructions
-        response = model.generate_content(request.message)
+        if not model:
+            return {"reply": "Nexa-AI Core is offline. (GEMINI_API_KEY missing)"}
+            
+        # We send the user message to the model along with system instructions manually
+        full_prompt = f"System Instruction:\n{SYSTEM_PROMPT}\n\nUser Message:\n{request.message}"
+        response = model.generate_content(full_prompt)
         
         if not response.text:
             return {"reply": "Nexa-AI is processing, but returned an empty signal. Try rephrasing."}

@@ -9,13 +9,19 @@ export function DashboardHome() {
 
   useEffect(() => {
     Promise.all([
-      api.events.getAll().catch(() => []),
-      api.coreTeam.getAll().catch(() => []),
-    ]).then(([events, team]) => {
+      api.events.getAll().catch(() => ({ events: [] })),
+      api.coreTeam.getAll().catch(() => ({ members: [] })),
+      api.membership.getAll().catch(() => ({ responses: [] })),
+    ]).then(([eventsData, teamData, membershipData]) => {
+      const events = eventsData?.events ?? [];
+      const team = teamData?.members ?? teamData ?? [];
+      const applications = membershipData?.responses ?? [];
+      
       setStats({
         totalEvents: events.length,
         upcomingEvents: events.filter(e => e.status === 'upcoming').length,
         teamMembers: team.length,
+        totalApplications: applications.length
       });
       setLoading(false);
     });
@@ -38,17 +44,17 @@ export function DashboardHome() {
             </div>
           </div>
           <div className="stat-card">
-            <span className="stat-icon"><AdminIcon name="Clock" size={28} /></span>
-            <div>
-              <div className="stat-value">{stats.upcomingEvents}</div>
-              <div className="stat-label">Upcoming Events</div>
-            </div>
-          </div>
-          <div className="stat-card">
             <span className="stat-icon"><AdminIcon name="Users" size={28} /></span>
             <div>
               <div className="stat-value">{stats.teamMembers}</div>
-              <div className="stat-label">Core Team Members</div>
+              <div className="stat-label">Core Team</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <span className="stat-icon"><AdminIcon name="FileText" size={28} /></span>
+            <div>
+              <div className="stat-value">{stats.totalApplications}</div>
+              <div className="stat-label">Applications</div>
             </div>
           </div>
         </div>
@@ -56,9 +62,10 @@ export function DashboardHome() {
       <div className="quick-links">
         <h3>Quick Actions</h3>
         <div className="quick-grid">
-          <a href="/dashboard/events" className="quick-card"><AdminIcon name="Calendar" size={18} /> Manage Events</a>
-          <a href="/dashboard/activity-events" className="quick-card"><AdminIcon name="Target" size={18} /> Activity Events</a>
-          <a href="/dashboard/core-team" className="quick-card"><AdminIcon name="Users" size={18} /> Core Team</a>
+          <a href="/dashboard/events" className="quick-card"><AdminIcon name="Calendar" size={18} /> Events</a>
+          <a href="/dashboard/activity-events" className="quick-card"><AdminIcon name="Target" size={18} /> Activities</a>
+          <a href="/dashboard/core-team" className="quick-card"><AdminIcon name="Users" size={18} /> Team</a>
+          <a href="/dashboard/membership" className="quick-card"><AdminIcon name="FileText" size={18} /> Membership</a>
         </div>
       </div>
     </div>

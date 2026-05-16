@@ -21,3 +21,26 @@ Thumbs.db
 # Vite
 *.local
 .vercel
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.env
+
+# IDE / Editors
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# Test / Build
+test_output.txt
+image.png
+.pytest_cache/
+node_modules/
+dist/
+build/

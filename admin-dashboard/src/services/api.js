@@ -1,14 +1,45 @@
 import { eventEmitter, EVENTS } from './eventEmitter';
 import { auth } from './auth';
 
+// Team images are served from the main app's public dir.
+// Using URL strings avoids broken asset imports in the admin monorepo build.
+const MAIN_APP = import.meta.env.VITE_MAIN_APP_URL || 'https://nexasphere-glbajaj.vercel.app';
+const teamImg = (name) => `${MAIN_APP}/assets/${name}`;
+
+const ayushImg   = teamImg('ayush.png');
+const tanishkImg = teamImg('tanishk.png');
+const tusharImg  = teamImg('tushar.png');
+const swayamImg  = teamImg('swayam.png');
+const aryanImg   = teamImg('aryan.png');
+const vartikaImg = teamImg('vartika.png');
+const ankitImg   = teamImg('ankit.png');
+const surjeetImg = teamImg('surjeet.png');
+const asthaImg   = teamImg('astha.png');
+const aryaImg    = teamImg('arya.png');
+const roshniImg  = teamImg('roshni.png');
+const vikasImg   = teamImg('vikas.png');
+
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
+
+// Migration: If user has old 3-member seed OR fake photos, upgrade to full official 12-member seed
+try {
+  const oldTeamRaw = localStorage.getItem('ns_db_core_team');
+  if (oldTeamRaw) {
+    const oldTeam = JSON.parse(oldTeamRaw);
+    const hasFakePhotos = oldTeam.length > 0 && typeof oldTeam[0].photo === 'string' && oldTeam[0].photo.startsWith('http');
+    if (oldTeam.length === 3 || hasFakePhotos) {
+      localStorage.removeItem('ns_db_core_team');
+      localStorage.removeItem('ns_db_events');
+    }
+  }
+} catch (e) { console.error('Migration failed', e); }
 
 // Mock DB helpers with default seeding
 const getDb = (key, defaultVal) => {
   try {
     const data = localStorage.getItem(`ns_db_${key}`);
     if (data) return JSON.parse(data);
-    
+
     // Seed initial data if empty
     if (key === 'events') {
       const initialEvents = [
@@ -20,14 +51,23 @@ const getDb = (key, defaultVal) => {
     }
     if (key === 'core_team') {
       const initialTeam = [
-        { id: '1', name: 'Ayush Sharma', role: 'Organiser', branch: 'CSE (AI & ML)' },
-        { id: '2', name: 'Tanishk Bansal', role: 'Organiser', branch: 'CSE' },
-        { id: '4', name: 'Tushar Goswami', role: 'Core Team Member', branch: 'CSE (AI & ML)' }
+        { id: '1', name: 'Ayush Sharma', role: 'Organiser', branch: 'CSE (AI & ML)', photo: ayushImg },
+        { id: '2', name: 'Tanishk Bansal', role: 'Organiser', branch: 'CSE', photo: tanishkImg },
+        { id: '4', name: 'Tushar Goswami', role: 'Core Team Member', branch: 'CSE (AI & ML)', photo: tusharImg },
+        { id: '3', name: 'Swayam Dwivedi', role: 'Core Team Member', branch: 'CSE', photo: swayamImg },
+        { id: '5', name: 'Aryan Singh', role: 'Core Team Member', branch: 'CS (AI & ML)', photo: aryanImg },
+        { id: '11', name: 'Vartika Sharma', role: 'Core Team Member', branch: 'CS', photo: vartikaImg },
+        { id: '6', name: 'Arya Kaushik', role: 'Core Team Member', branch: 'CS (AI & ML)', photo: aryaImg },
+        { id: '7', name: 'Astha Shukla', role: 'Core Team Member', branch: 'CS (AI & ML)', photo: asthaImg },
+        { id: '8', name: 'Ankit Singh', role: 'Core Team Member', branch: 'CS', photo: ankitImg },
+        { id: '9', name: 'Vikas Kumar Sharma', role: 'Core Team Member', branch: 'CSE', photo: vikasImg },
+        { id: '10', name: 'Suryjeet Singh', role: 'Core Team Member', branch: 'CS', photo: surjeetImg },
+        { id: '12', name: 'Roshni Gupta', role: 'Core Team Member', branch: 'CST', photo: roshniImg }
       ];
       setDb(key, initialTeam);
       return initialTeam;
     }
-    
+
     return defaultVal;
   }
   catch { return defaultVal; }
@@ -37,7 +77,7 @@ const setDb = (key, val) => localStorage.setItem(`ns_db_${key}`, JSON.stringify(
 async function fetchWithAuth(url, options = {}) {
   // If we are using the mock token (offline mode), bypass fetch entirely
   const isOffline = auth.getToken() === 'mock-jwt-token-for-nexasphere-admin';
-  
+
   if (!isOffline) {
     try {
       const res = await fetch(`${API_BASE}${url}`, {
@@ -93,7 +133,7 @@ async function fetchWithAuth(url, options = {}) {
           resolve({ success: true });
         }
       }
-      
+
       // /api/admin/activity-events
       else if (url.startsWith('/api/admin/activity-events')) {
         const parts = url.split('/');
@@ -101,7 +141,7 @@ async function fetchWithAuth(url, options = {}) {
         const eventId = parts[4];
         let allActs = getDb('activity_events', {});
         let acts = allActs[activityKey] || [];
-        
+
         if (method === 'GET') resolve({ events: acts });
         if (method === 'POST') {
           const newEv = { ...body, id: Date.now().toString() };
@@ -132,6 +172,15 @@ async function fetchWithAuth(url, options = {}) {
           setDb('core_team', team);
           resolve({ success: true });
         }
+      }
+
+      // /api/admin/membership
+      else if (url.startsWith('/api/admin/membership')) {
+        resolve({
+          responses: [
+            { timestamp: new Date().toISOString(), fullName: 'Test User', collegeEmail: 'test@glbajaj.org', rollNumber: '21001', course: 'B.Tech', branch: 'CSE', groupsSelected: 'Web, AI', submittedAt: new Date().toISOString() }
+          ]
+        });
       }
     }, 300); // simulate slight network delay
   });
@@ -175,7 +224,19 @@ export const api = {
   },
 
   coreTeam: {
-    getAll: () => fetchWithAuth('/api/admin/core-team'),
+    getAll: async () => {
+      const result = await fetchWithAuth('/api/admin/core-team');
+      const members = result?.members ?? result ?? [];
+
+      // If Java DB is empty, seed it with the official team data
+      // (photos are bundled assets and can't live in Java, so we always merge)
+      if (members.length === 0) {
+        // Return the local seeded team so admin always sees the real team
+        const seeded = getDb('core_team', []);
+        return { members: seeded };
+      }
+      return { members };
+    },
     add: async (member) => {
       const result = await fetchWithAuth('/api/admin/core-team', { method: 'POST', body: JSON.stringify(member) });
       eventEmitter.emit(EVENTS.CORE_TEAM_MEMBER_ADDED, result);
@@ -187,5 +248,22 @@ export const api = {
       eventEmitter.emit(EVENTS.CORE_TEAM_MEMBER_REMOVED, { id });
       eventEmitter.emit(EVENTS.NOTIFY, { type: 'success', message: 'Member removed' });
     },
+  },
+
+  membership: {
+    getAll: () => {
+      const scriptUrl = import.meta.env.VITE_MEMBERSHIP_SCRIPT_URL;
+      const secret = import.meta.env.VITE_MEMBERSHIP_SECRET || 'NEXA_SECRET_2026';
+
+      if (scriptUrl) {
+        // Fetch from Google Apps Script (production)
+        return fetch(`${scriptUrl}?token=${secret}`)
+          .then(r => r.json())
+          .catch(() => ({ responses: [] }));
+      }
+
+      // No Google Script configured — return empty (no Java endpoint for this)
+      return Promise.resolve({ responses: [] });
+    }
   },
 };

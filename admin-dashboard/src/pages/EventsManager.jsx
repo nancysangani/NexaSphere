@@ -10,25 +10,26 @@ import { AdminIcon } from '../components/AdminIcon';
 const STATUS_COLORS = { upcoming: '#3b82f6', ongoing: '#22c55e', completed: '#6b7280', cancelled: '#ef4444' };
 
 export function EventsManager() {
-  const { events, setEvents, loading, error } = useEvents();
+  const { events, setEvents, loading, error, reload } = useEvents();
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [deleting, setDeleting] = useState(null);
 
-  useEventListener(EVENTS.EVENT_CREATED, useCallback((e) => {
-    setEvents(prev => [e, ...prev]);
+  // After any change, reload from server to stay in sync
+  useEventListener(EVENTS.EVENT_CREATED, useCallback(() => {
+    reload();
     setShowForm(false);
-  }, [setEvents]));
+  }, [reload]));
 
-  useEventListener(EVENTS.EVENT_UPDATED, useCallback((e) => {
-    setEvents(prev => prev.map(x => x.id === e.id ? e : x));
+  useEventListener(EVENTS.EVENT_UPDATED, useCallback(() => {
+    reload();
     setEditingEvent(null);
     setShowForm(false);
-  }, [setEvents]));
+  }, [reload]));
 
-  useEventListener(EVENTS.EVENT_DELETED, useCallback(({ id }) => {
-    setEvents(prev => prev.filter(x => x.id !== id));
-  }, [setEvents]));
+  useEventListener(EVENTS.EVENT_DELETED, useCallback(() => {
+    reload();
+  }, [reload]));
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this event?')) return;

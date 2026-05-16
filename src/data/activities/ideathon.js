@@ -7,7 +7,7 @@ const ideathon = {
   icon: 'Lightbulb',
   title: 'Ideathon',
   tagline: 'Dream. Design. Disrupt.',
-  color: '#f59e0b',
+  color: '#eab308',
   gradient: 'linear-gradient(135deg, #f59e0b, #d97706)',
   description:
     'Where creativity rules over code. Pitch your wildest ideas, challenge the status quo, and turn imagination into roadmaps for the future.',

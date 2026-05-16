@@ -2,7 +2,7 @@ package org.nexasphere.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.nexasphere.model.entity.ActivityEvent;
+import org.nexasphere.model.entity.ActivityEventEntity;
 import org.nexasphere.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,10 +15,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.hamcrest.Matchers.startsWith;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@SuppressWarnings("null")
 class ActivityEventsControllerIT {
 
     @Autowired
@@ -46,13 +46,11 @@ class ActivityEventsControllerIT {
     @Test
     void createEvent_ValidAdmin_Succeeds() throws Exception {
         String token = tokenService.createSession("admin@nexasphere.org").token();
-        
-        ActivityEvent event = new ActivityEvent();
+
+        ActivityEventEntity event = new ActivityEventEntity();
         event.setName("New KSS");
-        event.setDateText("April 2025");
-        event.setTagline("New Tagline");
+        event.setDate("April 2025");
         event.setDescription("New Description");
-        event.setStatus("upcoming");
 
         mockMvc.perform(post("/api/admin/activity-events/insight-session")
                 .header("Authorization", "Bearer " + token)
@@ -65,7 +63,7 @@ class ActivityEventsControllerIT {
 
     @Test
     void createEvent_NoAuth_Returns401OrForbidden() throws Exception {
-        ActivityEvent event = new ActivityEvent();
+        ActivityEventEntity event = new ActivityEventEntity();
         event.setName("Unauthorized Event");
 
         mockMvc.perform(post("/api/admin/activity-events/insight-session")

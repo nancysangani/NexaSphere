@@ -18,7 +18,7 @@ public class CorsConfig {
 
     private static final Logger log = LoggerFactory.getLogger(CorsConfig.class);
 
-    @Value("${CORS_ORIGIN:http://localhost:5173}")
+    @Value("${CORS_ORIGIN:http://localhost:5173,http://localhost:5174,http://localhost:5175}")
     private String corsOrigins;
 
     @Bean

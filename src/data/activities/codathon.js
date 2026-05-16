@@ -7,7 +7,7 @@ const codathon = {
   icon: 'Code2',
   title: 'Codathon',
   tagline: 'Code. Compete. Conquer.',
-  color: '#6366f1',
+  color: '#3b82f6',
   gradient: 'linear-gradient(135deg, #6366f1, #4f46e5)',
   description:
     'Competitive programming challenges that push your algorithmic thinking to the limit. Every millisecond counts, every line matters.',

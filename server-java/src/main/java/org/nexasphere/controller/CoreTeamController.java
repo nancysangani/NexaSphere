@@ -9,9 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/core-team")
+@SuppressWarnings("null")
 public class CoreTeamController {
 
     private final CoreTeamRepository repo;
@@ -23,8 +25,9 @@ public class CoreTeamController {
     }
 
     @GetMapping
-    public List<CoreTeamMemberEntity> getAll() {
-        return repo.findAll();
+    public Map<String, Object> getAll() {
+        List<CoreTeamMemberEntity> members = repo.findAll();
+        return Map.of("members", members);
     }
 
     @PostMapping

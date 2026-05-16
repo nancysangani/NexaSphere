@@ -28,7 +28,7 @@ export function ActivityEventsManager() {
     setLoading(true);
     try {
       const data = await api.activityEvents.getAll(key);
-      setEvents(data);
+      setEvents(data?.events ?? []);
     } catch {
       setEvents([]);
     } finally {

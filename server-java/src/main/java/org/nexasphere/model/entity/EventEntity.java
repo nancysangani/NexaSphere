@@ -36,7 +36,7 @@ public class EventEntity {
     private String description;
 
     @NotBlank
-    @Pattern(regexp = "upcoming|completed")
+    @Pattern(regexp = "upcoming|ongoing|completed|cancelled")
     private String status;
 
     private String icon = "📌";

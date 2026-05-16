@@ -1,17 +1,20 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { google } from 'googleapis';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import crypto from 'crypto';
+import { sendWelcomeVerificationEmail } from './services/emailService.js';
 import { ZodError } from 'zod';
+import { normalizeFormSubmission } from './validators/formSchemas.js';
+import * as adminAuthMiddleware from './middleware/adminAuthMiddleware.js';
+import analyticsRouter from './routes/analytics.js';
 
-import { adminAuthMiddleware } from './middleware/adminAuthMiddleware.js';
-import * as eventsController from './controllers/eventsController.js';
-import * as activityEventsController from './controllers/activityEventsController.js';
-import * as coreTeamController from './controllers/coreTeamController.js';
-import * as formsController from './controllers/formsController.js';
-import { eventsService } from './services/eventsService.js';
-import { coreTeamService } from './services/coreTeamService.js';
-import { HAS_SUPABASE } from './storage/supabaseClient.js';
-import { ensureContentFile } from './storage/contentFileStore.js';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const CONTENT_FILE = path.join(__dirname, 'data', 'content.json');
 
 const app = express();
 
@@ -45,6 +48,125 @@ function requestLogger(req, res, next) {
 app.use(requestLogger);
 
 const adminAuth = adminAuthMiddleware.requireAdmin;
+const adminEvents = new EventEmitter();
+adminEvents.on('CORE_TEAM_MEMBER_ADDED', (event) => console.log(`[EVENT] CORE_TEAM_MEMBER_ADDED:`, event));
+adminEvents.on('CORE_TEAM_MEMBER_REMOVED', (event) => console.log(`[EVENT] CORE_TEAM_MEMBER_REMOVED:`, event));
+
+const defaultContent = {
+  events: [
+    {
+      id: 'kss-153',
+      name: 'KSS #153 — Knowledge Sharing Session',
+      shortName: 'KSS #153',
+      date: 'March 14, 2025',
+      description: 'NexaSphere\'s inaugural Knowledge Sharing Session focused on the impact of AI.',
+      status: 'completed',
+      icon: 'Brain',
+      tags: ['AI', 'Learning', 'Community'],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ],
+  activityEvents: {},
+  coreTeam: [],
+};
+
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
+export const HAS_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_SERVICE_KEY);
+
+function requiredEnv(name) {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing environment variable: ${name}`);
+  return v;
+}
+
+function normalizePrivateKey(k) {
+  return k.includes('\\n') ? k.replace(/\\n/g, '\n') : k;
+}
+
+async function ensureContentFile() {
+  const dir = path.dirname(CONTENT_FILE);
+  await fs.mkdir(dir, { recursive: true });
+  try {
+    await fs.access(CONTENT_FILE);
+  } catch {
+    await fs.writeFile(CONTENT_FILE, JSON.stringify(defaultContent, null, 2), 'utf8');
+  }
+}
+
+async function readContent() {
+  await ensureContentFile();
+  const raw = await fs.readFile(CONTENT_FILE, 'utf8');
+  return JSON.parse(raw);
+}
+
+async function writeContent(content) {
+  await ensureContentFile();
+  await fs.writeFile(CONTENT_FILE, JSON.stringify(content, null, 2), 'utf8');
+}
+
+export async function supabaseRequest(pathname, { method = 'GET', body } = {}) {
+  if (!HAS_SUPABASE) throw new Error('Supabase is not configured');
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${pathname}`, {
+    method,
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: method === 'GET' ? 'count=exact' : 'return=representation',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase error (${res.status}): ${text}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+function toSafeString(value, max = 4000) {
+  return String(value ?? '').trim().slice(0, max);
+}
+
+function validateWhatsApp(str) {
+  const v = String(str || '').trim();
+  if (!/^\d{10}$/.test(v)) throw new Error('WhatsApp must be exactly 10 digits');
+  return v;
+}
+
+function validateSection(str) {
+  const v = String(str || '').trim().toUpperCase();
+  if (!/^[A-Z]$/.test(v)) throw new Error('Section must be a single letter (A-Z)');
+  return v;
+}
+
+function sanitizeEvent(input = {}) {
+  const status = input.status === 'upcoming' ? 'upcoming' : 'completed';
+  const tags = Array.isArray(input.tags)
+    ? input.tags.map(t => toSafeString(t, 40)).filter(Boolean).slice(0, 12)
+    : String(input.tags || '').split(',').map(t => t.trim()).filter(Boolean).slice(0, 12);
+
+  return {
+    id: toSafeString(input.id || input.shortName || input.name, 80)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || `event-${Date.now()}`,
+    name: toSafeString(input.name, 120),
+    shortName: toSafeString(input.shortName || input.name, 60),
+    date: toSafeString(input.date, 80),
+    description: toSafeString(input.description, 1200),
+    status,
+    icon: toSafeString(input.icon || 'Pin', 32),
+    tags,
+  };
+}
+
+function normalizePhone(value) {
+  return String(value || '').replace(/[^\d]/g, '');
+}
 
 app.on('CORE_TEAM_MEMBER_ADDED', (event) => console.log(`[EVENT] CORE_TEAM_MEMBER_ADDED:`, event));
 app.on('CORE_TEAM_MEMBER_REMOVED', (event) => console.log(`[EVENT] CORE_TEAM_MEMBER_REMOVED:`, event));
@@ -67,6 +189,10 @@ async function listEventsStore() {
   }
   const content = await readContent();
   return (content.events || []).map((event) => sanitizeEventRecord(event));
+}
+
+function sanitizeEventRecord(event) {
+  return event;
 }
 
 async function createEventStore(event) {
@@ -175,6 +301,10 @@ async function listActivityEventsStore(activityKey) {
   return (content.activityEvents?.[activityKey] || []).map((event) => sanitizeActivityEventRecord(event));
 }
 
+function sanitizeActivityEventRecord(event) {
+  return event;
+}
+
 async function createActivityEventStore(activityKey, event) {
   if (HAS_SUPABASE) {
     const [row] = await supabaseRequest('activity_events', {
@@ -237,6 +367,10 @@ async function listCoreTeamStore() {
   }
   const content = await readContent();
   return (content.coreTeam || []).map((member) => sanitizeCoreTeamMemberRecord(member));
+}
+
+function sanitizeCoreTeamMemberRecord(member) {
+  return member;
 }
 
 async function createCoreTeamStore(member) {
@@ -360,6 +494,7 @@ app.delete('/api/content/activity-events/:activityKey/:eventId', activityEventsC
 
 app.post('/api/admin/login', adminAuthMiddleware.login);
 app.post('/api/admin/logout', adminAuthMiddleware.logout);
+app.use('/api/admin/analytics', adminAuth, analyticsRouter);
 
 app.get('/api/admin/events', adminAuth, eventsController.adminListEvents);
 app.post('/api/admin/events', adminAuth, eventsController.adminCreateEvent);
@@ -389,6 +524,16 @@ async function handleForm(formType, req, res) {
     } catch (sheetErr) {
       if (!savedToSupabase) throw sheetErr;
     }
+
+    // NEW: Send a welcome email to the user
+    try {
+      const verifyUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/verify?email=${encodeURIComponent(req.body.collegeEmail)}`;
+      await sendWelcomeVerificationEmail(req.body.collegeEmail, req.body.fullName, verifyUrl);
+    } catch (emailErr) {
+      console.error('[Form Handler] Failed to send welcome email:', emailErr);
+      // We don't fail the whole request if email fails, but we log it.
+    }
+
     return res.json({ ok: true });
   } catch (e) {
     if (e instanceof ZodError) {

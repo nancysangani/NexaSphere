@@ -11,7 +11,7 @@ export function useEvents() {
       setLoading(true);
       setError(null);
       const data = await api.events.getAll();
-      setEvents(data);
+      setEvents(data?.events ?? []);
     } catch (err) {
       setError(err.message);
     } finally {

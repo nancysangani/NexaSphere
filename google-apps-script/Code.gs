@@ -142,13 +142,48 @@ function doPost(e) {
   }
 }
 
-// ── GET handler — health check / browser test ─────────────────────────────────
+// ── GET handler — Fetch data for Admin Dashboard or health check ────────────────
 function doGet(e) {
+  var token = e.parameter.token;
+  var SECRET_TOKEN = 'NEXA_SECRET_2026'; // Match this in your Admin Dashboard .env
+
+  if (token === SECRET_TOKEN) {
+    try {
+      var sheet = getOrCreateSheet();
+      var rows = sheet.getDataRange().getValues();
+      var headers = rows[0];
+      var data = [];
+
+      // Skip header row and convert rows to objects
+      for (var i = 1; i < rows.length; i++) {
+        var obj = {};
+        for (var j = 0; j < headers.length; j++) {
+          // Create camelCase keys from headers (e.g. "Full Name" -> "fullName")
+          var key = headers[j].toString().toLowerCase()
+            .replace(/[^a-z0-9]+(.)/g, (m, chr) => chr.toUpperCase())
+            .replace(/[^a-z0-9]/gi, '');
+          obj[key] = rows[i][j];
+        }
+        data.push(obj);
+      }
+
+      return _respond({
+        ok: true,
+        count: data.length,
+        responses: data
+      });
+    } catch (err) {
+      return _respond({ ok: false, error: err.message });
+    }
+  }
+
+  // Default health check response
   return _respond({
     ok: true,
     service: 'NexaSphere Membership API',
-    version: '1.0',
+    version: '1.1',
     sheet: SHEET_TAB_NAME,
+    status: 'Ready'
   });
 }
 

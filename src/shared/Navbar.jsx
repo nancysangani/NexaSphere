@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import nexasphereAppLogo from '../assets/images/logos/nexasphere-app-logo.png';
+import { BRAND_LOGO_FULL, BRAND_LOGO_ICON } from './brandAssets';
 
 const TABS = ['Home', 'Activities', 'Events', 'About', 'Team', 'Contact'];
 
@@ -52,7 +52,7 @@ export default function Navbar({ activeTab, onTabChange, onToggleTheme, theme, o
   if (mobile) return (
     <nav className="ns-navbar-mobile">
       <div className="ns-mobile-top">
-        <img src={nexasphereAppLogo} alt="NexaSphere" className="ns-mobile-logo-ns"/>
+        <img src={BRAND_LOGO_ICON} alt="NexaSphere" className="ns-mobile-logo-ns"/>
         <span className="ns-mobile-brand"><span>NexaSphere</span></span>
         <ThemeToggle theme={theme} onToggle={onToggleTheme} />
       </div>
@@ -76,24 +76,25 @@ export default function Navbar({ activeTab, onTabChange, onToggleTheme, theme, o
     <nav className={`ns-navbar${scrolled ? ' scrolled' : ''}`}>
       <div className="container">
         <div className="ns-nav-logos">
-          <img src={nexasphereAppLogo} alt="NexaSphere" className="ns-nav-logo-ns"/>
+          <img src={BRAND_LOGO_FULL} alt="NexaSphere" className="ns-nav-logo-ns ns-nav-logo-icon"/>
           <div className="ns-nav-divider"/>
           <span className="ns-nav-brand">NexaSphere</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <ul className="ns-nav-tabs">
-            {TABS.map(t => (
-              <li key={t}>
-                <button
-                  className={`ns-nav-tab${activeTab === t ? ' active' : ''}${t === 'Contact' ? ' contact-nav-tab' : ''}`}
-                  onClick={() => handleTab(t)}
-                >
-                  {t}
-                </button>
-              </li>
-            ))}
-          </ul>
+        <ul className="ns-nav-tabs">
+          {TABS.map(t => (
+            <li key={t}>
+              <button
+                className={`ns-nav-tab${activeTab === t ? ' active' : ''}${t === 'Contact' ? ' contact-nav-tab' : ''}`}
+                onClick={() => handleTab(t)}
+              >
+                {t}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'end' }}>
           <div className="ns-nav-ctas">
             <button className="btn btn-sm btn-outline ns-nav-cta-btn" onClick={onJoin} aria-label="Join as Member">Join</button>
             <button className="btn btn-sm btn-primary ns-nav-cta-btn" onClick={onApply} aria-label="Apply for Core Team">Apply</button>

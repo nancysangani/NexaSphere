@@ -12,12 +12,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/activity-events")
+@SuppressWarnings("null")
 public class ActivityEventsController {
 
     private final ActivityEventRepository repo;
+    private final Sanitizer sanitizer;
 
-    public ActivityEventsController(ActivityEventRepository repo) {
+    public ActivityEventsController(ActivityEventRepository repo, Sanitizer sanitizer) {
         this.repo = repo;
+        this.sanitizer = sanitizer;
     }
 
     @GetMapping("/{activityKey}")
@@ -31,7 +34,7 @@ public class ActivityEventsController {
             @Valid @RequestBody ActivityEventEntity event) {
         event.setId(null);
         event.setActivityKey(activityKey);
-        event.setName(Sanitizer.clean(event.getName()));
+        event.setName(sanitizer.clean(event.getName()));
         return ResponseEntity.status(HttpStatus.CREATED).body(repo.save(event));
     }
 

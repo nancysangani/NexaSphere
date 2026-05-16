@@ -7,10 +7,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.nexasphere.model.entity.EventEntity;
-import org.nexasphere.model.events.AdminEvent;
-import org.nexasphere.model.events.EventCreatedEvent;
-import org.nexasphere.model.events.EventDeletedEvent;
-import org.nexasphere.model.events.EventUpdatedEvent;
+import org.nexasphere.event.AdminEvent;
+import org.nexasphere.event.AdminEventPublisher;
+import org.nexasphere.event.EventCreatedEvent;
+import org.nexasphere.event.EventDeletedEvent;
+import org.nexasphere.event.EventUpdatedEvent;
+import org.junit.jupiter.api.BeforeEach;
 import org.nexasphere.repository.EventRepository;
 import org.nexasphere.service.crud.EventService;
 import org.nexasphere.util.Sanitizer;
@@ -26,12 +28,17 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class EventServiceTest {
 
-    @Mock EventRepository repo;
-    @Mock AdminEventPublisher publisher;
-    @Mock Sanitizer sanitizer;
-    @InjectMocks EventService service;
+    @Mock
+    EventRepository repo;
+    @Mock
+    AdminEventPublisher publisher;
+    @Mock
+    Sanitizer sanitizer;
+    @InjectMocks
+    EventService service;
 
     @BeforeEach
     void setupSanitizer() {
@@ -126,8 +133,10 @@ class EventServiceTest {
 
     @Test
     void getAllEvents_returnsSortedList() {
-        EventEntity e1 = sampleEvent(); e1.setId("e1");
-        EventEntity e2 = sampleEvent(); e2.setId("e2");
+        EventEntity e1 = sampleEvent();
+        e1.setId("e1");
+        EventEntity e2 = sampleEvent();
+        e2.setId("e2");
         when(repo.findAllByOrderByCreatedAtDesc()).thenReturn(List.of(e1, e2));
 
         List<EventEntity> result = service.getAllEvents();

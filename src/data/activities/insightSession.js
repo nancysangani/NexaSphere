@@ -7,7 +7,7 @@ const insightSession = {
   icon: 'Telescope',
   title: 'Insight Session',
   tagline: 'Share. Inspire. Elevate.',
-  color: '#a855f7',
+  color: '#8b5cf6',
   gradient: 'linear-gradient(135deg, #a855f7, #9333ea)',
   description:
     'Peer-to-peer knowledge sharing where every member is both a student and a teacher. Deep-dive talks on tech, careers, and the ideas shaping tomorrow.',

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { DynamicIcon } from '../../shared/Icons';
 
 function Counter({ value, suffix = '' }) {
   const [count, setCount] = useState(0);
@@ -87,7 +88,7 @@ function FloatingOrbs({ color }) {
   );
 }
 
-function ScanLine() {
+function ScanLine({ color }) {
   return (
     <>
       <style>{`
@@ -98,7 +99,7 @@ function ScanLine() {
       `}</style>
       <div style={{
         position: 'absolute', left: 0, right: 0, height: '2px',
-        background: 'linear-gradient(90deg, transparent, var(--cyan), transparent)',
+        background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
         opacity: 0.3, pointerEvents: 'none', zIndex: 0,
         animation: 'scanline 4s linear infinite',
       }} />
@@ -161,10 +162,10 @@ function EventCard({ event, activityColor, onSelect, onDelete }) {
                 background: 'rgba(34,197,94,0.12)', color: '#22c55e',
                 border: '1px solid rgba(34,197,94,0.3)', fontWeight: 700,
                 textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0,
-              }}>✅ Completed</span>
+              }}><DynamicIcon name="CheckCircle" size={14} /> Completed</span>
             )}
           </div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '10px' }}>📅 {event.date}</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '10px' }}><DynamicIcon name="Calendar" size={14} /> {event.date}</div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: '0 0 12px', lineHeight: 1.6 }}>
             {event.tagline || event.description}
           </p>
@@ -223,9 +224,9 @@ function UpcomingCard({ event, color }) {
           fontSize: '0.68rem', padding: '2px 8px', borderRadius: '20px',
           background: `${color}15`, color, border: `1px solid ${color}40`,
           fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0,
-        }}>🔜 Upcoming</span>
+        }}><DynamicIcon name="Flame" size={14} /> Upcoming</span>
       </div>
-      <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginBottom: '6px' }}>📅 {event.date}</div>
+      <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginBottom: '6px' }}><DynamicIcon name="Calendar" size={14} /> {event.date}</div>
       <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>{event.description}</p>
     </div>
   );
@@ -331,13 +332,13 @@ export default function ActivityDetailPage({ activity, onBack, onSelectEvent }) 
       
       <div style={{
         position: 'relative',
-        background: `linear-gradient(180deg, rgba(${rgb},0.10) 0%, rgba(${rgb},0.03) 60%, transparent 100%)`,
-        borderBottom: `1px solid rgba(${rgb},0.2)`,
+        background: `linear-gradient(180deg, rgba(${rgb},0.15) 0%, rgba(${rgb},0.06) 60%, transparent 100%)`,
+        borderBottom: `1px solid rgba(${rgb},0.3)`,
         padding: '60px 0 52px',
         overflow: 'hidden',
       }}>
         <FloatingOrbs color={color} />
-        <ScanLine />
+        <ScanLine color={color} />
 
         <div className="container" style={{ position: 'relative', zIndex: 1 }}>
           
@@ -368,7 +369,7 @@ export default function ActivityDetailPage({ activity, onBack, onSelectEvent }) 
               animation: 'float 4s ease-in-out infinite',
               display: 'inline-block',
             }}>
-              {activity.icon}
+              <DynamicIcon name={activity.icon} size={80} />
             </div>
             <h1 style={{
               fontFamily: 'Orbitron, monospace',
@@ -445,13 +446,13 @@ export default function ActivityDetailPage({ activity, onBack, onSelectEvent }) 
           <div style={{ maxWidth: '760px' }}>
             <h2 style={{
               fontFamily: 'Orbitron, monospace', fontSize: '1.1rem', fontWeight: 700,
-              color: 'var(--text-secondary)', marginBottom: '24px', letterSpacing: '0.08em',
+              color, marginBottom: '24px', letterSpacing: '0.08em',
               textTransform: 'uppercase',
               display: 'flex', alignItems: 'center', gap: '10px',
             }}>
               <span style={{
                 display: 'inline-block', width: '32px', height: '2px',
-                background: 'linear-gradient(90deg, var(--text-secondary), transparent)',
+                background: `linear-gradient(90deg, ${color}, transparent)`,
               }} />
               Coming Up
             </h2>

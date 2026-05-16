@@ -7,7 +7,7 @@ const workshop = {
   icon: 'Wrench',
   title: 'Workshop',
   tagline: 'Learn. Build. Master.',
-  color: '#10b981',
+  color: '#ec4899',
   gradient: 'linear-gradient(135deg, #10b981, #059669)',
   description:
     'Hands-on deep dives into the tools, frameworks, and technologies shaping the industry. Get your hands dirty and leave with real skills.',
