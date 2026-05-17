@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
-import { events as fallbackEvents } from '../../data/eventsData';
 import { BannerOrbs } from '../../shared/MotionLayer';
 import Footer from '../../shared/Footer';
 import { DynamicIcon } from '../../shared/Icons';
 
-export default function EventsPage({ onBack, onEventClick, events = fallbackEvents }) {
+export default function EventsPage({ onBack, onEventClick, events = [] }) {
   useEffect(() => {
     window.scrollTo({ top: 0 });
     const obs = new IntersectionObserver(entries => {

@@ -6,10 +6,10 @@ import { AdminIcon } from '../components/AdminIcon';
 const COLUMNS = [
   { key: 'fullName',       label: 'Full Name' },
   { key: 'collegeEmail',   label: 'Email' },
-  { key: 'rollNumber',     label: 'Roll No.' },
-  { key: 'course',         label: 'Course' },
+  { key: 'whatsapp',       label: 'WhatsApp' },
+  { key: 'year',           label: 'Year' },
   { key: 'branch',         label: 'Branch' },
-  { key: 'groupsSelected', label: 'Groups Interested' },
+  { key: 'role',           label: 'Role Applied' },
   { key: 'status',         label: 'Status' },
   { key: 'submittedAt',    label: 'Submitted At' },
 ];
@@ -35,32 +35,32 @@ function exportCSV(rows) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `membership-responses-${Date.now()}.csv`;
+  a.download = `recruitment-responses-${Date.now()}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-export function MembershipResponsesManager() {
+export function RecruitmentResponsesManager() {
   const [responses, setResponses] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState(null);
   const [search, setSearch]       = useState('');
 
   useEffect(() => {
-    api.submissions.getMembership()
+    api.submissions.getRecruitment()
       .then(data => {
         setResponses(data?.submissions ?? []);
         setLoading(false);
       })
       .catch(err => {
-        setError(err.message || 'Failed to load membership submissions');
+        setError(err.message || 'Failed to load recruitment submissions');
         setLoading(false);
       });
   }, []);
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
-      await api.submissions.updateMembershipStatus(id, newStatus);
+      await api.submissions.updateRecruitmentStatus(id, newStatus);
       setResponses(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
     } catch (err) {
       alert('Failed to update status: ' + err.message);
@@ -76,7 +76,7 @@ export function MembershipResponsesManager() {
   return (
     <div className="page">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
-        <h2 className="page-title" style={{ margin: 0 }}>Membership Responses</h2>
+        <h2 className="page-title" style={{ margin: 0 }}>Recruitment Responses</h2>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <input
             type="search"
@@ -99,12 +99,7 @@ export function MembershipResponsesManager() {
         </div>
       </div>
 
-
-      {loading && (
-        <div>
-          <Skeleton height={44} count={6} />
-        </div>
-      )}
+      {loading && <Skeleton height={44} count={6} />}
 
       {!loading && error && (
         <div style={{
@@ -124,13 +119,8 @@ export function MembershipResponsesManager() {
         }}>
           <AdminIcon name="Inbox" size={40} />
           <p style={{ marginTop: 12, fontSize: 15 }}>
-            {search ? 'No responses match your search.' : 'No membership responses yet.'}
+            {search ? 'No responses match your search.' : 'No recruitment responses yet.'}
           </p>
-          {search && (
-            <button className="btn btn-secondary" style={{ marginTop: 8 }} onClick={() => setSearch('')}>
-              Clear search
-            </button>
-          )}
         </div>
       )}
 
@@ -153,13 +143,7 @@ export function MembershipResponsesManager() {
             </thead>
             <tbody>
               {filtered.map((row, i) => (
-                <tr
-                  key={row.id ?? i}
-                  style={{
-                    borderBottom: '1px solid var(--border)',
-                    background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)',
-                  }}
-                >
+                <tr key={row.id ?? i} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
                   {COLUMNS.map(c => (
                     <td key={c.key} style={{ padding: '12px 16px', color: 'var(--text)', verticalAlign: 'top' }}>
                       {c.key === 'submittedAt' ? formatDate(row[c.key]) : (
@@ -170,7 +154,8 @@ export function MembershipResponsesManager() {
                             style={{ padding: '4px 8px', borderRadius: 4, background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)', fontSize: 12 }}
                           >
                             <option value="applied">Applied</option>
-                            <option value="onboarded">Onboarded</option>
+                            <option value="shortlisted">Shortlisted</option>
+                            <option value="selected">Selected</option>
                             <option value="rejected">Rejected</option>
                           </select>
                         ) : (row[c.key] ?? '—')
@@ -181,9 +166,6 @@ export function MembershipResponsesManager() {
               ))}
             </tbody>
           </table>
-          <div style={{ padding: '10px 16px', color: 'var(--text-muted)', fontSize: 13, borderTop: '1px solid var(--border)' }}>
-            Showing {filtered.length} of {responses.length} response{responses.length !== 1 ? 's' : ''}
-          </div>
         </div>
       )}
     </div>

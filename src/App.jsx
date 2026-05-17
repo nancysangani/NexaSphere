@@ -36,7 +36,6 @@ import MembershipPage      from './pages/membership/MembershipPage';
 import AdminPage           from './pages/admin/AdminPage';
 
 import { activityPages }   from './data/activities/index';
-import { events as fallbackEvents } from './data/eventsData';
 import nexasphereLogo      from './assets/images/logos/nexasphere-logo.png';
 
 const MNH = 88, DNH = 64;
@@ -205,7 +204,7 @@ export default function App() {
   const [wipePh,   setWipePh]   = useState('out');
   const [page,     setPage]     = useState(null);
   const [theme,    setTheme]    = useState(()=>localStorage.getItem('ns-theme')||'dark');
-  const [eventsData,setEventsData]=useState(fallbackEvents);
+  const [eventsData,setEventsData]=useState([]);
   
   useEffect(()=>{
     document.documentElement.setAttribute('data-theme',theme);
@@ -225,7 +224,7 @@ export default function App() {
       .then(r => r.ok ? r.json() : Promise.reject(new Error('Failed to load dynamic events')))
       .then(data => {
         if (!alive) return;
-        if (Array.isArray(data?.events) && data.events.length > 0) {
+        if (Array.isArray(data?.events)) {
           setEventsData(data.events);
         }
       })
