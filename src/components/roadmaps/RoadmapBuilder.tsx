@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { RoadmapBuilderProvider, useRoadmapBuilder } from '../../context/RoadmapBuilderContext';
+import { RoadmapBuilderProvider } from '../../context/RoadmapBuilderContext';
+import { useRoadmapBuilder } from '../../hooks/useRoadmapBuilder';
 import { NodeCanvas } from './NodeCanvas';
 import { NodeModal } from './NodeModal';
 import { parseStaticRoadmap } from '../../utils/roadmapParser';
@@ -341,3 +342,5 @@ export const RoadmapBuilder: React.FC<RoadmapBuilderInnerProps> = ({ onBack }) =
     </RoadmapBuilderProvider>
   );
 };
+
+export default RoadmapBuilder;
