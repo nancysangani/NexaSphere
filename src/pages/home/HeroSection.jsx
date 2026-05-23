@@ -95,7 +95,7 @@ function StatsBar({ vis, isLight }) {
   const items = [{v:'12',l:'Members',i:'Users'},{v:'8',l:'Activities',i:'Activity'},{v:'1',l:'Events Done',i:'Calendar'},{v:'∞',l:'Ideas',i:'Lightbulb'}];
   return (
     <div style={{
-      display:'flex',maxWidth:'500px',margin:'40px auto 0',
+      display:'flex',maxWidth:'500px',margin:'56px auto 0',
       background: isLight ? 'rgba(26,26,26,.04)' : 'rgba(204,17,17,.04)',
       border:`1px solid ${isLight?'rgba(26,26,26,.09)':'rgba(204,17,17,.12)'}`,
       borderRadius:'14px',overflow:'hidden',
@@ -134,7 +134,7 @@ function Atmosphere({ isLight }) {
       <div style={{position:'absolute',inset:0,overflow:'hidden',zIndex:0,pointerEvents:'none'}}>
         {Array.from({length:9},(_,i)=>(
           <div key={i} style={{
-            position:'absolute',left:`${6+i*11}%`,top:0,
+            position:'absolute',left:`${8+i*10}%`,top:0,
             fontFamily:"'Space Mono',monospace",fontSize:'8px',
             color: isLight ? 'rgba(180,20,20,0.45)' : 'var(--c1)',
             lineHeight:1.9,userSelect:'none',
@@ -245,7 +245,7 @@ export default function HeroSection({ onTabChange, onApply, onJoin, theme = 'dar
           </div>
           
           <div style={{
-            marginTop:'6px',padding:'14px 24px',
+            marginTop:'16px',padding:'14px 24px',
             background: isLight ? 'rgba(204,17,17,.05)' : 'rgba(204,17,17,.07)',
             border:`1px solid ${isLight?'rgba(204,17,17,.18)':'rgba(204,17,17,.18)'}`,
             borderRadius:'16px',maxWidth:'420px',textAlign:'center',

@@ -80,7 +80,7 @@
 }
 
 .apply-container {
-  margin-top: 6px;
+  margin-top: 16px;
   padding: 14px 24px;
   border: 1px solid rgba(204, 17, 17, 0.18);
   border-radius: 16px;
@@ -99,7 +99,7 @@
 .stats-bar {
   display: flex;
   max-width: 500px;
-  margin: 40px auto 0;
+  margin: 56px auto 0;
   border-radius: 14px;
   overflow: hidden;
   transition: all 0.85s cubic-bezier(0.22, 1, 0.36, 1);
@@ -211,6 +211,7 @@
   line-height: 1.9;
   user-select: none;
   opacity: 0.06;
+  writing-mode: vertical-lr;
 }
 
 .atmosphere-dark-overlay {
