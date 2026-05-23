@@ -1,14 +1,33 @@
 import logging
 import os
+import uuid
+import contextvars
 import google.generativeai as genai
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# --- Logging Standardization with Trace ID ---
+request_id_context = contextvars.ContextVar("request_id", default="system")
+
+class TraceIdFilter(logging.Filter):
+    def filter(self, record):
+        record.trace_id = request_id_context.get()
+        return True
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] [%(trace_id)s] %(name)s: %(message)s"
+)
 logger = logging.getLogger(__name__)
+logger.addFilter(TraceIdFilter())
+
+for logger_name in ["uvicorn", "uvicorn.access", "uvicorn.error", "fastapi"]:
+    l = logging.getLogger(logger_name)
+    l.addFilter(TraceIdFilter())
 
 # 1. Configuration & Persona
 # This instruction tells the bot exactly how to behave and what NexaSphere is.
@@ -38,14 +57,24 @@ else:
 
 app = FastAPI(title="NexaSphere AI Core")
 
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    token = request_id_context.set(req_id)
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = req_id
+    request_id_context.reset(token)
+    return response
+
 @app.get("/")
 async def root():
     return {"message": "NexaSphere AI Core API is running. Visit /docs for Swagger API documentation."}
 
-from routers import forms, recommend, notifications
+from routers import forms, recommend, notifications, health
 app.include_router(forms.router)
 app.include_router(recommend.router)
 app.include_router(notifications.router)
+app.include_router(health.router)
 # 3. CORS Configuration
 origins = os.getenv("CORS_ORIGIN", "http://localhost:5173,http://localhost:5174,https://nexasphere-glbajaj.vercel.app,https://admin-nexasphere.vercel.app,https://nexa-sphere-sigma.vercel.app,https://admin-dashboard-navy-pi-22.vercel.app").split(",")
 
