@@ -136,7 +136,12 @@ export default function PublicPortfolio({ username, onBack }) {
     );
   }
 
-  const { theme, title: profTitle, bio, visibleSections, socialLinks, skills, roadmaps, projects } = portfolio;
+  const { theme, title: profTitle, bio, visibleSections, socialLinks, skills, roadmaps, projects, customProjects } = portfolio;
+  
+  const allProjects = [
+    ...(projects || []).map(id => projectsData.find(p => p.id === id)).filter(Boolean),
+    ...(customProjects || [])
+  ];
 
   return (
     <div className={`portfolio-presentation-container theme-${theme}`}>
@@ -275,7 +280,7 @@ export default function PublicPortfolio({ username, onBack }) {
           )}
 
           {/* Section C: Federated Team Projects */}
-          {visibleSections?.projects && projects && projects.length > 0 && (
+          {visibleSections?.projects && allProjects.length > 0 && (
             <section className="portfolio-panel" aria-labelledby="projects-heading">
               <h2 id="projects-heading" className="portfolio-section-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: 'var(--accent-portfolio)' }}>
@@ -285,11 +290,9 @@ export default function PublicPortfolio({ username, onBack }) {
                 Federated Workspace Projects
               </h2>
               <div className="portfolio-projects-grid">
-                {projects.map(projId => {
-                  const proj = projectsData.find(p => p.id === projId);
-                  if (!proj) return null;
+                {allProjects.map(proj => {
                   return (
-                    <article key={projId} className="portfolio-project-card">
+                    <article key={proj.id} className="portfolio-project-card">
                       <img
                         src={proj.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=800'}
                         alt={proj.title}
