@@ -16,6 +16,7 @@ import { initializeSocketIO, emitToRoom, getRoom } from './config/socket.js';
 import adminStreamRouter from './routes/adminStream.js';
 import { broadcastSSEEvent } from './services/sseService.js';
 import rateLimit from 'express-rate-limit';
+import { formRateLimiter } from './middleware/rateLimiter.js';
 
 import { portfolioRepository } from './repositories/portfolioRepository.js';
 
@@ -808,11 +809,7 @@ async function handleForm(formType, req, res) {
   }
 }
 
-const formRateLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
-  message: { error: 'Too many form submissions from this IP, please try again after 10 minutes' }
-});
+
 
 app.post('/api/forms/membership', formRateLimiter, (req, res) => handleForm('membership', req, res));
 app.post('/api/forms/recruitment', formRateLimiter, (req, res) => handleForm('recruitment', req, res));
