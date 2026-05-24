@@ -195,9 +195,9 @@ mvn spring-boot:run
 **📋 Environment Variables (application.properties):**
 
 ```properties
-# Admin Credentials
-ADMIN_EMAIL=nexasphere@glbajajgroup.org
-ADMIN_PASSWORD=Admin@123
+# Admin Credentials — set via environment variables only, never commit real values
+ADMIN_EMAIL=your-admin-email@example.com
+ADMIN_PASSWORD=your-secure-password
 
 # CORS Configuration
 CORS_ORIGIN=http://localhost:5173,https://nexasphere-glbajaj.vercel.app,https://admin-nexasphere.vercel.app
@@ -388,8 +388,7 @@ VITE_API_BASE=http://localhost:8080
 
 **🔑 Admin Credentials:**
 
-- **Email:** nexasphere@glbajajgroup.org
-- **Password:** Admin@123
+Credentials are configured via environment variables only. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your deployment environment. Never commit real credentials to the repository.
 
 <br/>
 
@@ -453,8 +452,8 @@ railway up
 **📋 Production Environment Variables:**
 
 ```
-ADMIN_EMAIL=nexasphere@glbajajgroup.org
-ADMIN_PASSWORD=Admin@123
+ADMIN_EMAIL=your-admin-email@example.com
+ADMIN_PASSWORD=your-secure-password
 CORS_ORIGIN=https://nexasphere-glbajaj.vercel.app,https://admin-nexasphere.vercel.app
 DB_URL=jdbc:postgresql://[provided-by-railway]:5432/railway
 DB_DRIVER=org.postgresql.Driver

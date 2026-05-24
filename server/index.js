@@ -209,7 +209,8 @@ function normalizePhone(value) {
 }
 
 async function canManageActivityEvent({ name, email, phone, password }) {
-  if (String(password || '') !== ADMIN_EVENT_PASSWORD) return false;
+  const expectedPassword = process.env.ADMIN_EVENT_PASSWORD;
+  if (String(password || '') !== expectedPassword) return false;
   const n = String(name || '').trim().toLowerCase();
   const e = String(email || '').trim().toLowerCase();
   const p = normalizePhone(phone);
@@ -822,7 +823,14 @@ const pushSubscriptions = new Set();
 app.post('/api/notifications/subscribe', (req, res) => {
   try {
     const { subscription } = req.body;
-    if (subscription) pushSubscriptions.add(JSON.stringify(subscription));
+        if (subscription) {
+      pushSubscriptions.add(JSON.stringify(subscription));
+      // Prevent memory leak by capping maximum subscriptions to 10,000
+      if (pushSubscriptions.size > 10000) {
+        const oldest = pushSubscriptions.values().next().value;
+        pushSubscriptions.delete(oldest);
+      }
+    }
     return res.json({ success: true });
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -833,6 +841,75 @@ app.post('/api/notifications/unsubscribe', (req, res) => {
     const { subscription } = req.body;
     if (subscription) pushSubscriptions.delete(JSON.stringify(subscription));
     return res.json({ success: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Server-side notifications API (simple in-memory store)
+import notificationsService from './services/notificationsService.js';
+
+app.get('/api/notifications', (req, res) => {
+  try {
+    // If user id provided via query or auth, use that; otherwise global
+    const userId = req.query.userId || 'global';
+    const list = notificationsService.getNotifications(userId);
+    return res.json({ notifications: list });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/notifications/mark-read', (req, res) => {
+  try {
+    const { id, userId } = req.body || {};
+    if (!id) return res.status(400).json({ error: 'id required' });
+    const uid = userId || 'global';
+    const ok = notificationsService.markAsRead(uid, id);
+    return res.json({ success: ok });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/notifications/mark-all-read', (req, res) => {
+  try {
+    const { userId } = req.body || {};
+    notificationsService.markAllAsRead(userId || 'global');
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/notifications/:id', (req, res) => {
+  try {
+    const id = req.params.id;
+    const userId = req.query.userId || 'global';
+    notificationsService.removeNotification(userId, id);
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete all notifications for a user (or global)
+app.delete('/api/notifications', (req, res) => {
+  try {
+    const userId = req.query.userId || 'global';
+    notificationsService.clearAll(userId);
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Create notification (admin/testing)
+app.post('/api/notifications', (req, res) => {
+  try {
+    const { userId, title, message, type, link } = req.body || {};
+    const note = notificationsService.addNotification(userId || 'global', { title, message, type, link });
+    return res.json({ success: true, notification: note });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
