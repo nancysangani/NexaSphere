@@ -360,7 +360,9 @@ async function listActivityEventsStore(activityKey) {
 }
 
 function sanitizeActivityEventRecord(event) {
-  return event;
+  if (!event || typeof event !== 'object') return event;
+  const { createdBy, ...safe } = event;
+  return safe;
 }
 
 async function createActivityEventStore(activityKey, event) {
