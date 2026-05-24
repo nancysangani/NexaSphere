@@ -398,6 +398,24 @@
 [data-theme="light"] .team-card:hover { border-color:rgba(204,17,17,.25); box-shadow:0 10px 34px rgba(204,17,17,.12); }
 .team-card-photo-wrap { position:relative; width:82px; height:82px; margin:0 auto 12px; }
 .team-card-photo { width:82px; height:82px; border-radius:50%; object-fit:cover; border:2px solid var(--bdr2); transition:border-color .28s, box-shadow .28s !important; }
+
+/* Mobile navbar spacing improvements to avoid logo / links overlap */
+@media (max-width: 768px) {
+  .ns-mobile-top { justify-content: space-between; padding: 6px 12px 4px; }
+  .ns-mobile-brand { display: none; }
+  .ns-mobile-tabs { padding-left: 8px; padding-right: 8px; }
+}
+
+/* Footer responsive wrapping to prevent stacked/overflow issues */
+.ns-footer .container .ns-footer-inner {
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:space-between;
+}
+.ns-footer-text { margin:6px 0; flex: 1 1 220px; min-width: 180px; }
+
+@media (max-width: 768px) {
+  .ns-footer .container .ns-footer-inner { gap:10px; }
+  .ns-footer-logo-ns { height:44px; }
+}
 .team-card:hover .team-card-photo { border-color:var(--c1); box-shadow:0 0 16px var(--c1g); }
 [data-theme="light"] .team-card:hover .team-card-photo { border-color:#CC1111; box-shadow:0 0 12px rgba(204,17,17,.3); }
 .team-card-photo-wrap::before { content:''; position:absolute; inset:-4px; border-radius:50%; background:conic-gradient(from 0deg,var(--c1),var(--c2),var(--c3),var(--c1)); opacity:0; transition:opacity .28s !important; animation:spin 4s linear infinite; z-index:-1; }

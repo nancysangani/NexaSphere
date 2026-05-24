@@ -198,20 +198,19 @@ export default function HeroSection({ onTabChange, onApply, onJoin, theme = 'dar
         transition:'background 1.2s cubic-bezier(.4,0,.2,1)',
       }} />
       {/* Logo glow — subtle radial red only around center */}
-      <div style={{
-        position:'absolute',
-        top:'50%', left:'50%',
-        transform:'translate(-50%,-58%)',
-        width:'480px', height:'480px',
-        borderRadius:'50%',
-        background: isLight
-          ? 'radial-gradient(circle, rgba(230,57,70,0.10) 0%, transparent 65%)'
-          : 'radial-gradient(circle, rgba(230,57,70,0.18) 0%, transparent 65%)',
-        pointerEvents:'none',
-        zIndex:0,
-        filter:'blur(32px)',
-        animation:'cinGlow 4s ease-in-out infinite',
-      }} />
+      <div className="hero-glow" aria-hidden="true" style={{
+        position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-58%)',
+        pointerEvents:'none', zIndex:0, filter:'blur(32px)', animation:'cinGlow 4s ease-in-out infinite'
+      }}
+      // inline background kept here so it adapts to theme
+      >
+        <div style={{
+          width:'100%', height:'100%', borderRadius:'50%',
+          background: isLight
+            ? 'radial-gradient(circle, rgba(230,57,70,0.10) 0%, transparent 65%)'
+            : 'radial-gradient(circle, rgba(230,57,70,0.18) 0%, transparent 65%)'
+        }} />
+      </div>
       <Atmosphere isLight={isLight}/>
 
       <div className="hero-content" style={{position:'relative',zIndex:2,paddingBottom:'80px'}}>
