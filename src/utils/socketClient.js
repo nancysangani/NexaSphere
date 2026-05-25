@@ -7,35 +7,57 @@ import io from 'socket.io-client';
 import { captureHandledException } from './errorTracking';
 
 let socket = null;
-let eventHandlers = {};
 
 /**
  * Initialize Socket.IO client
  */
 export function initializeSocket(serverUrl = window.location.origin) {
+  // Return existing socket to implement singleton pattern
+  if (socket) {
+    return socket;
+  }
+
   socket = io(serverUrl, {
     reconnection: true,
+    reconnectionAttempts: 10,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
-    reconnectionAttempts: 5,
+    timeout: 20000,
+    autoConnect: true,
     transports: ['websocket', 'polling'],
   });
 
-  // Global event handlers
+  // Global event handlers - connection lifecycle monitoring
   socket.on('connect', () => {
-    identifyUser();
+    console.log('[Socket.IO] Connected:', socket.id);
+    identifyUser(); // try to identify if user info is available locally
   });
 
-  socket.on('disconnect', (_reason) => {
-    // Disconnect handled silently; reconnection is automatic
+  socket.on('disconnect', (reason) => {
+    console.log('[Socket.IO] Disconnected:', reason);
+  });
+
+  socket.on('reconnect', (attemptNumber) => {
+    console.log('[Socket.IO] Reconnected after', attemptNumber, 'attempts');
+  });
+
+  socket.on('reconnect_attempt', (attemptNumber) => {
+    console.log('[Socket.IO] Reconnecting attempt:', attemptNumber);
+  });
+
+  socket.on('reconnect_failed', () => {
+    console.error('[Socket.IO] Reconnection failed');
+  });
+
+  socket.on('connect_error', (error) => {
+    console.error('[Socket.IO] Connection Error:', error);
+    captureHandledException(error, 'Socket.IO connect_error:');
   });
 
   socket.on('error', (error) => {
+    console.error('[Socket.IO] Error:', error);
     captureHandledException(error, 'Socket.IO error:');
   });
-
-  // Setup custom event listeners
-  setupEventListeners();
 
   return socket;
 }
@@ -54,7 +76,21 @@ export function getSocket() {
  * Identify user to server
  */
 export function identifyUser(userId, email) {
-  if (socket) {
+  // If not explicitly passed, try to fetch from localStorage
+  if (!userId || !email) {
+    const storedUser = localStorage.getItem('ns_user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        userId = user.id || user.userId;
+        email = user.email;
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+
+  if (socket && userId) {
     socket.emit('user:identify', { userId, email });
   }
 }
@@ -78,71 +114,25 @@ export function leaveRoom(roomName) {
 }
 
 /**
- * Setup event listeners for real-time updates
- */
-function setupEventListeners() {
-  if (!socket) return;
-
-  // Registration confirmed
-  socket.on('registration-confirmed', (data) => {
-    if (eventHandlers.registrationConfirmed) {
-      eventHandlers.registrationConfirmed(data);
-    }
-  });
-
-  // Waitlist promotion
-  socket.on('waitlist-promotion', (data) => {
-    if (eventHandlers.waitlistPromotion) {
-      eventHandlers.waitlistPromotion(data);
-    }
-  });
-
-  // Event reminder
-  socket.on('event-reminder', (data) => {
-    if (eventHandlers.eventReminder) {
-      eventHandlers.eventReminder(data);
-    }
-  });
-
-  // Attendance marked
-  socket.on('attendance-marked', (data) => {
-    if (eventHandlers.attendanceMarked) {
-      eventHandlers.attendanceMarked(data);
-    }
-  });
-
-  // Admin notifications
-  socket.on('admin:new-registration', (data) => {
-    if (eventHandlers.adminNewRegistration) {
-      eventHandlers.adminNewRegistration(data);
-    }
-  });
-
-  socket.on('admin:waitlist-promotion', (data) => {
-    if (eventHandlers.adminWaitlistPromotion) {
-      eventHandlers.adminWaitlistPromotion(data);
-    }
-  });
-
-  socket.on('admin:attendance-marked', (data) => {
-    if (eventHandlers.adminAttendanceMarked) {
-      eventHandlers.adminAttendanceMarked(data);
-    }
-  });
-}
-
-/**
  * Register event handler
  */
 export function on(eventName, handler) {
-  eventHandlers[eventName] = handler;
+  if (socket) {
+    socket.on(eventName, handler);
+  }
 }
 
 /**
  * Remove event handler
  */
-export function off(eventName) {
-  delete eventHandlers[eventName];
+export function off(eventName, handler) {
+  if (socket) {
+    if (handler) {
+      socket.off(eventName, handler);
+    } else {
+      socket.off(eventName); // Fallback but not recommended
+    }
+  }
 }
 
 /**
@@ -155,10 +145,21 @@ export function emit(eventName, data) {
 }
 
 /**
- * Disconnect socket
+ * Disconnect socket gracefully (Use mainly for testing or explicit manual disconnect)
  */
 export function disconnect() {
   if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
+}
+
+/**
+ * Completely destroy socket and all listeners (Use on user logout)
+ */
+export function destroySocket() {
+  if (socket) {
+    socket.removeAllListeners();
     socket.disconnect();
     socket = null;
   }
@@ -188,6 +189,7 @@ export default {
   off,
   emit,
   disconnect,
+  destroySocket,
   isConnected,
   getSocketId,
 };
