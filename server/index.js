@@ -17,7 +17,7 @@ import { initializeSocketIO, emitToRoom, getRoom } from './config/socket.js';
 import adminStreamRouter from './routes/adminStream.js';
 import { broadcastSSEEvent } from './services/sseService.js';
 import rateLimit from 'express-rate-limit';
-import { apiRateLimiter, authRateLimiter } from './middleware/rateLimiter.js';
+import { apiRateLimiter, authRateLimiter, notificationRateLimiter } from './middleware/rateLimiter.js';
 
 import { portfolioRepository } from './repositories/portfolioRepository.js';
 import { Mutex } from 'async-mutex';
@@ -952,7 +952,7 @@ app.get('/api/notifications', (req, res) => {
   }
 });
 
-app.post('/api/notifications/mark-read', (req, res) => {
+app.post('/api/notifications/mark-read', adminAuth, notificationRateLimiter, (req, res) => {
   try {
     const { id, userId } = req.body || {};
     if (!id) return res.status(400).json({ error: 'id required' });
@@ -964,7 +964,7 @@ app.post('/api/notifications/mark-read', (req, res) => {
   }
 });
 
-app.post('/api/notifications/mark-all-read', (req, res) => {
+app.post('/api/notifications/mark-all-read', adminAuth, notificationRateLimiter, (req, res) => {
   try {
     const { userId } = req.body || {};
     notificationsService.markAllAsRead(userId || 'global');
@@ -974,11 +974,12 @@ app.post('/api/notifications/mark-all-read', (req, res) => {
   }
 });
 
-app.delete('/api/notifications/:id', (req, res) => {
+app.delete('/api/notifications/:id', adminAuth, notificationRateLimiter, (req, res) => {
   try {
     const id = req.params.id;
     const userId = req.query.userId || 'global';
-    notificationsService.removeNotification(userId, id);
+    const removed = notificationsService.removeNotification(userId, id);
+    if (!removed) return res.status(404).json({ error: 'Notification not found' });
     return res.json({ success: true });
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -986,7 +987,7 @@ app.delete('/api/notifications/:id', (req, res) => {
 });
 
 // Delete all notifications for a user (or global)
-app.delete('/api/notifications', (req, res) => {
+app.delete('/api/notifications', adminAuth, notificationRateLimiter, (req, res) => {
   try {
     const userId = req.query.userId || 'global';
     notificationsService.clearAll(userId);
@@ -997,9 +998,10 @@ app.delete('/api/notifications', (req, res) => {
 });
 
 // Create notification (admin/testing)
-app.post('/api/notifications', (req, res) => {
+app.post('/api/notifications', adminAuth, notificationRateLimiter, (req, res) => {
   try {
     const { userId, title, message, type, link } = req.body || {};
+    if (!title || !message) return res.status(400).json({ error: 'title and message are required' });
     const note = notificationsService.addNotification(userId || 'global', { title, message, type, link });
     return res.json({ success: true, notification: note });
   } catch (err) {
