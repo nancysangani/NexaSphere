@@ -80,6 +80,7 @@ async def root():
 from routers import forms, recommend, notifications, health
 app.include_router(forms.router)
 app.include_router(recommend.router)
+app.include_router(certificates.router)
 app.include_router(notifications.router)
 app.include_router(health.router)
 # 3. CORS Configuration

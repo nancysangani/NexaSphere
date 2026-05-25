@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import helmet from 'helmet';
 import express from 'express';
 import { EventEmitter } from 'events';
 import cors from 'cors';
@@ -16,20 +17,28 @@ import { initializeSocketIO, emitToRoom, getRoom } from './config/socket.js';
 import adminStreamRouter from './routes/adminStream.js';
 import { broadcastSSEEvent } from './services/sseService.js';
 import rateLimit from 'express-rate-limit';
+import { apiRateLimiter, authRateLimiter, notificationRateLimiter } from './middleware/rateLimiter.js';
 
 import { portfolioRepository } from './repositories/portfolioRepository.js';
+import { Mutex } from 'async-mutex';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CONTENT_FILE = path.join(__dirname, 'data', 'content.json');
 
 const app = express();
+app.use(helmet());
 
 app.use(cors({
   origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean) : true,
   credentials: false,
 }));
 app.use(express.json({ limit: '512kb' }));
+
+function redactUrl(url) {
+  return url.replace(/[?&]token=[^&\s]+/gi, '$1token=REDACTED');
+}
 
 function requestLogger(req, res, next) {
   const start = process.hrtime.bigint();
@@ -38,7 +47,9 @@ function requestLogger(req, res, next) {
   res.on('finish', () => {
     const duration = Number(process.hrtime.bigint() - start) / 1e6;
     const status = res.statusCode;
-    const message = `[${method}] ${path} → ${status} (${Math.round(duration)}ms)`;
+    const redactedPath = redactUrl(path);
+    const redactedUrl = req.originalUrl ? redactUrl(req.originalUrl) : redactedPath;
+    const message = `[${method}] ${redactedUrl} → ${status} (${Math.round(duration)}ms)`;
 
     if (status >= 500) {
       console.error(message);
@@ -53,6 +64,7 @@ function requestLogger(req, res, next) {
 }
 
 app.use(requestLogger);
+app.use('/api', apiRateLimiter);
 
 const adminAuth = adminAuthMiddleware.requireAdmin;
 const adminEvents = new EventEmitter();
@@ -109,6 +121,25 @@ function requiredStrongPassword(name) {
 
 const ADMIN_EVENT_PASSWORD = requiredStrongPassword('ADMIN_EVENT_PASSWORD');
 
+if (process.env.PUBLIC_APP_URL) {
+  if (process.env.PUBLIC_APP_URL.includes(',')) {
+    throw new Error('PUBLIC_APP_URL must be a single URL, not a comma-separated list');
+  }
+  try {
+    new URL(process.env.PUBLIC_APP_URL);
+  } catch {
+    throw new Error(`PUBLIC_APP_URL must be a valid absolute URL, got: ${process.env.PUBLIC_APP_URL}`);
+  }
+}
+
+function getPublicAppUrl() {
+  if (process.env.PUBLIC_APP_URL) {
+    return process.env.PUBLIC_APP_URL.replace(/\/+$/, '');
+  }
+  const firstOrigin = process.env.CORS_ORIGIN?.split(',')[0]?.trim();
+  return firstOrigin || 'http://localhost:5173';
+}
+
 function normalizePrivateKey(k) {
   return k.includes('\\n') ? k.replace(/\\n/g, '\n') : k;
 }
@@ -121,6 +152,23 @@ async function ensureContentFile() {
   } catch {
     await fs.writeFile(CONTENT_FILE, JSON.stringify(defaultContent, null, 2), 'utf8');
   }
+}
+const fileMutex = new Mutex();
+
+async function readContent() {
+  await ensureContentFile();
+  const raw = await fs.readFile(CONTENT_FILE, 'utf8');
+  return JSON.parse(raw);
+}
+
+async function writeContent(content) {
+  await ensureContentFile();
+  await fs.writeFile(CONTENT_FILE, JSON.stringify(content, null, 2), 'utf8');
+}
+
+// Helper to safely run file operations atomically
+export async function runWithFileLock(callback) {
+  return await fileMutex.runExclusive(callback);
 }
 
 async function readContent() {
@@ -259,6 +307,7 @@ async function createEventStore(event) {
       icon: event.icon,
       tags: event.tags,
     };
+    
     let row;
     try {
       [row] = await supabaseRequest('events', { method: 'POST', body: [payload] });
@@ -280,6 +329,8 @@ async function createEventStore(event) {
       updatedAt: row.updated_at,
     });
   }
+  
+  // Safe atomic fallback operation preventing data loss using async-mutex
   return withContentLock(async () => {
     const content = await readContent();
     content.events.unshift({ ...event, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
@@ -287,7 +338,6 @@ async function createEventStore(event) {
     return sanitizeEventRecord(content.events[0]);
   });
 }
-
 async function updateEventStore(id, patch) {
   if (HAS_SUPABASE) {
     const [row] = await supabaseRequest(`events?id=eq.${encodeURIComponent(id)}`, {
@@ -360,7 +410,9 @@ async function listActivityEventsStore(activityKey) {
 }
 
 function sanitizeActivityEventRecord(event) {
-  return event;
+  if (!event || typeof event !== 'object') return event;
+  const { createdBy, ...safe } = event;
+  return safe;
 }
 
 async function createActivityEventStore(activityKey, event) {
@@ -548,8 +600,12 @@ function isPhoneish(s) {
 }
 
 app.get('/healthz', async (req, res) => {
-  const events = await listEventsStore();
-  res.json({ ok: true, events: events.length, storage: HAS_SUPABASE ? 'supabase' : 'file' });
+  try {
+    const events = await listEventsStore();
+    res.json({ ok: true, events: events.length, storage: HAS_SUPABASE ? 'supabase' : 'file' });
+  } catch (e) {
+    res.status(503).json({ ok: false, error: e?.message || 'Health check failed', storage: HAS_SUPABASE ? 'supabase' : 'file' });
+  }
 });
 
 app.get('/api/content/events', async (req, res) => {
@@ -621,7 +677,7 @@ app.delete('/api/content/activity-events/:activityKey/:eventId', async (req, res
   }
 });
 
-app.post('/api/admin/login', adminAuthMiddleware.login);
+app.post('/api/admin/login', authRateLimiter, adminAuthMiddleware.login);
 app.post('/api/admin/logout', adminAuthMiddleware.logout);
 app.use('/api/admin/analytics', adminAuth, analyticsRouter);
 app.use('/api/admin/metrics', adminAuth, adminStreamRouter);
@@ -779,7 +835,7 @@ async function handleForm(formType, req, res) {
 
     // NEW: Send a welcome email to the user
     try {
-      const verifyUrl = `${process.env.CORS_ORIGIN || 'http://localhost:5173'}/verify?email=${encodeURIComponent(req.body.collegeEmail)}`;
+      const verifyUrl = `${getPublicAppUrl()}/verify?email=${encodeURIComponent(req.body.collegeEmail)}`;
       await sendWelcomeVerificationEmail(req.body.collegeEmail, req.body.fullName, verifyUrl);
     } catch (emailErr) {
       console.error('[Form Handler] Failed to send welcome email:', emailErr);
@@ -814,6 +870,42 @@ const formRateLimiter = rateLimit({
   max: 5, // Limit each IP to 5 requests per windowMs
   message: { error: 'Too many form submissions from this IP, please try again after 10 minutes' }
 });
+
+const portfolioRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 requests per windowMs
+  message: { error: 'Too many portfolio update attempts from this IP, please try again after 15 minutes' }
+});
+
+const failedPasskeyAttempts = new Map();
+
+function checkPasskeyLockout(username, ip) {
+  const key = `${String(username || '').toLowerCase()}:${ip}`;
+  const entry = failedPasskeyAttempts.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.lockoutUntil) {
+    failedPasskeyAttempts.delete(key);
+    return null;
+  }
+  return entry;
+}
+
+function recordFailedPasskeyAttempt(username, ip) {
+  const key = `${String(username || '').toLowerCase()}:${ip}`;
+  const entry = failedPasskeyAttempts.get(key) || { count: 0, lockoutUntil: 0 };
+  entry.count += 1;
+  if (entry.count >= 5) {
+    entry.lockoutUntil = Date.now() + 15 * 60 * 1000; // 15 min lockout
+    entry.count = 0;
+  }
+  failedPasskeyAttempts.set(key, entry);
+  return entry;
+}
+
+function clearPasskeyAttempts(username, ip) {
+  const key = `${String(username || '').toLowerCase()}:${ip}`;
+  failedPasskeyAttempts.delete(key);
+}
 
 app.post('/api/forms/membership', formRateLimiter, (req, res) => handleForm('membership', req, res));
 app.post('/api/forms/recruitment', formRateLimiter, (req, res) => handleForm('recruitment', req, res));
@@ -860,7 +952,7 @@ app.get('/api/notifications', (req, res) => {
   }
 });
 
-app.post('/api/notifications/mark-read', (req, res) => {
+app.post('/api/notifications/mark-read', adminAuth, notificationRateLimiter, (req, res) => {
   try {
     const { id, userId } = req.body || {};
     if (!id) return res.status(400).json({ error: 'id required' });
@@ -872,7 +964,7 @@ app.post('/api/notifications/mark-read', (req, res) => {
   }
 });
 
-app.post('/api/notifications/mark-all-read', (req, res) => {
+app.post('/api/notifications/mark-all-read', adminAuth, notificationRateLimiter, (req, res) => {
   try {
     const { userId } = req.body || {};
     notificationsService.markAllAsRead(userId || 'global');
@@ -882,11 +974,12 @@ app.post('/api/notifications/mark-all-read', (req, res) => {
   }
 });
 
-app.delete('/api/notifications/:id', (req, res) => {
+app.delete('/api/notifications/:id', adminAuth, notificationRateLimiter, (req, res) => {
   try {
     const id = req.params.id;
     const userId = req.query.userId || 'global';
-    notificationsService.removeNotification(userId, id);
+    const removed = notificationsService.removeNotification(userId, id);
+    if (!removed) return res.status(404).json({ error: 'Notification not found' });
     return res.json({ success: true });
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -894,7 +987,7 @@ app.delete('/api/notifications/:id', (req, res) => {
 });
 
 // Delete all notifications for a user (or global)
-app.delete('/api/notifications', (req, res) => {
+app.delete('/api/notifications', adminAuth, notificationRateLimiter, (req, res) => {
   try {
     const userId = req.query.userId || 'global';
     notificationsService.clearAll(userId);
@@ -905,9 +998,10 @@ app.delete('/api/notifications', (req, res) => {
 });
 
 // Create notification (admin/testing)
-app.post('/api/notifications', (req, res) => {
+app.post('/api/notifications', adminAuth, notificationRateLimiter, (req, res) => {
   try {
     const { userId, title, message, type, link } = req.body || {};
+    if (!title || !message) return res.status(400).json({ error: 'title and message are required' });
     const note = notificationsService.addNotification(userId || 'global', { title, message, type, link });
     return res.json({ success: true, notification: note });
   } catch (err) {
@@ -933,11 +1027,12 @@ app.get('/api/portfolio/:username', async (req, res) => {
   }
 });
 
-app.put('/api/portfolio', async (req, res) => {
+app.put('/api/portfolio', portfolioRateLimiter, async (req, res) => {
   try {
     const body = req.body || {};
     const username = String(body.username || '').trim();
     const passkey = String(body.passkey || '').trim();
+    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
 
     if (!username || username.length < 3) {
       return res.status(400).json({ error: 'Username must be at least 3 characters long' });
@@ -945,15 +1040,24 @@ app.put('/api/portfolio', async (req, res) => {
     if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
       return res.status(400).json({ error: 'Username can only contain alphanumeric characters, underscores, and hyphens' });
     }
-    if (!passkey || passkey.length < 4) {
-      return res.status(400).json({ error: 'Passkey must be at least 4 characters long' });
+    if (!passkey || passkey.length < 12) {
+      return res.status(400).json({ error: 'Passkey must be at least 12 characters long' });
+    }
+
+    // Check lockout before verifying
+    const lockout = checkPasskeyLockout(username, ip);
+    if (lockout) {
+      return res.status(429).json({ error: 'Too many failed passkey attempts. Please try again later.' });
     }
 
     // Verify ownership/passkey
     const isAuthorized = await portfolioRepository.verifyPasskey(username, passkey);
     if (!isAuthorized) {
+      recordFailedPasskeyAttempt(username, ip);
       return res.status(401).json({ error: 'Incorrect passkey for this username' });
     }
+
+    clearPasskeyAttempts(username, ip);
 
     // Save portfolio configuration
     const saved = await portfolioRepository.createOrUpdate(body);
@@ -964,6 +1068,15 @@ app.put('/api/portfolio', async (req, res) => {
   }
 });
 
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[Process] Unhandled rejection:', reason instanceof Error ? reason.message : reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[Process] Uncaught exception:', err instanceof Error ? err.message : err);
+  if (err && err.stack) console.error(err.stack);
+});
 
 const port = Number(process.env.PORT || 8787);
 if (!process.env.VERCEL) {
