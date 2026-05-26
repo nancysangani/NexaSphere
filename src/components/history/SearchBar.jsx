@@ -53,6 +53,7 @@ const SearchBar = ({ onSelectPrompt, workspace = 'default' }) => {
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           onFocus={() => query && setShowResults(true)}
+          aria-label="Search saved conversations"
         />
         {isSearching && <span className="search-spinner">⟳</span>}
         {query && (
@@ -63,6 +64,7 @@ const SearchBar = ({ onSelectPrompt, workspace = 'default' }) => {
               setResults([]);
               setShowResults(false);
             }}
+            aria-label="Clear conversation search"
           >
             ✕
           </button>
@@ -72,11 +74,7 @@ const SearchBar = ({ onSelectPrompt, workspace = 'default' }) => {
       {showResults && results.length > 0 && (
         <div className="search-results">
           {results.slice(0, 5).map((prompt) => (
-            <div
-              key={prompt.id}
-              className="result-item"
-              onClick={() => handleSelectResult(prompt)}
-            >
+            <div key={prompt.id} className="result-item" onClick={() => handleSelectResult(prompt)}>
               <div className="result-content">
                 <p className="result-query">{formatPreview(prompt.userPrompt)}</p>
                 <p className="result-response">{formatPreview(prompt.botResponse)}</p>
@@ -84,9 +82,7 @@ const SearchBar = ({ onSelectPrompt, workspace = 'default' }) => {
             </div>
           ))}
           {results.length > 5 && (
-            <div className="result-more">
-              +{results.length - 5} more results
-            </div>
+            <div className="result-more">+{results.length - 5} more results</div>
           )}
         </div>
       )}
