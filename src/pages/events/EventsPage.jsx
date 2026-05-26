@@ -7,6 +7,7 @@ import BookmarkButton from '../../components/common/BookmarkButton';
 import ErrorBoundary from '../../components/common/ErrorBoundary';
 
 function EventsPageContent({ onBack, onEventClick, events = fallbackEvents }) {
+  const [viewMode, setViewMode] = useState('list');
   const safeEvents = Array.isArray(events) ? events : [];
   useEffect(() => {
     window.scrollTo({ top: 0 });
