@@ -1,19 +1,25 @@
-/**
- * Server-Sent Events (SSE) Service
- * Provides real-time event stream to admin dashboard
- */
-
 import logger from '../utils/logger.js';
 import { getPublicAppUrl } from '../utils/publicAppUrl.js';
 
-const adminClients = new Set();
+const MAX_SSE_CLIENTS = 100;
+const adminClients = new Map();
 
-/**
- * Add SSE client
- */
+function evictOldestClient() {
+  const oldest = adminClients.keys().next().value;
+  if (oldest) {
+    if (oldest._heartbeat) clearInterval(oldest._heartbeat);
+    try { oldest.end(); } catch {}
+    adminClients.delete(oldest);
+    logger.warn('SSE client evicted (capacity reached)', { totalClients: adminClients.size });
+  }
+}
+
 export function addSSEClient(res) {
-  adminClients.add(res);
-  logger.info('SSE client connected', { totalClients: adminClients.size });
+  if (adminClients.size >= MAX_SSE_CLIENTS) {
+    evictOldestClient();
+  }
+
+  adminClients.set(res, Date.now());
 
   res.on('close', () => {
     adminClients.delete(res);
@@ -23,14 +29,13 @@ export function addSSEClient(res) {
 
   res.on('error', (error) => {
     adminClients.delete(res);
-    if (res._heartbeat) clearInterval(res._heartbeat)
+    if (res._heartbeat) clearInterval(res._heartbeat);
     logger.error('SSE client error', { error: error.message });
   });
+
+  logger.info('SSE client connected', { totalClients: adminClients.size });
 }
 
-/**
- * Send SSE event to all connected clients
- */
 export function broadcastSSEEvent(eventName, data) {
   const eventData = JSON.stringify({
     type: eventName,
@@ -39,7 +44,7 @@ export function broadcastSSEEvent(eventName, data) {
   });
 
   const dead = [];
-  adminClients.forEach((client) => {
+  for (const [client] of adminClients) {
     try {
       client.write(`event: ${eventName}\n`);
       client.write(`data: ${eventData}\n\n`);
@@ -47,7 +52,7 @@ export function broadcastSSEEvent(eventName, data) {
       logger.error('Failed to send SSE event', { error: error.message });
       dead.push(client);
     }
-  });
+  }
 
   dead.forEach((c) => {
     adminClients.delete(c);
@@ -57,16 +62,27 @@ export function broadcastSSEEvent(eventName, data) {
   logger.debug('SSE event broadcast', { event: eventName, clientCount: adminClients.size });
 }
 
-/**
- * Get connected SSE clients count
- */
 export function getConnectedSSEClientsCount() {
   return adminClients.size;
 }
 
-/**
- * SSE middleware setup
- */
+const HEALTH_CHECK_INTERVAL_MS = 60000;
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [client, joined] of adminClients) {
+    if (now - joined > HEALTH_CHECK_INTERVAL_MS) {
+      try {
+        client.write(': ping\n\n');
+      } catch {
+        if (client._heartbeat) clearInterval(client._heartbeat);
+        adminClients.delete(client);
+        logger.warn('SSE client evicted (health check failed)', { totalClients: adminClients.size });
+      }
+    }
+  }
+}, HEALTH_CHECK_INTERVAL_MS).unref();
+
 export function setupSSEHeaders(req, res, next) {
   const allowedOrigin = getPublicAppUrl();
 
@@ -78,10 +94,8 @@ export function setupSSEHeaders(req, res, next) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-  // Send initial connection message
   res.write(': SSE connection established\n\n');
 
-  // Send heartbeat every 30 seconds to keep connection alive
   res._heartbeat = setInterval(() => {
     try {
       res.write(': heartbeat\n\n');

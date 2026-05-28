@@ -170,18 +170,6 @@ async function ensureContentFile() {
 }
 const fileMutex = new Mutex();
 
-async function readContent() {
-  await ensureContentFile();
-  const raw = await fs.readFile(CONTENT_FILE, "utf8");
-  return JSON.parse(raw);
-}
-
-async function writeContent(content) {
-  await ensureContentFile();
-  await fs.writeFile(CONTENT_FILE, JSON.stringify(content, null, 2), "utf8");
-}
-
-// Helper to safely run file operations atomically
 export async function runWithFileLock(callback) {
   return await fileMutex.runExclusive(callback);
 }
@@ -1197,11 +1185,11 @@ app.post("/api/notifications/subscribe", notificationRateLimiter, (req, res) => 
   try {
     const { subscription } = req.body;
     if (subscription) {
-      pushSubscriptions.add(JSON.stringify(subscription));
-      if (pushSubscriptions.size > 10000) {
+      if (pushSubscriptions.size >= 10000) {
         const oldest = pushSubscriptions.values().next().value;
         pushSubscriptions.delete(oldest);
       }
+      pushSubscriptions.add(JSON.stringify(subscription));
     }
     return res.json({ success: true });
   } catch (err) {
@@ -1416,6 +1404,7 @@ process.on("uncaughtException", (err) => {
     err instanceof Error ? err.message : err,
   );
   if (err && err.stack) console.error(err.stack);
+  process.exit(1);
 });
 
 const port = Number(process.env.PORT || 8787);
