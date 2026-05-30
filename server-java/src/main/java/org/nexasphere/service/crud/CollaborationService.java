@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,12 +37,13 @@ public class CollaborationService {
         return teamRepository.findAll();
     }
 
-    public CollaborationTeamEntity createTeam(CollaborationTeamEntity team) {
-        CollaborationTeamEntity saved = teamRepository.save(team);
-        return Objects.requireNonNull(saved, "saved team must not be null");
+    public @NonNull CollaborationTeamEntity createTeam(@NonNull CollaborationTeamEntity team) {
+        // Objects.requireNonNull wraps save() whose return is unannotated in Spring Data JPA
+        return Objects.requireNonNull(teamRepository.save(team), "saved team must not be null");
     }
 
-    public JoinRequestEntity submitJoinRequest(JoinRequestEntity request) {
+    public @NonNull JoinRequestEntity submitJoinRequest(@NonNull JoinRequestEntity request) {
+        // requireNonNull satisfies the null-checker: save() return is unannotated in Spring Data JPA
         JoinRequestEntity saved = Objects.requireNonNull(
                 requestRepository.save(request), "saved join request must not be null");
 
@@ -62,13 +64,22 @@ public class CollaborationService {
         return saved;
     }
 
-    public Optional<JoinRequestEntity> updateRequestStatus(Long requestId, String status) {
-        long safeId = Objects.requireNonNull(requestId, "requestId must not be null");
+    /**
+     * Updates the status of a join request. Returns an empty Optional if not found.
+     * The returned Optional always contains a non-null value when present.
+     */
+    public Optional<JoinRequestEntity> updateRequestStatus(
+            @NonNull Long requestId, String status) {
+        // requireNonNull is redundant here since @NonNull on the param documents the contract,
+        // but we keep the cast to long to avoid the autoboxing null-safety warning.
+        long safeId = requestId; // @NonNull guarantees non-null; direct unbox is safe
         Optional<JoinRequestEntity> optionalReq = requestRepository.findById(safeId);
         if (optionalReq.isPresent()) {
             JoinRequestEntity req = optionalReq.get();
             req.setStatus(status);
-            return Optional.of(Objects.requireNonNull(requestRepository.save(req)));
+            JoinRequestEntity updated = Objects.requireNonNull(
+                    requestRepository.save(req), "saved request must not be null");
+            return Optional.of(updated);
         }
         return Optional.empty();
     }

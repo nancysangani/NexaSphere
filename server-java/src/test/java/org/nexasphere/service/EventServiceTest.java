@@ -19,7 +19,6 @@ import org.nexasphere.util.Sanitizer;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null") // Test code: Mockito's getArgument() and repo mocks lack @NonNull annotations
 class EventServiceTest {
 
     @Mock
@@ -60,12 +60,10 @@ class EventServiceTest {
     @Test
     void createEvent_autoGeneratesSlugId() {
         EventEntity input = sampleEvent();
-        EventEntity saved = sampleEvent();
-        saved.setId("kss-154-advanced-ai-topics");
 
         when(repo.existsById(anyString())).thenReturn(false);
-        when(repo.save(any())).thenAnswer(inv -> Objects.requireNonNull(
-                (EventEntity) inv.getArgument(0)));
+        // Return the same entity that was passed in (it has the generated ID set by generateId())
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0, EventEntity.class));
 
         EventEntity result = service.createEvent(input, "admin@test.com");
 
@@ -80,8 +78,7 @@ class EventServiceTest {
     void createEvent_slugCollision_appendsTimestamp() {
         EventEntity input = sampleEvent();
         when(repo.existsById(anyString())).thenReturn(true);
-        when(repo.save(any())).thenAnswer(inv -> Objects.requireNonNull(
-                (EventEntity) inv.getArgument(0)));
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0, EventEntity.class));
 
         EventEntity result = service.createEvent(input, "admin@test.com");
 
@@ -101,8 +98,7 @@ class EventServiceTest {
         updates.setStatus("completed");
 
         when(repo.findById("kss-154")).thenReturn(Optional.of(existing));
-        when(repo.save(any())).thenAnswer(inv -> Objects.requireNonNull(
-                (EventEntity) inv.getArgument(0)));
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0, EventEntity.class));
 
         EventEntity result = service.updateEvent("kss-154", updates, "admin@test.com");
 

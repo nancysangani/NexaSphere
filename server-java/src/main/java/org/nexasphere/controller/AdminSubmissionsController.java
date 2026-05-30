@@ -5,6 +5,7 @@ import org.nexasphere.model.entity.RecruitmentSubmissionEntity;
 import org.nexasphere.repository.MembershipSubmissionRepository;
 import org.nexasphere.repository.RecruitmentSubmissionRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -16,7 +17,7 @@ public class AdminSubmissionsController {
     private final MembershipSubmissionRepository membershipRepo;
     private final RecruitmentSubmissionRepository recruitmentRepo;
 
-    public AdminSubmissionsController(MembershipSubmissionRepository membershipRepo, 
+    public AdminSubmissionsController(MembershipSubmissionRepository membershipRepo,
                                       RecruitmentSubmissionRepository recruitmentRepo) {
         this.membershipRepo = membershipRepo;
         this.recruitmentRepo = recruitmentRepo;
@@ -34,7 +35,7 @@ public class AdminSubmissionsController {
 
     @PatchMapping("/membership/{id}/status")
     public ResponseEntity<MembershipSubmissionEntity> updateMembershipStatus(
-            @PathVariable Long id, @RequestBody Map<String, String> body) {
+            @PathVariable @NonNull Long id, @RequestBody Map<String, String> body) {
         return membershipRepo.findById(id)
                 .map(s -> {
                     s.setStatus(body.get("status"));
@@ -46,7 +47,7 @@ public class AdminSubmissionsController {
 
     @PatchMapping("/recruitment/{id}/status")
     public ResponseEntity<RecruitmentSubmissionEntity> updateRecruitmentStatus(
-            @PathVariable Long id, @RequestBody Map<String, String> body) {
+            @PathVariable @NonNull Long id, @RequestBody Map<String, String> body) {
         return recruitmentRepo.findById(id)
                 .map(s -> {
                     s.setStatus(body.get("status"));
