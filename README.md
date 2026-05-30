@@ -767,6 +767,7 @@ MIT License © 2026 NexaSphere — GL Bajaj Group of Institutions, Mathura
 <a href="https://github.com/parakramgambhir14"><img src="https://github.com/parakramgambhir14.png" width="50px" alt="parakramgambhir14" title="parakramgambhir14" /></a>
 <a href="https://github.com/bhumikasudarshani-cmd"><img src="https://github.com/bhumikasudarshani-cmd.png" width="50px" alt="bhumikasudarshani-cmd" title="bhumikasudarshani-cmd" /></a>
 <a href="https://github.com/Piyush025s07"><img src="https://github.com/Piyush025s07.png" width="50px" alt="Piyush025s07" title="Piyush025s07" /></a>
+<a href="https://github.com/srinidhi-2006-bit"><img src="https://github.com/srinidhi-2006-bit.png" width="50px" alt="srinidhi-2006-bit" title="srinidhi-2006-bit" /></a>
 <!-- CONTRIBUTORS_END -->
 
 </div>
