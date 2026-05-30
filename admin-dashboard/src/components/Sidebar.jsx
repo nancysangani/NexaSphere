@@ -54,14 +54,14 @@ export function Sidebar() {
               className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
               onClick={close}
             >
-              <AdminIcon name={icon} size={16} />
+              <AdminIcon name={icon} size={16} aria-hidden="true" />
               {label}
             </NavLink>
           ))}
         </nav>
         <div className="sidebar-footer">
           <span className="sidebar-email">{email}</span>
-          <button className="btn-logout" onClick={logout}>
+          <button className="btn-logout" onClick={logout} aria-label="Logout {email}">
             Logout
           </button>
         </div>

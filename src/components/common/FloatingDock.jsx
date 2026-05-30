@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronUp, Moon, Plus } from "lucide-react";
+import { useState } from 'react';
+import { ChevronUp, Moon, Plus } from 'lucide-react';
 
 export default function FloatingDock() {
   const [open, setOpen] = useState(false);
@@ -7,7 +7,7 @@ export default function FloatingDock() {
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: "smooth",
+      behavior: 'smooth',
     });
   };
 
@@ -15,7 +15,6 @@ export default function FloatingDock() {
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       {open && (
         <div className="mb-4 flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
-          
           <button
             onClick={scrollToTop}
             className="rounded-full bg-black/80 backdrop-blur-md p-3 text-white shadow-lg transition hover:scale-110"
@@ -59,11 +58,9 @@ export default function FloatingDock() {
       <button
         onClick={() => setOpen(!open)}
         className={`rounded-full p-4 text-white shadow-2xl transition-all duration-300 ${
-          open
-            ? "rotate-45 bg-red-500"
-            : "bg-gradient-to-r from-red-500 to-pink-500"
+          open ? 'rotate-45 bg-red-500' : 'bg-gradient-to-r from-red-500 to-pink-500'
         }`}
-        aria-label={open ? "Close quick actions" : "Open quick actions"}
+        aria-label={open ? 'Close quick actions' : 'Open quick actions'}
         aria-expanded={open}
       >
         <Plus size={24} aria-hidden="true" />

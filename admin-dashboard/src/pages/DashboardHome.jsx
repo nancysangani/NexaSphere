@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { api, auth } from "../services/api";
-import { Skeleton } from "../components/Skeleton";
-import { AdminIcon } from "../components/AdminIcon";
+import { useState, useEffect } from 'react';
+import { api, auth } from '../services/api';
+import { Skeleton } from '../components/Skeleton';
+import { AdminIcon } from '../components/AdminIcon';
 
 export function DashboardHome() {
   const [stats, setStats] = useState(null);
@@ -19,7 +19,7 @@ export function DashboardHome() {
       const applications = membershipData?.responses ?? [];
       setStats({
         totalEvents: events.length,
-        upcomingEvents: events.filter((e) => e.status === "upcoming").length,
+        upcomingEvents: events.filter((e) => e.status === 'upcoming').length,
         teamMembers: team.length,
         totalApplications: applications.length,
       });
@@ -35,24 +35,23 @@ export function DashboardHome() {
       {isOffline && (
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            background: "rgba(234,179,8,0.08)",
-            border: "1px solid rgba(234,179,8,0.3)",
-            borderRadius: "8px",
-            padding: "10px 16px",
-            marginBottom: "24px",
-            fontSize: "0.82rem",
-            color: "rgba(234,179,8,0.9)",
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            background: 'rgba(234,179,8,0.08)',
+            border: '1px solid rgba(234,179,8,0.3)',
+            borderRadius: '8px',
+            padding: '10px 16px',
+            marginBottom: '24px',
+            fontSize: '0.82rem',
+            color: 'rgba(234,179,8,0.9)',
           }}
         >
-          <AdminIcon name="WifiOff" size={16} />
+          <AdminIcon name="WifiOff" size={16} aria-hidden="true" />
           <span>
-            <strong>Offline Mode</strong> — Changes are stored in browser
-            localStorage only. Set <code>VITE_API_BASE</code> and{" "}
-            <code>VITE_MEMBERSHIP_SCRIPT_URL</code> to connect live data
-            sources.
+            <strong>Offline Mode</strong> — Changes are stored in browser localStorage only. Set{' '}
+            <code>VITE_API_BASE</code> and <code>VITE_MEMBERSHIP_SCRIPT_URL</code> to connect live
+            data sources.
           </span>
         </div>
       )}
@@ -65,7 +64,7 @@ export function DashboardHome() {
         <div className="stats-grid">
           <div className="stat-card">
             <span className="stat-icon">
-              <AdminIcon name="Calendar" size={28} />
+              <AdminIcon name="Calendar" size={28} aria-hidden="true" />
             </span>
             <div>
               <div className="stat-value">{stats.totalEvents}</div>
@@ -74,7 +73,7 @@ export function DashboardHome() {
           </div>
           <div className="stat-card">
             <span className="stat-icon">
-              <AdminIcon name="Users" size={28} />
+              <AdminIcon name="Users" size={28} aria-hidden="true" />
             </span>
             <div>
               <div className="stat-value">{stats.teamMembers}</div>
@@ -83,7 +82,7 @@ export function DashboardHome() {
           </div>
           <div className="stat-card">
             <span className="stat-icon">
-              <AdminIcon name="FileText" size={28} />
+              <AdminIcon name="FileText" size={28} aria-hidden="true" />
             </span>
             <div>
               <div className="stat-value">{stats.totalApplications}</div>
@@ -92,8 +91,8 @@ export function DashboardHome() {
                 {isOffline && (
                   <span
                     style={{
-                      marginLeft: "6px",
-                      fontSize: "0.65rem",
+                      marginLeft: '6px',
+                      fontSize: '0.65rem',
                       opacity: 0.6,
                     }}
                   >
@@ -109,17 +108,25 @@ export function DashboardHome() {
       <div className="quick-links">
         <h3>Quick Actions</h3>
         <div className="quick-grid">
-          <a href="/dashboard/events" className="quick-card">
-            <AdminIcon name="Calendar" size={18} /> Events
+          <a href="/dashboard/events" className="quick-card" aria-label="Manage events">
+            <AdminIcon name="Calendar" size={18} aria-hidden="true" /> Events
           </a>
-          <a href="/dashboard/activity-events" className="quick-card">
-            <AdminIcon name="Target" size={18} /> Activities
+          <a
+            href="/dashboard/activity-events"
+            className="quick-card"
+            aria-label="Manage activities"
+          >
+            <AdminIcon name="Target" size={18} aria-hidden="true" /> Activities
           </a>
-          <a href="/dashboard/core-team" className="quick-card">
-            <AdminIcon name="Users" size={18} /> Team
+          <a href="/dashboard/core-team" className="quick-card" aria-label="Manage core team">
+            <AdminIcon name="Users" size={18} aria-hidden="true" /> Team
           </a>
-          <a href="/dashboard/membership" className="quick-card">
-            <AdminIcon name="FileText" size={18} /> Membership
+          <a
+            href="/dashboard/membership"
+            className="quick-card"
+            aria-label="View membership applications"
+          >
+            <AdminIcon name="FileText" size={18} aria-hidden="true" /> Membership
           </a>
         </div>
       </div>

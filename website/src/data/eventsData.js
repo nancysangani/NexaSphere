@@ -45,7 +45,8 @@ export const events = [
     date: 'June 10-12, 2026',
     startDate: '2026-06-10T09:00:00',
     endDate: '2026-06-12T18:00:00',
-    description: '48-hour coding marathon to build innovative solutions for real-world problems. Collaborate with teams, get mentorship, and win exciting prizes.',
+    description:
+      '48-hour coding marathon to build innovative solutions for real-world problems. Collaborate with teams, get mentorship, and win exciting prizes.',
     status: 'upcoming',
     icon: 'Code',
     category: 'hackathon',
@@ -61,7 +62,8 @@ export const events = [
     date: 'June 5, 2026',
     startDate: '2026-06-05T15:00:00',
     endDate: '2026-06-05T17:30:00',
-    description: 'Structured debate on the future of AI and its impact on human creativity, jobs, and society.',
+    description:
+      'Structured debate on the future of AI and its impact on human creativity, jobs, and society.',
     status: 'upcoming',
     icon: 'MessageSquare',
     category: 'debate',
@@ -77,7 +79,8 @@ export const events = [
     date: 'June 15, 2026',
     startDate: '2026-06-15T10:00:00',
     endDate: '2026-06-15T16:00:00',
-    description: 'Learn Git workflows, find your first issue, and make your first open source contribution with guidance from mentors.',
+    description:
+      'Learn Git workflows, find your first issue, and make your first open source contribution with guidance from mentors.',
     status: 'upcoming',
     icon: 'GitBranch',
     category: 'opensource',
@@ -93,7 +96,8 @@ export const events = [
     date: 'May 28, 2026',
     startDate: '2026-05-28T11:00:00',
     endDate: '2026-05-28T13:00:00',
-    description: 'Master the art of crafting effective prompts for generative AI tools like ChatGPT, Claude, and Gemini.',
+    description:
+      'Master the art of crafting effective prompts for generative AI tools like ChatGPT, Claude, and Gemini.',
     status: 'upcoming',
     icon: 'Sparkles',
     category: 'workshop',
@@ -115,6 +119,6 @@ export const events = [
     category: 'workshop',
     tags: ['React', 'Frontend', 'Web Development'],
     location: 'Computer Lab',
-    capacity: 50
-  }
+    capacity: 50,
+  },
 ];
