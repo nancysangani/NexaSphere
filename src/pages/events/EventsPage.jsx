@@ -3,61 +3,443 @@ import { events as fallbackEvents } from '../../data/eventsData';
 import { BannerOrbs } from '../../shared/MotionLayer';
 import Footer from '../../shared/Footer';
 import { DynamicIcon } from '../../shared/Icons';
-import PersonalizedFeed from '../../components/recommendation/PersonalizedFeed';
-import EventCalendarView from '../../components/calendar/EventCalendarView';
-import BookmarkButton from '../../components/common/BookmarkButton';
 
-export default function EventsPage({ onBack, onEventClick, events = fallbackEvents }) {
-  const [view, setView] = useState('timeline');
-  const [recommendationView, setRecommendationView] = useState(false);
+function EventModal({ event, onClose }) {
+  if (!event) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.6)',
+        backdropFilter: 'blur(8px)',
+        animation: 'fadeIn 0.3s ease',
+      }}
+    >
+      <div
+        style={{
+          background: 'var(--bg)',
+          border: '1px solid var(--bdr)',
+          borderRadius: 'var(--r3)',
+          width: '100%',
+          maxWidth: '600px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+          position: 'relative',
+          animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            background: 'rgba(10, 10, 10, 0.8)',
+            backdropFilter: 'blur(10px)',
+            padding: '20px',
+            borderBottom: '1px solid var(--bdr)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            zIndex: 10,
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--t1)' }}>Event Details</h2>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--t2)',
+              cursor: 'pointer',
+              padding: '8px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+          >
+            <DynamicIcon name="X" size={20} />
+          </button>
+        </div>
+
+        <div style={{ padding: '24px' }}>
+          <h3 style={{ fontSize: '1.5rem', color: 'var(--c1)', marginBottom: '8px' }}>
+            {event.name}
+          </h3>
+          <div
+            style={{
+              display: 'flex',
+              gap: '16px',
+              color: 'var(--t2)',
+              fontSize: '0.9rem',
+              marginBottom: '20px',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <DynamicIcon name="Calendar" size={14} /> {event.dateText || event.date}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <DynamicIcon name="MapPin" size={14} /> {event.location || 'TBA'}
+            </span>
+          </div>
+
+          <p style={{ color: 'var(--t2)', lineHeight: 1.6, marginBottom: '24px' }}>
+            {event.description}
+          </p>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '20px',
+              marginBottom: '24px',
+            }}
+          >
+            <div
+              style={{
+                background: 'var(--card)',
+                padding: '16px',
+                borderRadius: 'var(--r2)',
+                border: '1px solid var(--bdr)',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '0.8rem',
+                  color: 'var(--t3)',
+                  textTransform: 'uppercase',
+                  marginBottom: '8px',
+                }}
+              >
+                Mentor / Speaker
+              </div>
+              <div style={{ color: 'var(--t1)', fontWeight: 600 }}>Guest Expert (TBA)</div>
+            </div>
+            <div
+              style={{
+                background: 'var(--card)',
+                padding: '16px',
+                borderRadius: 'var(--r2)',
+                border: '1px solid var(--bdr)',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '0.8rem',
+                  color: 'var(--t3)',
+                  textTransform: 'uppercase',
+                  marginBottom: '8px',
+                }}
+              >
+                Seat Availability
+              </div>
+              <div style={{ color: 'var(--t1)', fontWeight: 600 }}>
+                {event.capacity
+                  ? `${Math.floor(Math.random() * 20) + 10} / ${event.capacity} Available`
+                  : 'Unlimited'}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <div
+              style={{
+                fontSize: '0.85rem',
+                color: 'var(--t3)',
+                textTransform: 'uppercase',
+                marginBottom: '10px',
+              }}
+            >
+              Tags
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {event.tags?.map((t) => (
+                <span
+                  key={t}
+                  style={{
+                    background: 'var(--c1-18)',
+                    color: 'var(--c1)',
+                    border: '1px solid var(--c1-35)',
+                    padding: '4px 12px',
+                    borderRadius: '20px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            {event.status === 'upcoming' ? (
+              <button
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: 'var(--c1)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 'var(--r2)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = 0.8)}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = 1)}
+              >
+                Register Now
+              </button>
+            ) : (
+              <button
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: 'var(--card)',
+                  color: 'var(--t1)',
+                  border: '1px solid var(--bdr)',
+                  borderRadius: 'var(--r2)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Watch Recording
+              </button>
+            )}
+            <button
+              style={{
+                padding: '12px',
+                background: 'var(--card)',
+                color: 'var(--t1)',
+                border: '1px solid var(--bdr)',
+                borderRadius: 'var(--r2)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <DynamicIcon name="Link" size={16} /> Resources
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EventCard({ event, onOpen }) {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    if (event.status !== 'upcoming' || !event.startDate) return;
+
+    const updateTime = () => {
+      const diff = new Date(event.startDate).getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft('Started');
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      setTimeLeft(days > 0 ? `${days}d ${hours}h left` : `${hours}h left`);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, [event]);
+
+  return (
+    <div
+      style={{
+        background: 'rgba(255,255,255,0.02)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid var(--bdr)',
+        borderRadius: 'var(--r3)',
+        padding: '24px',
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+        cursor: 'pointer',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+      className="event-glass-card"
+      onClick={() => onOpen(event)}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-6px)';
+        e.currentTarget.style.boxShadow = `0 12px 30px ${event.status === 'upcoming' ? 'rgba(123,111,255,0.2)' : 'rgba(255,255,255,0.05)'}`;
+        e.currentTarget.style.borderColor =
+          event.status === 'upcoming' ? 'rgba(123,111,255,0.4)' : 'var(--bdr)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = '';
+        e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+        e.currentTarget.style.borderColor = 'var(--bdr)';
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '4px',
+          bottom: 0,
+          background:
+            event.status === 'upcoming'
+              ? 'linear-gradient(to bottom, #7b6fff, #00d4ff)'
+              : 'var(--bdr)',
+        }}
+      />
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '16px',
+        }}
+      >
+        <span
+          style={{
+            fontSize: '0.75rem',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            background:
+              event.status === 'upcoming' ? 'rgba(123,111,255,0.15)' : 'rgba(255,255,255,0.05)',
+            color: event.status === 'upcoming' ? '#7b6fff' : 'var(--t3)',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}
+        >
+          {event.status}
+        </span>
+        {event.status === 'upcoming' && timeLeft && (
+          <span
+            style={{
+              fontSize: '0.8rem',
+              color: '#00d4ff',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <DynamicIcon name="Clock" size={14} /> {timeLeft}
+          </span>
+        )}
+      </div>
+
+      <h3
+        style={{ fontSize: '1.25rem', color: 'var(--t1)', margin: '0 0 12px 0', lineHeight: 1.3 }}
+      >
+        {event.name}
+      </h3>
+
+      <p
+        style={{
+          fontSize: '0.85rem',
+          color: 'var(--t2)',
+          flex: 1,
+          marginBottom: '20px',
+          lineHeight: 1.5,
+        }}
+      >
+        {event.description?.substring(0, 100)}...
+      </p>
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: 'auto',
+          borderTop: '1px solid var(--bdr)',
+          paddingTop: '16px',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '0.8rem',
+            color: 'var(--t3)',
+          }}
+        >
+          <DynamicIcon name="Users" size={14} />
+          {event.capacity ? `${event.capacity} Seats` : 'Open'}
+        </div>
+        <button
+          style={{
+            background:
+              event.status === 'upcoming'
+                ? 'linear-gradient(135deg, #7b6fff, #00d4ff)'
+                : 'transparent',
+            color: event.status === 'upcoming' ? '#fff' : 'var(--t2)',
+            border: event.status === 'upcoming' ? 'none' : '1px solid var(--bdr)',
+            padding: '6px 16px',
+            borderRadius: '20px',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          {event.status === 'upcoming' ? 'Register' : 'Details'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function EventsPage({ onBack, events = fallbackEvents }) {
+  const [filter, setFilter] = useState('All');
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   const now = Date.now();
-  const parseDate = (ev) => {
-    const raw = ev.dateText ?? ev.date ?? '';
-    const d = new Date(raw);
-    return isNaN(d) ? null : d;
-  };
   const getEffectiveStatus = (ev) => {
     if (ev.status === 'completed') return 'completed';
-    const d = parseDate(ev);
-    if (d && d.getTime() < now) return 'completed'; // date passed → auto-complete
+    const d = ev.startDate ? new Date(ev.startDate) : null;
+    if (d && d.getTime() < now) return 'completed';
     return ev.status || 'upcoming';
   };
 
-  const sortedEvents = [...events]
-    .map((ev) => ({ ...ev, status: getEffectiveStatus(ev) }))
+  const processedEvents = events.map((ev) => ({ ...ev, status: getEffectiveStatus(ev) }));
+
+  const filteredEvents = processedEvents
+    .filter((ev) => {
+      if (filter === 'All') return true;
+      return ev.status.toLowerCase() === filter.toLowerCase();
+    })
     .sort((a, b) => {
-      const aIsUpcoming = a.status !== 'completed';
-      const bIsUpcoming = b.status !== 'completed';
-      if (aIsUpcoming !== bIsUpcoming) return bIsUpcoming ? 1 : -1;
-      const da = parseDate(a)?.getTime() ?? 0;
-      const db = parseDate(b)?.getTime() ?? 0;
-      return aIsUpcoming ? da - db : db - da;
+      const dA = a.startDate ? new Date(a.startDate).getTime() : 0;
+      const dB = b.startDate ? new Date(b.startDate).getTime() : 0;
+      if (filter === 'Upcoming') return dA - dB;
+      return dB - dA;
     });
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add('fired');
-            obs.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0, rootMargin: '0px 0px -10px 0px' }
-    );
-    document
-      .querySelectorAll(
-        '#events-page .pop-in, #events-page .pop-left, #events-page .pop-right, #events-page .pop-word'
-      )
-      .forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
   }, []);
 
   return (
-    <div id="events-page" style={{ minHeight: '100vh', padding: '0 0 100px' }}>
+    <div
+      id="events-page"
+      style={{ minHeight: '100vh', padding: '0 0 100px', position: 'relative' }}
+    >
       <div
         className="page-banner"
         style={{
@@ -65,15 +447,12 @@ export default function EventsPage({ onBack, onEventClick, events = fallbackEven
           borderBottom: '1px solid var(--bdr)',
           padding: '70px 0 50px',
           textAlign: 'center',
-          /* Normalized to 32px — content areas use paddingTop:32px, so the
-           combined visual gap stays consistent (~32px) instead of ~116px */
-          marginBottom: '32px',
+          marginBottom: '40px',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
         <div
-          className="page-banner-line"
           style={{
             position: 'absolute',
             top: 0,
@@ -103,20 +482,26 @@ export default function EventsPage({ onBack, onEventClick, events = fallbackEven
             gap: '6px',
             fontFamily: "'Rajdhani', sans-serif",
             fontWeight: 600,
+            zIndex: 10,
           }}
         >
           ← Back
         </button>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <span className="cin-section-label pop-in">NexaSphere · GL Bajaj</span>
-          <h1 className="section-title pop-word" style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)' }}>
+          <span className="cin-section-label" style={{ animation: 'fadeIn .5s ease' }}>
+            NexaSphere · GL Bajaj
+          </span>
+          <h1
+            className="section-title"
+            style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', animation: 'fadeInUp .6s ease' }}
+          >
             Our Events
           </h1>
           <p
-            className="section-subtitle pop-in"
+            className="section-subtitle"
             style={{
-              animationDelay: '.1s',
+              animation: 'fadeInUp .7s ease',
               maxWidth: '520px',
               margin: '0 auto',
             }}
@@ -125,7 +510,7 @@ export default function EventsPage({ onBack, onEventClick, events = fallbackEven
           </p>
         </div>
 
-        {/* View Toggle Buttons */}
+        {/* Filters */}
         <div
           style={{
             display: 'flex',
@@ -134,268 +519,69 @@ export default function EventsPage({ onBack, onEventClick, events = fallbackEven
             marginTop: '32px',
             position: 'relative',
             zIndex: 2,
-            flexWrap: 'wrap',
+            animation: 'fadeInUp .8s ease',
           }}
         >
-          <button
-            onClick={() => {
-              setView('timeline');
-              setRecommendationView(false);
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 20px',
-              background: !recommendationView && view === 'timeline' ? 'var(--c1)' : 'transparent',
-              border: !recommendationView && view === 'timeline' ? 'none' : '1px solid var(--bdr)',
-              borderRadius: '100px',
-              color: !recommendationView && view === 'timeline' ? 'white' : 'var(--t2)',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 500,
-              transition: 'all 0.2s ease',
-              fontFamily: "'Rajdhani', sans-serif",
-            }}
-          >
-            <DynamicIcon name="List" size={16} />
-            Timeline View
-          </button>
-          <button
-            onClick={() => {
-              setView('calendar');
-              setRecommendationView(false);
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 20px',
-              background: !recommendationView && view === 'calendar' ? 'var(--c1)' : 'transparent',
-              border: !recommendationView && view === 'calendar' ? 'none' : '1px solid var(--bdr)',
-              borderRadius: '100px',
-              color: !recommendationView && view === 'calendar' ? 'white' : 'var(--t2)',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 500,
-              transition: 'all 0.2s ease',
-              fontFamily: "'Rajdhani', sans-serif",
-            }}
-          >
-            <DynamicIcon name="Calendar" size={16} />
-            Calendar View
-          </button>
-          <button
-            onClick={() => {
-              setRecommendationView(true);
-              setView('timeline');
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 20px',
-              background: recommendationView ? 'var(--c1)' : 'transparent',
-              border: recommendationView ? 'none' : '1px solid var(--bdr)',
-              borderRadius: '100px',
-              color: recommendationView ? 'white' : 'var(--t2)',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 500,
-              transition: 'all 0.2s ease',
-              fontFamily: "'Rajdhani', sans-serif",
-            }}
-          >
-            <DynamicIcon name="Sparkles" size={16} />
-            For You
-          </button>
+          {['All', 'Upcoming', 'Completed'].map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              style={{
+                padding: '8px 24px',
+                background: filter === f ? '#7b6fff' : 'rgba(255,255,255,0.02)',
+                color: filter === f ? '#fff' : 'var(--t2)',
+                border: `1px solid ${filter === f ? '#7b6fff' : 'var(--bdr)'}`,
+                borderRadius: '30px',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: filter === f ? '0 4px 15px rgba(123,111,255,0.4)' : 'none',
+              }}
+            >
+              {f}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="container">
-        {recommendationView ? (
-          <PersonalizedFeed events={sortedEvents} onEventClick={onEventClick} />
-        ) : view === 'timeline' ? (
-          <div className="events-timeline ns-reveal">
-            {sortedEvents.map((ev, i) => {
-              const hasDetailPage = !!ev.hasDetailPage;
-              return (
-                <div className="timeline-item" key={ev.id}>
-                  <div className={`timeline-dot${ev.status === 'upcoming' ? ' upcoming' : ''}`} />
-                  <div
-                    className={`timeline-card shimmer ${i % 2 === 0 ? 'pop-left' : 'pop-right'}`}
-                    style={{
-                      animationDelay: `${i * 0.11}s`,
-                      /* cursor: pointer ensures touch/mobile devices get proper feedback
-                         even when the global custom cursor sets cursor:none on desktop */
-                      cursor: hasDetailPage ? 'pointer' : 'default',
-                      transition: 'all .28s ease',
-                      position: 'relative',
-                    }}
-                    onClick={hasDetailPage ? () => onEventClick(ev) : undefined}
-                    onMouseEnter={
-                      hasDetailPage
-                        ? (e) => {
-                            e.currentTarget.style.borderColor = 'var(--c1b)';
-                            e.currentTarget.style.boxShadow = '0 6px 24px var(--c1g)';
-                            e.currentTarget.style.transform = 'translateY(-3px)';
-                          }
-                        : undefined
-                    }
-                    onMouseLeave={
-                      hasDetailPage
-                        ? (e) => {
-                            e.currentTarget.style.borderColor = '';
-                            e.currentTarget.style.boxShadow = '';
-                            e.currentTarget.style.transform = '';
-                          }
-                        : undefined
-                    }
-                  >
-                    <BookmarkButton
-                      item={{
-                        id: `event-${ev.id}`,
-                        type: 'Event',
-                        title: ev.name,
-                        date: ev.date,
-                      }}
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        zIndex: 20,
-                      }}
-                    />
-                    <div
-                      className="timeline-event-name"
-                      style={{
-                        fontSize: '1.05rem',
-                        fontWeight: 800,
-                        color: 'var(--c1)',
-                        marginBottom: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '8px',
-                      }}
-                    >
-                      <span>{ev.name}</span>
-                      {hasDetailPage && (
-                        <span
-                          style={{
-                            color: 'var(--c1)',
-                            opacity: 0.8,
-                            fontSize: '0.9rem',
-                          }}
-                        >
-                          →
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      className="timeline-event-date"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '.74rem',
-                        color: 'var(--t3)',
-                        marginBottom: '8px',
-                      }}
-                    >
-                      <DynamicIcon
-                        name={ev.icon || 'Calendar'}
-                        size={13}
-                        style={{ color: 'var(--c1)' }}
-                      />
-                      {ev.dateText ?? ev.date}
-                    </div>
-                    <p
-                      className="timeline-event-desc"
-                      style={{
-                        fontSize: '.84rem',
-                        lineHeight: '1.55',
-                        marginBottom: '12px',
-                      }}
-                    >
-                      {ev.description}
-                    </p>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '7px',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      <span
-                        className={`timeline-badge ${ev.status}`}
-                        style={{ fontSize: '.64rem', padding: '1px 8px' }}
-                      >
-                        {ev.status === 'completed' ? (
-                          <>
-                            <DynamicIcon
-                              name="CheckCircle"
-                              size={11}
-                              style={{ marginRight: '4px' }}
-                            />{' '}
-                            Completed
-                          </>
-                        ) : (
-                          <>
-                            <DynamicIcon name="Calendar" size={11} style={{ marginRight: '4px' }} />{' '}
-                            Upcoming
-                          </>
-                        )}
-                      </span>
-                      {ev.tags?.map((t) => (
-                        <span
-                          key={t}
-                          style={{
-                            fontSize: '.64rem',
-                            padding: '1px 8px',
-                            borderRadius: '10px',
-                            background: 'var(--c2a)',
-                            color: 'var(--c2)',
-                            border: '1px solid var(--c2b)',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+      <div className="container" style={{ position: 'relative', zIndex: 5 }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gap: '24px',
+            animation: 'fadeInUp 0.9s ease',
+          }}
+        >
+          {filteredEvents.map((ev) => (
+            <EventCard key={ev.id} event={ev} onOpen={setSelectedEvent} />
+          ))}
+        </div>
 
-            <div className="timeline-item">
-              <div className="timeline-dot upcoming" />
-              <div
-                className="timeline-card pop-in fired"
-                style={{
-                  textAlign: 'center',
-                  color: 'var(--t3)',
-                  animationDelay: `${sortedEvents.length * 0.11}s`,
-                }}
-              >
-                <DynamicIcon
-                  name="Rocket"
-                  size={24}
-                  style={{ color: 'var(--c1)', marginBottom: '8px' }}
-                />
-                <p style={{ marginTop: '6px', fontSize: '.84rem' }}>
-                  More events coming soon. Watch this space!
-                </p>
-              </div>
-            </div>
+        {filteredEvents.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--t3)' }}>
+            No events found for this category.
           </div>
-        ) : (
-          <EventCalendarView events={sortedEvents} onEventClick={onEventClick} />
         )}
       </div>
 
+      {selectedEvent && <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />}
+
+      <style>{`
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(30px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
       <Footer />
     </div>
   );
