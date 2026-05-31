@@ -14,8 +14,8 @@ Thank you for your interest in contributing to this project! We welcome contribu
 
 ## Reporting Bugs
 
-Please use the provided [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md) issue template to report any bugs you find. Ensure you include steps to reproduce, expected behavior, and actual behavior.
+Please use the provided [Bug Report](../../.github/ISSUE_TEMPLATE/bug_report.md) issue template to report any bugs you find. Ensure you include steps to reproduce, expected behavior, and actual behavior.
 
 ## Requesting Features
 
-If you have a feature idea, please use the [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md) issue template. Provide as much detail as possible about the use case and proposed implementation.
+If you have a feature idea, please use the [Feature Request](../../.github/ISSUE_TEMPLATE/feature_request.md) issue template. Provide as much detail as possible about the use case and proposed implementation.
