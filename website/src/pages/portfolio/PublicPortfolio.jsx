@@ -6,6 +6,7 @@ import { roadmapData } from '../../data/roadmapData';
 import ResumePrintTemplate from '../../components/portfolio/ResumePrintTemplate';
 import { Helmet } from 'react-helmet-async';
 import { generatePortfolioMeta } from '../../utils/seoUtils';
+import { safeHref } from '../../utils/safeHref';
 import '../../styles/print.css';
 
 export default function PublicPortfolio({ username, onBack }) {
@@ -221,9 +222,9 @@ export default function PublicPortfolio({ username, onBack }) {
 
             {/* Social connections links */}
             <div className="portfolio-socials" role="list">
-              {socialLinks?.github && (
+              {safeHref(socialLinks?.github) && (
                 <a
-                  href={socialLinks.github}
+                  href={safeHref(socialLinks.github)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="portfolio-social-btn"
@@ -244,9 +245,9 @@ export default function PublicPortfolio({ username, onBack }) {
                   </svg>
                 </a>
               )}
-              {socialLinks?.linkedin && (
+              {safeHref(socialLinks?.linkedin) && (
                 <a
-                  href={socialLinks.linkedin}
+                  href={safeHref(socialLinks.linkedin)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="portfolio-social-btn"
@@ -269,9 +270,9 @@ export default function PublicPortfolio({ username, onBack }) {
                   </svg>
                 </a>
               )}
-              {socialLinks?.twitter && (
+              {safeHref(socialLinks?.twitter) && (
                 <a
-                  href={socialLinks.twitter}
+                  href={safeHref(socialLinks.twitter)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="portfolio-social-btn"
@@ -292,9 +293,9 @@ export default function PublicPortfolio({ username, onBack }) {
                   </svg>
                 </a>
               )}
-              {socialLinks?.resume && (
+              {safeHref(socialLinks?.resume) && (
                 <a
-                  href={socialLinks.resume}
+                  href={safeHref(socialLinks.resume)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="portfolio-social-btn"
@@ -461,9 +462,9 @@ export default function PublicPortfolio({ username, onBack }) {
                         </div>
                       </div>
                       <div className="project-card-footer">
-                        {proj.github && proj.github !== '#' && (
+                        {safeHref(proj.github) && proj.github !== '#' && (
                           <a
-                            href={proj.github}
+                            href={safeHref(proj.github)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="portfolio-social-btn"
@@ -482,9 +483,9 @@ export default function PublicPortfolio({ username, onBack }) {
                             </svg>
                           </a>
                         )}
-                        {proj.demo && proj.demo !== '#' && (
+                        {safeHref(proj.demo) && proj.demo !== '#' && (
                           <a
-                            href={proj.demo}
+                            href={safeHref(proj.demo)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="portfolio-social-btn"

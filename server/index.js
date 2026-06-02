@@ -25,6 +25,7 @@ import {
   validateLimiters,
 } from './middleware/rateLimiter.js';
 import { portfolioRepository } from './repositories/portfolioRepository.js';
+import { portfolioContentSchema, portfolioPutSchema } from './validators/portfolioSchemas.js';
 import { getPublicAppUrl } from './utils/publicAppUrl.js';
 import * as eventsController from './controllers/eventsController.js';
 import * as activityEventsController from './controllers/activityEventsController.js';
@@ -421,20 +422,31 @@ app.get('/api/notifications', async (req, res) => {
 app.put('/api/portfolio', portfolioRateLimiter, async (req, res) => {
   try {
     const body = req.body || {};
-    const username = String(body.username || '').trim();
-    const passkey = String(body.passkey || '').trim();
     const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
 
-    if (!username || username.length < 3) {
-      return res.status(400).json({ error: 'Username must be at least 3 characters long' });
+    // 1. Validate credentials up front.  Anything below this point
+    //    trusts the username + passkey pair.
+    const credentials = portfolioPutSchema.safeParse({
+      username: body.username,
+      passkey: body.passkey,
+    });
+    if (!credentials.success) {
+      const firstIssue = credentials.error.issues[0];
+      return res.status(400).json({ error: firstIssue?.message || 'Invalid request body' });
     }
-    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+    const { username, passkey } = credentials.data;
+
+    // 2. Validate the content body.  This rejects XSS payloads such
+    //    as javascript: URLs and unknown protocol schemes before
+    //    the data ever reaches the repository.  The repository
+    //    re-sanitizes as defense-in-depth.
+    const content = portfolioContentSchema.safeParse(body);
+    if (!content.success) {
+      const firstIssue = content.error.issues[0];
       return res.status(400).json({
-        error: 'Username can only contain alphanumeric characters, underscores, and hyphens',
+        error:
+          `Invalid portfolio content: ${firstIssue?.path?.join('.') || ''} ${firstIssue?.message || ''}`.trim(),
       });
-    }
-    if (!passkey || passkey.length < 12) {
-      return res.status(400).json({ error: 'Passkey must be at least 12 characters long' });
     }
 
     const existingPortfolio = await portfolioRepository.getByUsername(username);
@@ -457,7 +469,14 @@ app.put('/api/portfolio', portfolioRateLimiter, async (req, res) => {
 
     clearPasskeyAttempts(username, ip);
 
-    const saved = await portfolioRepository.createOrUpdate(body);
+    // Pass the validated content body (without credentials) plus the
+    // verified username/passkey to the repository.  The repository
+    // sanitizes again before storage.
+    const saved = await portfolioRepository.createOrUpdate({
+      ...content.data,
+      username,
+      passkey,
+    });
     return res.json({ ok: true, portfolio: saved });
   } catch (err) {
     console.error('Error saving portfolio:', err);
