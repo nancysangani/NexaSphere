@@ -458,6 +458,12 @@ export function _onConnection(socket) {
 
   // Authenticate socket for admin rooms using admin token
   socket.on('admin:authenticate', async ({ token } = {}) => {
+    if (socket.adminAuthenticated) {
+      return socket.emit('admin:authenticated', {
+        success: false,
+        error: 'Already authenticated',
+      });
+    }
     if (!token) {
       return socket.emit('admin:authenticated', { success: false, error: 'Token is required' });
     }
