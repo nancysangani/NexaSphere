@@ -19,13 +19,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
-
-      - name: Clean cache
-        run: rm -rf node_modules package-lock.json
 
       - name: Install dependencies
-        run: rm -rf node_modules package-lock.json && npm install
+        run: npm ci
 
       - name: Build (production)
         run: npm run build --workspace=website
@@ -52,15 +48,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
-
-      - name: Clean cache
-        run: rm -rf node_modules package-lock.json
 
       - name: Install dependencies
-        run: |
-          rm -rf package-lock.json node_modules
-          npm install --no-audit
+        run: npm ci
 
       - name: Run unit tests
         run: npm run test --workspace=admin-dashboard
@@ -89,11 +79,8 @@ jobs:
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
 
-      - name: Clean cache
-        run: rm -rf node_modules package-lock.json
-
       - name: Install dependencies
-        run: npm install --prefer-offline --no-audit
+        run: npm ci
 
       - name: Run unit tests
         run: npm test
