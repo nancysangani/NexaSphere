@@ -5,15 +5,20 @@ import {
   startAdminSessionCleanup,
 } from '../repositories/adminSessionsRepository.js';
 import crypto from 'crypto';
+
+const CONSTANT_AUTH_LENGTH = 64; // Pad all auth inputs to prevent timing leaks
+
 function safeEqual(a, b) {
   const bufA = Buffer.from(String(a));
   const bufB = Buffer.from(String(b));
+  
+  // Pad both buffers to constant length to prevent timing attacks based on input length
+  const paddedA = Buffer.alloc(CONSTANT_AUTH_LENGTH);
+  const paddedB = Buffer.alloc(CONSTANT_AUTH_LENGTH);
+  bufA.copy(paddedA);
+  bufB.copy(paddedB);
 
-  if (bufA.length !== bufB.length) {
-    return false;
-  }
-
-  return crypto.timingSafeEqual(bufA, bufB);
+  return crypto.timingSafeEqual(paddedA, paddedB);
 }
 const ADMIN_USERNAME = requiredEnv('ADMIN_USERNAME');
 const ADMIN_PASSWORD = requiredStrongPassword('ADMIN_PASSWORD');
