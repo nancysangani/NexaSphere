@@ -1,4 +1,7 @@
 {
+  "buildCommand": "npm install --prefer-offline --no-audit --no-fund && npm run build",
+  "installCommand": "npm install --prefer-offline --no-audit --no-fund",
+  "outputDirectory": "dist",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
