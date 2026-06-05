@@ -32,14 +32,16 @@ function requireMonitoringAuth(req, res, next) {
 
 /**
  * GET /api/monitoring/health
- * Health check endpoint — no auth required
+ * Public liveness probe with no auth required.
+ * Returns only liveness status and a timestamp. Operational details such as
+ * process uptime and NODE_ENV are deliberately omitted so unauthenticated
+ * callers cannot fingerprint the environment or infer deployment timing. The
+ * authenticated /metrics endpoint remains the source for detailed telemetry.
  */
 router.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV,
   });
 });
 

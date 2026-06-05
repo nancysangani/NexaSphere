@@ -31,7 +31,7 @@ export const addActivityEvent = wrapAsync(async (req, res) => {
 export const deleteActivityEvent = wrapAsync(async (req, res) => {
   const activityKey = String(req.params.activityKey || '').trim();
   const eventId = String(req.params.eventId || '').trim();
-  const deleted = await activityEventsService.deleteActivityEvent(activityKey, eventId, req.body);
+  const deleted = await activityEventsService.deleteActivityEvent(activityKey, eventId);
   if (!deleted) throw new NotFoundError('Event not found in manual activity events.');
   return res.json({ ok: true });
 });

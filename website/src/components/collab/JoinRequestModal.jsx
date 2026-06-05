@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+const FOCUSABLE_SELECTORS =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export default function JoinRequestModal({ team, onClose, onSubmit }) {
   const modalRef = useRef(null);
   const [pitch, setPitch] = useState('');
@@ -8,10 +11,57 @@ export default function JoinRequestModal({ team, onClose, onSubmit }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Store the element that triggered the modal so focus can be
+  // returned to it when the modal closes.
+  const triggerRef = useRef(document.activeElement);
+
+  // Move focus into the modal on mount and return it on unmount.
+  useEffect(() => {
+    const modal = modalRef.current;
+    if (!modal) return;
+    const firstFocusable = modal.querySelectorAll(FOCUSABLE_SELECTORS)[0];
+    if (firstFocusable) firstFocusable.focus();
+
+    return () => {
+      // Return focus to the element that opened the modal
+      if (triggerRef.current && typeof triggerRef.current.focus === 'function') {
+        triggerRef.current.focus();
+      }
+    };
+  }, []);
+
+  // Focus trap + Escape key handler
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      const modal = modalRef.current;
+      if (!modal) return;
+
+      const focusables = Array.from(modal.querySelectorAll(FOCUSABLE_SELECTORS));
+      if (focusables.length === 0) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
@@ -54,12 +104,12 @@ export default function JoinRequestModal({ team, onClose, onSubmit }) {
       }}
     >
       <div
-  ref={modalRef}
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="modal-title"
-  aria-describedby="modal-description"
-  className="glass-panel pop-scale"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+        className="glass-panel pop-scale"
         style={{
           width: '100%',
           maxWidth: '500px',
@@ -173,7 +223,6 @@ export default function JoinRequestModal({ team, onClose, onSubmit }) {
                   placeholder="I have 2 years of React experience and..."
                 />
               </div>
-
               <div>
                 <label
                   htmlFor="skills"
@@ -204,7 +253,6 @@ export default function JoinRequestModal({ team, onClose, onSubmit }) {
                   placeholder="React, Node.js, UI/UX"
                 />
               </div>
-
               <div>
                 <label
                   htmlFor="github"
@@ -235,7 +283,6 @@ export default function JoinRequestModal({ team, onClose, onSubmit }) {
                   placeholder="https://github.com/yourusername"
                 />
               </div>
-
               <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
                 <button
                   type="button"

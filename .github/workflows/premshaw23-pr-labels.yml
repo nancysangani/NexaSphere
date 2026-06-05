@@ -1,0 +1,291 @@
+name: Premshaw23 PR Label Enforcer
+
+# pull_request_target runs in the context of the BASE branch (not the fork),
+# so the GITHUB_TOKEN has WRITE permissions to apply labels even on fork PRs.
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  enforce-and-apply-labels:
+    # Only run for PRs authored by Premshaw23
+    if: github.event.pull_request.user.login == 'Premshaw23'
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Step 1: Bootstrap required labels in the repo (idempotent) ──────────
+      - name: Ensure required labels exist in repo
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const required = [
+              { name: 'intermediate',       color: '0075ca', description: 'Intermediate difficulty — for contributors with some experience' },
+              { name: 'advanced',           color: 'e4e669', description: 'Advanced difficulty — for experienced contributors'             },
+              { name: 'quality: exceptional', color: '0e8a16', description: 'Exceptional quality contribution'                               },
+              { name: 'needs-labels',       color: 'e11d48', description: 'PR is missing required labels'                                   },
+            ];
+
+            for (const label of required) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo:  context.repo.repo,
+                  name:  label.name,
+                });
+                console.log(`Label already exists: "${label.name}"`);
+              } catch (e) {
+                if (e.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner:       context.repo.owner,
+                    repo:        context.repo.repo,
+                    name:        label.name,
+                    color:       label.color,
+                    description: label.description,
+                  });
+                  console.log(`Created label: "${label.name}"`);
+                } else {
+                  throw e;
+                }
+              }
+            }
+
+      # ── Step 2: Read the CURRENT labels on the PR ────────────────────────────
+      - name: Read current PR labels
+        id: label-check
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Always fetch fresh from API — payload.pull_request.labels may be stale
+            // when the trigger is "labeled"/"unlabeled"
+            const { data: pr } = await github.rest.pulls.get({
+              owner:       context.repo.owner,
+              repo:        context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            const labels = pr.labels.map(l => l.name.toLowerCase().trim());
+            console.log('Current labels on PR:', labels);
+
+            const hasDifficulty = labels.includes('intermediate') || labels.includes('advanced');
+            const hasQuality    = labels.some(l => l.replace(/\s/g, '') === 'quality:exceptional');
+            const allGood       = hasDifficulty && hasQuality;
+
+            core.setOutput('labels',            JSON.stringify(labels));
+            core.setOutput('has_difficulty',    hasDifficulty.toString());
+            core.setOutput('has_quality',       hasQuality.toString());
+            core.setOutput('all_good',          allGood.toString());
+            core.setOutput('missing_difficulty', (!hasDifficulty).toString());
+            core.setOutput('missing_quality',    (!hasQuality).toString());
+
+      # ── Step 3a: AUTO-APPLY missing labels ───────────────────────────────────
+      # When the PR is newly opened/reopened, apply both labels automatically.
+      # On labeled/unlabeled events we just validate (user or maintainer may be
+      # deliberately choosing a specific difficulty level).
+      - name: Auto-apply labels on PR open/reopen
+        if: |
+          (github.event.action == 'opened' || github.event.action == 'reopened') &&
+          steps.label-check.outputs.all_good == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const hasDifficulty = '${{ steps.label-check.outputs.has_difficulty }}' === 'true';
+            const hasQuality    = '${{ steps.label-check.outputs.has_quality }}'    === 'true';
+
+            const toAdd = [];
+
+            // Default difficulty: "advanced" (can be changed by maintainer after)
+            if (!hasDifficulty) toAdd.push('advanced');
+            if (!hasQuality)    toAdd.push('quality: exceptional');
+
+            if (toAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels:       toAdd,
+              });
+              console.log('Auto-applied labels:', toAdd);
+            }
+
+      # ── Step 3b: Re-check after auto-apply ───────────────────────────────────
+      - name: Re-read labels after auto-apply
+        id: recheck
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner:       context.repo.owner,
+              repo:        context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            const labels = pr.labels.map(l => l.name.toLowerCase().trim());
+            console.log('Labels after auto-apply:', labels);
+
+            const hasDifficulty = labels.includes('intermediate') || labels.includes('advanced');
+            const hasQuality    = labels.some(l => l.replace(/\s/g, '') === 'quality:exceptional');
+            const allGood       = hasDifficulty && hasQuality;
+
+            core.setOutput('all_good',          allGood.toString());
+            core.setOutput('missing_difficulty', (!hasDifficulty).toString());
+            core.setOutput('missing_quality',    (!hasQuality).toString());
+
+      # ── Step 4a: Labels are still missing → warn + add needs-labels ──────────
+      - name: Add needs-labels marker
+        if: steps.recheck.outputs.all_good == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner:       context.repo.owner,
+              repo:        context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const names = pr.labels.map(l => l.name);
+            if (!names.includes('needs-labels')) {
+              await github.rest.issues.addLabels({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels:       ['needs-labels'],
+              });
+            }
+
+      - name: Comment — labels missing
+        if: steps.recheck.outputs.all_good == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const missingDifficulty = '${{ steps.recheck.outputs.missing_difficulty }}' === 'true';
+            const missingQuality    = '${{ steps.recheck.outputs.missing_quality }}'    === 'true';
+
+            const lines = [
+              '## ⚠️ Required Labels Missing — @Premshaw23',
+              '',
+              'Hey @Premshaw23! Your PR requires specific labels before it can be reviewed.',
+              '',
+              '| Requirement | Status | Labels Accepted |',
+              '|-------------|--------|-----------------|',
+            ];
+
+            lines.push(
+              `| **Difficulty level** | ${missingDifficulty ? '❌ Missing' : '✅ Present'} | \`intermediate\` or \`advanced\` |`
+            );
+            lines.push(
+              `| **Quality tier** | ${missingQuality ? '❌ Missing' : '✅ Present'} | \`quality: exceptional\` |`
+            );
+
+            lines.push('');
+            lines.push('> A maintainer will apply the correct labels. If you believe labels were already set, they may have been removed — please ping a maintainer.');
+            lines.push('');
+            lines.push('---');
+            lines.push('_Auto-enforced for @Premshaw23 — this comment updates automatically when labels change._');
+
+            const body = lines.join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner:        context.repo.owner,
+              repo:         context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' &&
+              (c.body.includes('Required Labels Missing') || c.body.includes('Missing Required Labels') || c.body.includes('Label Check Passed'))
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner:      context.repo.owner,
+                repo:       context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body,
+              });
+            }
+
+      # ── Step 4b: All labels present → clean up ────────────────────────────────
+      - name: Remove needs-labels marker
+        if: steps.recheck.outputs.all_good == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner:       context.repo.owner,
+              repo:        context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const names = pr.labels.map(l => l.name);
+            if (names.includes('needs-labels')) {
+              await github.rest.issues.removeLabel({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                name:         'needs-labels',
+              });
+              console.log('Removed needs-labels marker');
+            }
+
+      - name: Comment — all labels present
+        if: steps.recheck.outputs.all_good == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner:        context.repo.owner,
+              repo:         context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' &&
+              (c.body.includes('Required Labels Missing') || c.body.includes('Missing Required Labels') || c.body.includes('Label Check Passed'))
+            );
+
+            const body = [
+              '## ✅ Label Check Passed — @Premshaw23',
+              '',
+              'All required labels are present on this PR:',
+              '',
+              '| Requirement | Status |',
+              '|-------------|--------|',
+              '| Difficulty level (`intermediate` or `advanced`) | ✅ Applied |',
+              '| Quality tier (`quality: exceptional`) | ✅ Applied |',
+              '',
+              'This PR is ready for maintainer review. Great work! 🎉',
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner:      context.repo.owner,
+                repo:       context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body,
+              });
+            }

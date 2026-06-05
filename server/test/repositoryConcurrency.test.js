@@ -119,8 +119,8 @@ test('Database Repository Concurrency & Sequential Query Safety Audit', async (t
       assert.equal(row.shortName, 'kickoff');
       assert.deepEqual(row.tags, ['oss', 'gssoc']);
 
-      // Assert that exactly 2 queries were executed
-      assert.equal(totalQueriesExecuted, 2);
+      // Assert that exactly 4 queries were executed (BEGIN, SELECT, SELECT COUNT, COMMIT)
+      assert.equal(totalQueriesExecuted, 4);
 
       // CRITICAL: Peak concurrent queries on any client must be exactly 1.
       // If it was Promise.all, peakConcurrentQueries would be 2.
@@ -148,8 +148,8 @@ test('Database Repository Concurrency & Sequential Query Safety Audit', async (t
       assert.equal(row.name, 'Pull Request Open');
       assert.equal(row.tagline, 'PR is opened');
 
-      // Assert that exactly 2 queries were executed
-      assert.equal(totalQueriesExecuted, 2);
+      // Assert that exactly 4 queries were executed (BEGIN, SELECT, SELECT COUNT, COMMIT)
+      assert.equal(totalQueriesExecuted, 4);
 
       // CRITICAL: Peak concurrent queries on any client must be exactly 1.
       assert.equal(

@@ -10,7 +10,7 @@ import { normalizeFormSubmission } from '../validators/formSchemas.js';
 import { getPublicAppUrl } from '../utils/publicAppUrl.js';
 import { sendWelcomeVerificationEmail } from './emailService.js';
 import { broadcastSSEEvent } from './sseService.js';
-import { emitToRoom, getRoom } from '../config/socket.js';
+import { emitToRole } from '../config/socket.js';
 
 let _sheetsClient = null;
 
@@ -110,7 +110,7 @@ export const formsService = {
           fullName: payload.fullName,
           timestamp: new Date().toISOString(),
         });
-        emitToRoom(getRoom('admin'), 'admin:new-registration', {
+        emitToRole('membership_admin', 'admin:new-registration', {
           formType,
           userName: payload.fullName,
           timestamp: new Date(),

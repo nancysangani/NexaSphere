@@ -82,6 +82,19 @@ export function sanitizeCoreTeamMemberRecord(member = {}) {
   };
 }
 
+// ============================================================
+// Portfolio sanitization (issue #969)
+//
+// Portfolio content is rendered to anonymous visitors at
+// /p/:username, so any HTML or javascript: URL stored in the
+// database becomes a stored XSS vector.  The strategy below:
+//
+//   * strip ALL HTML from plain-text fields (bio, title, etc.)
+//   * normalize unicode whitespace and control characters
+//   * validate every URL field against an https?:// allowlist
+//   * apply the same rules recursively to JSONB array/object
+//     fields (skills, projects, roadmaps, badges, seoMetadata)
+// ============================================================
 function toSafeString(value, max = 4000) {
   return String(value ?? '')
     .trim()
@@ -92,12 +105,15 @@ function normalizePhone(value) {
   return String(value || '').replace(/[^\d]/g, '');
 }
 
-function validateWhatsApp(str) {
-  const v = String(str || '').replace(/[^\d]/g, '');
-  if (v.length !== 10) throw new Error('WhatsApp must be exactly 10 digits');
-  return v;
-}
+const SAFE_URL_PROTOCOLS = /^(https?:\/\/|\/[^\/])/i;
+const URL_MAX_LENGTH = 2048;
 
+const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/gi;
+const HTML_COMMENT_PATTERN = /<!--[\s\S]*?-->/g;
+const SCRIPT_PATTERN = /<script\b[^>]*>[\s\S]*?<\/script\s*>/gi;
+const STYLE_PATTERN = /<style\b[^>]*>[\s\S]*?<\/style\s*>/gi;
+const CONTROL_CHAR_PATTERN = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const NULL_BYTE_PATTERN = /\u0000/g;
 function validateSection(str) {
   const v = String(str || '')
     .trim()
@@ -111,6 +127,8 @@ export {
   sanitizeNullableText,
   sanitizeText,
   sanitizeTextArray,
+  stripHtml,
+  stripHtmlTruncated,
   toSafeString,
   normalizePhone,
   validateWhatsApp,

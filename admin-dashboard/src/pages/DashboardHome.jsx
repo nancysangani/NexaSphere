@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api, auth } from '../services/api';
 import { Skeleton } from '../components/Skeleton';
 import { AdminIcon } from '../components/AdminIcon';
+import { PermissionGuard } from '../components/PermissionGuard';
 
 export function DashboardHome() {
   const [stats, setStats] = useState(null);
@@ -117,19 +118,25 @@ export function DashboardHome() {
       <div className="quick-links">
         <h3>Quick Actions</h3>
         <div className="quick-grid">
-          <a href="/dashboard/events" className="quick-card" aria-label="Manage events">
-            <AdminIcon name="Calendar" size={18} aria-hidden="true" /> Events
-          </a>
-          <a
-            href="/dashboard/activity-events"
-            className="quick-card"
-            aria-label="Manage activities"
-          >
-            <AdminIcon name="Target" size={18} aria-hidden="true" /> Activities
-          </a>
-          <a href="/dashboard/core-team" className="quick-card" aria-label="Manage core team">
-            <AdminIcon name="Users" size={18} aria-hidden="true" /> Team
-          </a>
+          <PermissionGuard requiredScope="events:read">
+            <a href="/dashboard/events" className="quick-card" aria-label="Manage events">
+              <AdminIcon name="Calendar" size={18} aria-hidden="true" /> Events
+            </a>
+          </PermissionGuard>
+          <PermissionGuard requiredScope="events:read">
+            <a
+              href="/dashboard/activity-events"
+              className="quick-card"
+              aria-label="Manage activities"
+            >
+              <AdminIcon name="Target" size={18} aria-hidden="true" /> Activities
+            </a>
+          </PermissionGuard>
+          <PermissionGuard requiredScope="settings:admin">
+            <a href="/dashboard/core-team" className="quick-card" aria-label="Manage core team">
+              <AdminIcon name="Users" size={18} aria-hidden="true" /> Team
+            </a>
+          </PermissionGuard>
           <a
             href="/dashboard/membership"
             className="quick-card"

@@ -15,8 +15,16 @@ const knowledgeBase = [
       'NexaSphere is the official technology and developer community at GL Bajaj Group of Institutions.',
   },
   {
-    keywords: ['event', 'workshop', 'hackathon'],
-    answer: 'NexaSphere regularly organizes workshops, hackathons, and technical events.',
+    keywords: ['hackathon'],
+    answer: 'NexaSphere hosts hackathons that encourage innovation and problem solving.',
+  },
+  {
+    keywords: ['workshop'],
+    answer: 'NexaSphere conducts workshops on emerging technologies and practical skills.',
+  },
+  {
+    keywords: ['event'],
+    answer: 'NexaSphere organizes technical events and community activities throughout the year.',
   },
   {
     keywords: ['team', 'mentor', 'leader'],
@@ -87,6 +95,19 @@ const Chatbot = () => {
     }
   }, [messages, currentWorkspace]);
 
+  const sendFallbackResponse = (query) => {
+    const fallbackResponse = queryLocalKnowledge(query);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `msg-${Date.now()}-bot`,
+        role: 'bot',
+        text: fallbackResponse,
+      },
+    ]);
+  };
+
   const handleSend = async () => {
     if (!input.trim() || isSending) return;
     const userMsg = { id: `msg-${Date.now()}-user`, role: 'user', text: input };
@@ -98,18 +119,10 @@ const Chatbot = () => {
     const aiChatUrl = buildUrl(getAiApiBase(), '/ai/chat');
 
     if (!aiChatUrl) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `msg-${Date.now()}-bot`,
-          role: 'bot',
-          text: 'Nexa-AI is offline right now. The AI service URL is not configured for this deployment.',
-        },
-      ]);
+      sendFallbackResponse(currentInput);
       setIsSending(false);
       return;
     }
-
     try {
       const data = await apiClient(aiChatUrl, {
         method: 'POST',
@@ -123,17 +136,7 @@ const Chatbot = () => {
       ]);
     } catch (e) {
       console.error('AI chat request failed', e);
-
-      const fallbackResponse = queryLocalKnowledge(currentInput);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `msg-${Date.now()}-bot`,
-          role: 'bot',
-          text: fallbackResponse,
-        },
-      ]);
+      sendFallbackResponse(currentInput);
     } finally {
       setIsSending(false);
     }

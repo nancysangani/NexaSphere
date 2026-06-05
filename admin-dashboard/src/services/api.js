@@ -467,6 +467,15 @@ export const api = {
         });
       }
       await fetchWithAuth(`/api/admin/events/${id}`, { method: 'DELETE' });
+      // Record tombstone for offline sync to avoid resurrecting deleted events
+      try {
+        const tombstoneKey = 'ns_tombstone_events';
+        const existing = safeJsonParse(localStorage.getItem(tombstoneKey), []);
+        const updated = Array.isArray(existing) ? [...existing, id] : [id];
+        localStorage.setItem(tombstoneKey, JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Failed to record tombstone for event deletion', e);
+      }
       eventEmitter.emit(EVENTS.EVENT_DELETED, { id });
       eventEmitter.emit(EVENTS.NOTIFY, {
         type: 'success',

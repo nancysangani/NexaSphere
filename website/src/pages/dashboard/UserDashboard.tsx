@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getApiBase } from '../../utils/runtimeConfig';
 import {
   Calendar,
   Award,
@@ -105,10 +106,13 @@ const MOCK_METRICS = {
   longestStreak: 12,
 };
 
-const getApiBase = () => ((import.meta as any).env?.VITE_API_BASE || '').replace(/\/+$/, '');
+// getApiBase imported from runtimeConfig — avoids as any cast and duplicated URL logic
 
 export default function UserDashboard() {
-  // Anonymous user ID — in a real auth system this would come from a user context
+  // No auth system exists yet — userId is hardcoded as a placeholder meaning
+  // every user fetches the same data. isDemo is forced true below to make this
+  // limitation visible. When an auth system is added, replace with the real
+  // user ID from the auth context and remove the forced isDemo = true.
   const userId = 'user_123';
 
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -139,13 +143,17 @@ export default function UserDashboard() {
       return;
     }
 
+    // Force demo banner even when API is reachable — userId is still
+    // hardcoded as 'user_123' so all users see identical placeholder data.
+    setIsDemo(true);
+
     Promise.all([
       fetch(`${base}/api/dashboard/profile/${userId}`).then((r) => r.json()),
       fetch(`${base}/api/dashboard/quests/${userId}`).then((r) => r.json()),
       fetch(`${base}/api/dashboard/leaderboard`).then((r) => r.json()),
     ])
       .then(([profile, quests, leaderboard]) => {
-        setIsDemo(false);
+        // isDemo stays true — userId is still hardcoded as 'user_123'
 
         // Map profile → metrics
         if (profile && typeof profile === 'object') {

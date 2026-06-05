@@ -46,12 +46,19 @@ const errorHandler = (err, req, res, next) => {
     extra: { errorLog },
   });
 
-  // Send Slack alert for critical errors
-  if (status >= 500 || (status === 401 && !resolveUserId(req))) {
+  // Send Slack alert for server-side incidents only.
+  // 401 responses are expected client behavior (bots, scanners, health checks,
+  // and users acting before login) and previously fired an alert for every
+  // unauthenticated request, flooding the channel and masking real incidents.
+  // Restricting alerts to status >= 500 keeps the signal limited to genuine
+  // server faults. The query string is stripped from the alerted URL so any
+  // sensitive query parameter values are not forwarded to Slack.
+  if (status >= 500) {
+    const pathOnly = req.originalUrl.split('?')[0];
     sendSlackAlert({
       title: `🚨 ${status} Error Detected`,
       message,
-      url: req.originalUrl,
+      url: pathOnly,
       method: req.method,
       userId: resolveUserId(req),
       timestamp: errorLog.timestamp,

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node index.js",
     "build": "echo \"server build step not required\"",
+    "test": "node --test test/sanitize.test.js test/formSchemas.test.js test/adminSessions.test.js test/notificationsService.test.js test/notificationSubscription.test.js",
     "test": "node --test test/sanitize.test.js test/formSchemas.test.js test/adminSessions.test.js test/notificationsService.test.js",
     "test:watch": "node --test --watch test/sanitize.test.js test/formSchemas.test.js test/adminSessions.test.js",
     "test": "node --test test/sanitize.test.js test/formSchemas.test.js test/adminSessions.test.js test/notificationSubscription.test.js",

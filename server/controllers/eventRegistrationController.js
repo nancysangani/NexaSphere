@@ -8,17 +8,33 @@ function wrapAsync(fn) {
     });
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EVENT_ID_REGEX = /^[a-zA-Z0-9\-_]{1,100}$/;
+
 export const registerForEvent = wrapAsync(async (req, res) => {
   const eventId = String(req.params.eventId || '').trim();
-  const { fullName, email } = req.body;
+  const sanitizedFullName = String(req.body.fullName || '')
+    .trim()
+    .slice(0, 120);
+  const sanitizedEmail = String(req.body.email || '')
+    .trim()
+    .toLowerCase()
+    .slice(0, 140);
 
-  if (!eventId) {
-    return res.status(400).json({ error: 'Event ID is required' });
+  if (!eventId || !EVENT_ID_REGEX.test(eventId)) {
+    return res.status(400).json({ error: 'Invalid event ID' });
   }
-  if (!fullName || !email) {
-    return res.status(400).json({ error: 'Full name and email are required' });
+  if (!sanitizedFullName) {
+    return res.status(400).json({ error: 'Full name is required' });
+  }
+  if (!sanitizedEmail || !EMAIL_REGEX.test(sanitizedEmail)) {
+    return res.status(400).json({ error: 'Valid email address is required' });
   }
 
-  const result = await capacityLockingService.registerForEvent(eventId, fullName, email);
+  const result = await capacityLockingService.registerForEvent(
+    eventId,
+    sanitizedFullName,
+    sanitizedEmail
+  );
   return res.status(201).json(result);
 });

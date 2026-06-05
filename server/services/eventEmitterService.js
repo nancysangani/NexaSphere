@@ -5,7 +5,7 @@
 
 import EventEmitter from 'events';
 import logger from '../utils/logger.js';
-import { emitToRoom, getRoom } from '../config/socket.js';
+import { emitToRoom, getRoom, emitToRole } from '../config/socket.js';
 import notificationsService from './notificationsService.js';
 import {
   sendRegistrationConfirmationEmail,
@@ -85,7 +85,7 @@ class RealTimeEventManager extends EventEmitter {
       }
 
       // Notify admin
-      emitToRoom(getRoom('admin'), 'admin:new-registration', {
+      emitToRole('membership_admin', 'admin:new-registration', {
         userId: data.userId,
         userName: data.userName,
         eventName: data.eventName,
@@ -147,14 +147,14 @@ class RealTimeEventManager extends EventEmitter {
       }
 
       // Notify admin
-      emitToRoom(getRoom('admin'), 'admin:waitlist-promotion', {
+      emitToRole('events_admin', 'admin:waitlist-promotion', {
         userId: data.userId,
         userName: data.userName,
         eventName: data.eventName,
         timestamp: new Date(),
       });
     } catch (error) {
-      logger.error('Error handling waitlist promotion', { error: error.message });
+      logger.error('Error handling waitlist promotion event', { error: error.message });
     }
   }
 
@@ -263,7 +263,7 @@ class RealTimeEventManager extends EventEmitter {
       }
 
       // Notify admin
-      emitToRoom(getRoom('admin'), 'admin:attendance-marked', {
+      emitToRole('events_admin', 'admin:attendance-marked', {
         userId: data.userId,
         userName: data.userName,
         eventName: data.eventName,

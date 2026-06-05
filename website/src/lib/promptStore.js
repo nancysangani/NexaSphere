@@ -72,7 +72,7 @@ export const savePrompt = async (prompt, response, workspace = 'default') => {
   } catch (error) {
     logger.error('Error saving prompt to IndexedDB:', error);
     // Fallback to localStorage
-    savePromptToLocalStorage(prompt, response, workspace);
+    return savePromptToLocalStorage(prompt, response, workspace);
   }
 };
 
@@ -150,7 +150,7 @@ export const getPinnedPrompts = async (workspace = null) => {
     });
   } catch (error) {
     logger.error('Error retrieving pinned prompts:', error);
-    return [];
+    return getPinnedPromptsFromLocalStorage(workspace);
   }
 };
 
@@ -181,6 +181,7 @@ export const togglePinPrompt = async (id, pinned) => {
     });
   } catch (error) {
     logger.error('Error toggling pin status:', error);
+    return togglePinPromptInLocalStorage(id);
   }
 };
 
@@ -201,6 +202,7 @@ export const deletePrompt = async (id) => {
     });
   } catch (error) {
     logger.error('Error deleting prompt:', error);
+    return deletePromptFromLocalStorage(id);
   }
 };
 
@@ -218,6 +220,7 @@ export const clearWorkspace = async (workspace = 'default') => {
     return true;
   } catch (error) {
     logger.error('Error clearing workspace:', error);
+    return clearWorkspaceFromLocalStorage(workspace);
   }
 };
 
@@ -241,8 +244,9 @@ const LOCALSTORAGE_KEY = 'nexasphere_prompts';
 const savePromptToLocalStorage = (prompt, response, workspace = 'default') => {
   try {
     const stored = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY) || '[]');
+    const id = Date.now() + Math.random();
     stored.push({
-      id: Date.now(),
+      id,
       userPrompt: prompt,
       botResponse: response,
       workspace,
@@ -250,8 +254,67 @@ const savePromptToLocalStorage = (prompt, response, workspace = 'default') => {
       pinned: false,
     });
     localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(stored));
+    return id;
   } catch (error) {
     logger.error('Error saving to localStorage:', error);
+  }
+};
+
+const getPinnedPromptsFromLocalStorage = (workspace = null) => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY) || '[]');
+    let results = stored.filter((p) => p.pinned === true);
+    if (workspace) {
+      results = results.filter((p) => p.workspace === workspace);
+    }
+    return results.sort((a, b) => b.timestamp - a.timestamp);
+  } catch (error) {
+    logger.error('Error retrieving pinned prompts from localStorage:', error);
+    return [];
+  }
+};
+
+const togglePinPromptInLocalStorage = (id) => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY) || '[]');
+    const prompt = stored.find((p) => p.id === id);
+    if (prompt) {
+      prompt.pinned = !prompt.pinned;
+      localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(stored));
+      return prompt;
+    }
+    return null;
+  } catch (error) {
+    logger.error('Error toggling pin in localStorage:', error);
+    return null;
+  }
+};
+
+const deletePromptFromLocalStorage = (id) => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY) || '[]');
+    const index = stored.findIndex((p) => p.id === id);
+    if (index >= 0) {
+      stored.splice(index, 1);
+      localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(stored));
+      return true;
+    }
+    return false;
+  } catch (error) {
+    logger.error('Error deleting from localStorage:', error);
+    return false;
+  }
+};
+
+const clearWorkspaceFromLocalStorage = (workspace = 'default') => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY) || '[]');
+    const filtered = stored.filter((p) => p.workspace !== workspace);
+    localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    logger.error('Error clearing workspace in localStorage:', error);
+    return false;
   }
 };
 

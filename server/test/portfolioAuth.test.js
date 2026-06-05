@@ -1,3 +1,4 @@
+process.env.NODE_ENV = 'test';
 process.env.ADMIN_USERNAME = 'admin';
 process.env.ADMIN_PASSWORD = 'StrongPassword123!';
 process.env.ADMIN_EVENT_PASSWORD = 'StrongEventPassword123!';

@@ -1,4 +1,4 @@
-import * as Router from 'express';
+import { Router } from 'express';
 import * as eventsController from '../controllers/eventsController.js';
 import * as activityEventsController from '../controllers/activityEventsController.js';
 import * as adminAuthMiddleware from '../middleware/adminAuthMiddleware.js';
@@ -21,12 +21,12 @@ router.get(
 );
 router.post(
   '/api/content/activity-events/:activityKey',
-  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.requireScope('events:write'),
   activityEventsController.addActivityEvent
 );
 router.delete(
   '/api/content/activity-events/:activityKey/:eventId',
-  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.requireScope('events:write'),
   activityEventsController.deleteActivityEvent
 );
 
@@ -35,23 +35,27 @@ router.get('/api/admin/users', adminAuthMiddleware.requireAdmin, usersController
 router.post('/api/admin/login', adminAuthMiddleware.login);
 router.post('/api/admin/logout', adminAuthMiddleware.requireAdmin, adminAuthMiddleware.logout);
 
-router.get('/api/admin/events', adminAuthMiddleware.requireAdmin, eventsController.adminListEvents);
+router.get(
+  '/api/admin/events',
+  adminAuthMiddleware.requireScope('events:read'),
+  eventsController.adminListEvents
+);
 router.post(
   '/api/admin/events',
-  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.requireScope('events:write'),
   adminAuditMiddleware,
   eventsController.adminCreateEvent
 );
 router.put(
   '/api/admin/events/:id',
-  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.requireScope('events:write'),
   attachOldState((req) => eventsRepository.getById(req.params.id)),
   adminAuditMiddleware,
   eventsController.adminUpdateEvent
 );
 router.delete(
   '/api/admin/events/:id',
-  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.requireScope('events:write'),
   attachOldState((req) => eventsRepository.getById(req.params.id)),
   adminAuditMiddleware,
   eventsController.adminDeleteEvent
@@ -60,18 +64,18 @@ router.delete(
 // Core team management APIs
 router.get(
   '/api/admin/core-team/members',
-  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.requireScope('settings:admin'),
   coreTeamController.adminListCoreTeamMembers
 );
 router.post(
   '/api/admin/core-team/members',
-  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.requireScope('settings:admin'),
   adminAuditMiddleware,
   coreTeamController.adminAddCoreTeamMember
 );
 router.delete(
   '/api/admin/core-team/members/:id',
-  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.requireScope('settings:admin'),
   attachOldState(async (req) => {
     const members = await coreTeamService.listMembers();
     return members.find((m) => String(m.id) === String(req.params.id));

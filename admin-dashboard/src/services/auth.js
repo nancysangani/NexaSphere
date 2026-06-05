@@ -28,6 +28,12 @@ export const auth = {
     if (data.expiresAt) {
       localStorage.setItem(EXPIRY_KEY, data.expiresAt);
     }
+    if (data.role) {
+      localStorage.setItem('ns_admin_role', data.role);
+    }
+    if (data.scopes) {
+      localStorage.setItem('ns_admin_scopes', JSON.stringify(data.scopes));
+    }
 
     return data;
   },
@@ -44,6 +50,8 @@ export const auth = {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(EMAIL_KEY);
     localStorage.removeItem(EXPIRY_KEY);
+    localStorage.removeItem('ns_admin_role');
+    localStorage.removeItem('ns_admin_scopes');
   },
 
   /**
@@ -70,6 +78,21 @@ export const auth = {
 
   getEmail() {
     return localStorage.getItem(EMAIL_KEY);
+  },
+
+  getRole() {
+    return localStorage.getItem('ns_admin_role') || 'SuperAdmin';
+  },
+
+  getScopes() {
+    try {
+      const scopes = localStorage.getItem('ns_admin_scopes');
+      return scopes
+        ? JSON.parse(scopes)
+        : ['users:read', 'users:write', 'settings:admin', 'events:read', 'events:write'];
+    } catch {
+      return [];
+    }
   },
 
   isOffline() {

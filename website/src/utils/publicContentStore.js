@@ -48,11 +48,29 @@ export function getLocalEvents(fallbackEvents = []) {
   const stored = toArray(safeJsonParse(window.localStorage.getItem(EVENTS_KEY), []));
   if (!stored.length) return fallbackEvents;
 
-  return mergeEvents(fallbackEvents, stored);
+  // Filter out events that have been tombstoned (deleted while offline)
+  let tombstones = [];
+  try {
+    tombstones = safeJsonParse(window.localStorage.getItem('ns_tombstone_events'), []);
+  } catch (e) {
+    console.warn('Failed to parse tombstone events', e);
+  }
+  const filtered = stored.filter(event => !tombstones.includes(String(event.id)));
+
+  return mergeEvents(fallbackEvents, filtered);
 }
 
 export function mergeEvents(fallbackEvents = [], liveEvents = []) {
-  return mergeById(fallbackEvents, toArray(liveEvents), (previous, event, key) => ({
+  // Filter out tombstoned events from both fallback and live data
+  let tombstones = [];
+  try {
+    tombstones = safeJsonParse(window.localStorage.getItem('ns_tombstone_events'), []);
+  } catch (e) {
+    console.warn('Failed to parse tombstone events', e);
+  }
+  const filteredFallback = fallbackEvents.filter(event => !tombstones.includes(String(event.id)));
+  const filteredLive = liveEvents.filter(event => !tombstones.includes(String(event.id)));
+  return mergeById(filteredFallback, toArray(filteredLive), (previous, event, key) => ({
     ...previous,
     ...event,
     id: event.id ?? previous.id ?? key,

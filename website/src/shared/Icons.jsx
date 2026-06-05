@@ -44,6 +44,14 @@ import {
   Megaphone,
   Briefcase,
   Link,
+  List,
+  Sparkles,
+  MessageSquare,
+  GitBranch,
+  Trophy,
+  MessageCircle,
+  Clipboard,
+  Loader,
 } from 'lucide-react';
 
 function baseProps(props) {
@@ -209,6 +217,14 @@ export const ICON_MAP = {
   Megaphone,
   Briefcase,
   Link,
+  List,
+  Sparkles,
+  MessageSquare,
+  GitBranch,
+  Trophy,
+  MessageCircle,
+  Clipboard,
+  Loader,
   ShieldCheck: IconShieldCheck,
   Bolt: IconBolt,
   Spark: IconSpark,
@@ -218,6 +234,22 @@ export const ICON_MAP = {
 export function DynamicIcon({ name, size = 24, ...props }) {
   const IconComponent = ICON_MAP[name];
   if (!IconComponent) {
+    // Check if the name looks like an emoji or is not a standard word (e.g. contains non-ASCII characters / emojis / native symbols)
+    const isEmoji = typeof name === 'string' && (/\p{Emoji}/u.test(name) && !/^[a-zA-Z0-9]+$/.test(name));
+    if (isEmoji) {
+      return (
+        <span
+          style={{
+            fontSize: `${size}px`,
+            display: 'inline-block',
+            verticalAlign: '-3px',
+            ...props?.style,
+          }}
+        >
+          {name}
+        </span>
+      );
+    }
     if (!import.meta.env.PROD) {
       console.warn(`Icon "${name}" not found in ICON_MAP`);
     }

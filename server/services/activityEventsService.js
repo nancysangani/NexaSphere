@@ -17,10 +17,9 @@ export const activityEventsService = {
     return activityEventsRepository.create(activityKey, parsed);
   },
 
-  async deleteActivityEvent(activityKey, eventId, input) {
-    // Auth check uses only the gate credentials (coreTeamName/Email/Phone + password).
-    // The full event schema is not required for deletion.
-    await this.assertCanManage(input);
+  async deleteActivityEvent(activityKey, eventId) {
+    // Authorization is handled upstream by the requireAdmin middleware
+    // via req.adminSession. No request body is needed for deletion.
     return activityEventsRepository.delete(activityKey, eventId);
   },
 };
