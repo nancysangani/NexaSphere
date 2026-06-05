@@ -4,7 +4,7 @@ import { act } from 'react-dom/test-utils';
 import React, { useEffect } from 'react';
 import socketClient from '../utils/socketClient';
 import { SocketProvider } from '../context/SocketContext';
-import { useSocket } from '../hooks/useSocket';
+import { useSocket } from '../hooks/useSocketConnection';
 import { useNotifications } from '../hooks/useNotifications';
 
 // Mock components to simulate app navigation
@@ -23,6 +23,7 @@ describe('Socket.IO Lifecycle Management', () => {
   let socketInstance = null;
 
   beforeEach(() => {
+    vi.stubEnv('VITE_SOCKET_URL', 'http://test-server');
     container = document.createElement('div');
     document.body.appendChild(container);
     vi.spyOn(console, 'log').mockImplementation(() => {});

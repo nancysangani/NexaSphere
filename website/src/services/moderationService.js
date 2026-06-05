@@ -195,8 +195,8 @@ class ModerationService {
       newScore = Math.min(100, newScore + 1);
     }
 
-    // Determine reputation level
-    let level = REPUTATION.NORMAL;
+    // Determine reputation level based on current score to update user profile
+    let level;
     if (newScore >= 80) level = REPUTATION.TRUSTED;
     else if (newScore >= 60) level = REPUTATION.NORMAL;
     else if (newScore >= 40) level = REPUTATION.WATCHED;

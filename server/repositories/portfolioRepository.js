@@ -12,7 +12,7 @@ const portfolioMutex = new Mutex();
 
 const BCRYPT_ROUNDS = 12;
 
-let schemaAttempted = false;
+let schemaReady = null;
 let schemaOk = false;
 let lastDbFailTime = 0;
 const DB_RETRY_TTL = 15000;
@@ -107,35 +107,37 @@ async function ensureSchema(client) {
 async function ensureReady() {
   if (schemaOk) return true;
 
-  if (!schemaAttempted) {
-    schemaAttempted = true;
+  if (schemaReady) {
     try {
-      await withDb(async (client) => {
-        await ensureSchema(client);
-      });
-      schemaOk = true;
-      return true;
-    } catch (err) {
-      console.warn('PostgreSQL not available:', err.message);
-      lastDbFailTime = Date.now();
-      return false;
-    }
-  }
-
-  if (Date.now() - lastDbFailTime > DB_RETRY_TTL) {
-    try {
-      await withDb(async (client) => {
-        await client.query('SELECT 1');
-      });
-      schemaOk = true;
+      await schemaReady;
       return true;
     } catch {
-      lastDbFailTime = Date.now();
       return false;
     }
   }
 
-  return false;
+  const now = Date.now();
+  if (now - lastDbFailTime < DB_RETRY_TTL) {
+    return false;
+  }
+
+  schemaReady = withDb(async (client) => {
+    await ensureSchema(client);
+  }).then(() => {
+    schemaOk = true;
+  }).catch((err) => {
+    schemaReady = null;
+    lastDbFailTime = Date.now();
+    throw err;
+  });
+
+  try {
+    await schemaReady;
+    return true;
+  } catch (err) {
+    console.warn('PostgreSQL not available:', err.message);
+    return false;
+  }
 }
 
 // Local File Store Helpers

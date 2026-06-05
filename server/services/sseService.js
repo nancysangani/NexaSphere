@@ -48,6 +48,7 @@ export function addSSEClient(res) {
   res._heartbeat = setInterval(() => {
     try {
       res.write(': heartbeat\n\n');
+      if (typeof res.flush === 'function') res.flush();
     } catch (error) {
       clearInterval(res._heartbeat);
       cleanupClient(res, 'heartbeat_error', { error: error?.message });
@@ -78,6 +79,7 @@ export function broadcastSSEEvent(eventName, data) {
   adminClients.forEach((joined, client) => {
     try {
       const ok = client.write(message);
+      if (typeof client.flush === 'function') client.flush();
       if (!ok) {
         client._droppedWrites = (client._droppedWrites || 0) + 1;
         if (client._droppedWrites >= MAX_DROPPED_WRITES) {
@@ -122,7 +124,8 @@ export function setupSSEHeaders(req, res, next) {
   // Do not overwrite it here, or multi-origin deployments break.
 
   res.write(': SSE connection established\n\n');
-
+  if (typeof res.flush === 'function') res.flush();
+  
   next();
 }
 

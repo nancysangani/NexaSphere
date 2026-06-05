@@ -14,7 +14,7 @@ import {
   deletePrompt,
   clearWorkspace,
   getRecentPrompts,
-} from '../lib/promptStore';
+} from '../promptStore';
 
 // Mock IndexedDB for testing
 const mockDb = {

@@ -1,6 +1,7 @@
 {
   "name": "nexasphere-monorepo",
   "private": true,
+  "type": "module",
   "version": "1.0.0",
   "description": "NexaSphere — GL Bajaj Tech Community Platform. Monorepo containing the website, admin dashboard, and server.",
   "workspaces": [
@@ -25,8 +26,8 @@
     "test": "npm run test --workspace=website",
     "test:admin": "npm run test --workspace=admin-dashboard",
     "test:server": "cd server && npm test",
-    "lint": "eslint website/src admin-dashboard/src --ext .js,.jsx",
-    "lint:fix": "eslint website/src admin-dashboard/src --ext .js,.jsx --fix",
+    "lint": "eslint website/src --ext .js,.jsx",
+    "lint:fix": "eslint website/src --ext .js,.jsx --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "echo 'No TypeScript in this project' && exit 0",
@@ -44,9 +45,9 @@
     ]
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-arm64-gnu": "4.60.0",
+    "@rollup/rollup-linux-arm64-gnu": "4.61.0",
     "@rollup/rollup-linux-arm64-musl": "4.60.0",
-    "@rollup/rollup-linux-x64-gnu": "4.60.0",
+    "@rollup/rollup-linux-x64-gnu": "4.61.1",
     "@rollup/rollup-linux-x64-musl": "4.60.0"
   }
 }

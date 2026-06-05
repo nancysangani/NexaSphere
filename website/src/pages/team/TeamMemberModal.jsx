@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 // ── Copy Popup ──
 function CopyPopup({ value, onClose }) {
   const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef(null);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value).then(() => {
@@ -16,8 +17,16 @@ function CopyPopup({ value, onClose }) {
     const handler = (e) => {
       if (!e.target.closest('.copy-popup')) onClose();
     };
-    setTimeout(() => document.addEventListener('click', handler), 0);
-    return () => document.removeEventListener('click', handler);
+    timeoutRef.current = setTimeout(() => {
+      document.addEventListener('click', handler);
+    }, 0);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      document.removeEventListener('click', handler);
+    };
   }, [onClose]);
 
   return (

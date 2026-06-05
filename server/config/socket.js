@@ -227,11 +227,13 @@ export async function initializeSocketIO(httpServer) {
     transports: ['websocket', 'polling'],
   });
 
-  const pubClient = getRedisClient();
-  const subClient = pubClient.duplicate();
-  // Ensure both pub/sub clients are connected before wiring the adapter
-  await Promise.all([pubClient.connect?.(), subClient.connect?.()].filter(Boolean));
-  io.adapter(createAdapter(pubClient, subClient));
+  if (process.env.NODE_ENV !== 'test') {
+    const pubClient = getRedisClient();
+    const subClient = pubClient.duplicate();
+    // Ensure both pub/sub clients are connected before wiring the adapter
+    await Promise.all([pubClient.connect?.(), subClient.connect?.()].filter(Boolean));
+    io.adapter(createAdapter(pubClient, subClient));
+  }
 
   // Connection auth middleware — checks handshake auth token
   io.use(async (socket, next) => {

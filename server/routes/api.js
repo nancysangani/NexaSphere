@@ -1,4 +1,4 @@
-import * as Router from 'express';
+import { Router } from 'express';
 import * as eventsController from '../controllers/eventsController.js';
 import * as activityEventsController from '../controllers/activityEventsController.js';
 import * as adminAuthMiddleware from '../middleware/adminAuthMiddleware.js';

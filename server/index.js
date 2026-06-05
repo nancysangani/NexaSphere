@@ -9,6 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { adminAuthMiddleware } from './middleware/adminAuthMiddleware.js';
 import analyticsRouter from './routes/analytics.js';
+import apiRouter from './routes/api.js';
 import { initializeSocketIO } from './config/socket.js';
 import adminStreamRouter from './routes/adminStream.js';
 import documentationRouter from './routes/documentation.js';
@@ -136,6 +137,7 @@ app.get('/api/health', (_req, res) => {
 // Mount monitoring + API documentation routes
 app.use('/api/monitoring', monitoringRouter);
 app.use('/api', documentationRouter);
+app.use('/', apiRouter);
 
 const adminAuth = adminAuthMiddleware.requireAdmin;
 
@@ -643,19 +645,21 @@ process.on('uncaughtException', (err) => {
 const port = Number(process.env.PORT || 8787);
 let server;
 
-if (!process.env.VERCEL) {
-  const boot = HAS_SUPABASE ? Promise.resolve() : ensureContentFile();
-  boot.then(() => {
+if (process.env.NODE_ENV !== 'test') {
+  if (!process.env.VERCEL) {
+    const boot = HAS_SUPABASE ? Promise.resolve() : ensureContentFile();
+    boot.then(() => {
+      server = app.listen(port, () => {
+        console.log(`NexaSphere server listening on http://localhost:${port}`);
+      });
+      initializeSocketIO(server);
+    });
+  } else {
     server = app.listen(port, () => {
       console.log(`NexaSphere server listening on http://localhost:${port}`);
     });
     initializeSocketIO(server);
-  });
-} else {
-  server = app.listen(port, () => {
-    console.log(`NexaSphere server listening on http://localhost:${port}`);
-  });
-  initializeSocketIO(server);
+  }
 }
 
 export default app;

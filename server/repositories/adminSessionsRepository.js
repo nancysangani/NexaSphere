@@ -80,6 +80,9 @@ async function ensureReady() {
   if (!schemaReady) {
     schemaReady = withDb(async (client) => {
       await ensureSchema(client);
+    }).catch((err) => {
+      schemaReady = null;
+      throw err;
     });
   }
 
