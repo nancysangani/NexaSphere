@@ -24,28 +24,38 @@ export default function ProjectsPage({ onBack }) {
       ? projectsData
       : projectsData.filter((project) => project.category === activeCategory);
 
-  // Handle escape key for modal
+  // Store selectedProject in a ref so the keydown handler can read
+  // the current value without being re-registered on every selection
+  // change — avoids listener churn when switching between projects.
+  const selectedProjectRef = useRef(selectedProject);
+  useEffect(() => {
+    selectedProjectRef.current = selectedProject;
+  }, [selectedProject]);
+
+  // Escape key — registered once on mount, reads from ref.
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && selectedProject) {
+      if (e.key === 'Escape' && selectedProjectRef.current) {
         setSelectedProject(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedProject]);
+  }, []);
 
-  // Prevent background scrolling when modal is open.
-  // Saves the original overflow value and restores it on both
-  // modal close AND component unmount to prevent the page becoming
-  // permanently unscrollable if the user navigates away while modal is open.
+  // Lock body scroll when modal is open.
+  // Uses a simple lock/unlock rather than capturing originalOverflow —
+  // the captured value approach caused a brief scrollable window when
+  // switching directly from one project to another since cleanup ran
+  // before the new lock was applied.
   useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
     if (selectedProject) {
       document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = originalOverflow;
+      document.body.style.overflow = '';
     };
   }, [selectedProject]);
 
