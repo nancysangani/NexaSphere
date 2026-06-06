@@ -63,8 +63,9 @@ const format = winston.format.combine(
 
     const ts = timestamp.slice(0, 19).replace("T", " ");
 
+    // REMOVED 'null, 2' to keep metadata on a single unified line
     return `${ts} [${level}]: ${message} ${
-      Object.keys(args).length ? JSON.stringify(args, null, 2) : ""
+      Object.keys(args).length ? JSON.stringify(args) : ""
     }`;
   })
 );
