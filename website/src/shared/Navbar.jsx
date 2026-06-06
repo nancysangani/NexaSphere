@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { BRAND_LOGO_FULL, BRAND_LOGO_ICON } from './brandAssets';
 import NotificationBell from '../components/NotificationBell';
 import { ThemeToggle } from '../components/common/ThemeToggle';
+import { useStudentAuth } from '../context/StudentAuthContext';
 
 const TABS = [
   'Home',
@@ -90,6 +91,8 @@ export default function Navbar({ activeTab, onTabChange, onApply, onJoin, onTogg
     };
   }, []);
 
+  const { user, isAuthenticated, login } = useStudentAuth();
+
   const handleTab = (tab) => {
     setMenuOpen(false);
     onTabChange(tab);
@@ -127,6 +130,33 @@ export default function Navbar({ activeTab, onTabChange, onApply, onJoin, onTogg
             <NotificationBell />
             <BookmarkToggle onToggle={onToggleBookmarks} />
             <ThemeToggle />
+            {isAuthenticated ? (
+              <span
+                className="ns-nav-user-badge"
+                onClick={() => navigate('/dashboard')}
+                style={{ cursor: 'pointer', fontSize: '0.8rem', color: 'var(--t1)' }}
+                title={user?.name || user?.email}
+              >
+                👤
+              </span>
+            ) : (
+              <button
+                className="ns-nav-login-btn"
+                onClick={() => login('google')}
+                aria-label="Sign in"
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--border)',
+                  color: 'var(--t1)',
+                  borderRadius: '6px',
+                  padding: '2px 8px',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Login
+              </button>
+            )}
           </div>
         </div>
 
@@ -207,6 +237,26 @@ export default function Navbar({ activeTab, onTabChange, onApply, onJoin, onTogg
             </div>
 
             <ThemeToggle />
+
+            {isAuthenticated ? (
+              <span
+                className="ns-nav-user-badge"
+                onClick={() => navigate('/dashboard')}
+                style={{ cursor: 'pointer', fontSize: '0.9rem', color: 'var(--t1)' }}
+                title={user?.name || user?.email}
+              >
+                👤
+              </span>
+            ) : (
+              <button
+                className="btn btn-sm btn-outline"
+                onClick={() => login('google')}
+                aria-label="Sign in"
+                style={{ marginLeft: '4px' }}
+              >
+                Login
+              </button>
+            )}
 
             <button
               className={`ns-nav-menu-toggle${menuOpen ? ' open' : ''}`}

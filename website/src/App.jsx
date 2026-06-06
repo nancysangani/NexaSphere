@@ -15,6 +15,7 @@ import {
   useNavigate,
   useLocation,
   useParams,
+  Navigate,
 } from 'react-router-dom';
 
 import './styles/themes.css';
@@ -70,6 +71,7 @@ import Terminal from './components/developer/Terminal';
 import { useDeveloperMode } from './hooks/useDeveloperMode';
 
 import { BookmarkProvider } from './context/BookmarkContext';
+import { StudentAuthProvider, useStudentAuth } from './context/StudentAuthContext';
 import BookmarksDrawer from './components/bookmarks/BookmarksDrawer';
 import { useTheme } from './hooks/useTheme';
 import { useInteractionEffects } from './hooks/useInteractionEffects';
@@ -101,6 +103,7 @@ const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const AnalyticsPage = lazy(() => import('./pages/analytics/AnalyticsPage'));
 const WorkspacePage = lazy(() => import('./pages/workspace/WorkspacePage'));
 const GamificationDashboard = lazy(() => import('./components/gamification/GamificationDashboard'));
+const LoginPage = lazy(() => import('./pages/login/LoginPage'));
 
 const MNH = 88,
   DNH = 64;
@@ -702,6 +705,13 @@ function MainRouter({
   const openJoin = useCallback(() => nav('/join'), [nav]);
   const onBackHome = useCallback(() => nav('/'), [nav]);
 
+  function RequireAuth({ children }) {
+    const { isAuthenticated, loading } = useStudentAuth();
+    if (loading) return <PageLoadingSpinner />;
+    if (!isAuthenticated) return <Navigate to="/login" replace />;
+    return children;
+  }
+
   const nh = mobile ? MNH : DNH;
 
   const onNavigate = useCallback(
@@ -804,13 +814,15 @@ function MainRouter({
               element={<EventDetailWrapper onBack={() => nav('/events')} events={eventsData} />}
             />
 
-            {/* ── Dashboard ── */}
+            {/* ── Dashboard (requires auth) ── */}
             <Route
               path="/dashboard"
               element={
-                <PageIn k="dashboard">
-                  <DashboardPage onBack={onBackHome} />
-                </PageIn>
+                <RequireAuth>
+                  <PageIn k="dashboard">
+                    <DashboardPage onBack={onBackHome} />
+                  </PageIn>
+                </RequireAuth>
               }
             />
 
@@ -938,6 +950,16 @@ function MainRouter({
               element={
                 <PageIn k="admin">
                   <AdminPage onBack={onBackHome} />
+                </PageIn>
+              }
+            />
+
+            {/* ── Login / SSO ── */}
+            <Route
+              path="/login"
+              element={
+                <PageIn k="login">
+                  <LoginPage />
                 </PageIn>
               }
             />

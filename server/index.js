@@ -40,6 +40,11 @@ import { eventsService } from './services/eventsService.js';
 import { coreTeamService } from './services/coreTeamService.js';
 import notificationsService from './services/notificationsService.js';
 import { supabaseRequest, HAS_SUPABASE } from './storage/supabaseClient.js';
+import cookieParser from 'cookie-parser';
+import passport from './config/studentOAuth.js';
+import { studentUsersRepository } from './repositories/studentUsersRepository.js';
+import * as studentAuthController from './controllers/studentAuthController.js';
+import { requireStudentAuth } from './middleware/studentAuthMiddleware.js';
 
 validateLimiters();
 
@@ -102,6 +107,7 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(morgan('combined'));
 app.use(performanceMonitor);
+app.use(cookieParser());
 
 // Global API rate limiter — protects all /api routes from request flooding
 app.use('/api', apiRateLimiter);
@@ -234,6 +240,14 @@ app.post('/api/admin/login', authRateLimiter, adminAuthMiddleware.login);
 app.post('/api/admin/logout', adminAuth, adminAuthMiddleware.logout);
 app.use('/api/admin/analytics', adminAuth, analyticsRouter);
 app.use('/api/admin/metrics', adminAuth, adminStreamRouter);
+
+// OAuth / SSO Student Auth Endpoints
+app.get('/api/auth/google', studentAuthController.googleAuth);
+app.get('/api/auth/google/callback', studentAuthController.googleCallback);
+app.get('/api/auth/github', studentAuthController.githubAuth);
+app.get('/api/auth/github/callback', studentAuthController.githubCallback);
+app.get('/api/auth/me', requireStudentAuth, studentAuthController.getMe);
+app.post('/api/auth/logout', studentAuthController.logout);
 
 // Event Admin Management
 app.get('/api/admin/events', adminAuth, eventsController.adminListEvents);
@@ -666,7 +680,7 @@ let server;
 
 if (process.env.NODE_ENV !== 'test') {
   if (!process.env.VERCEL) {
-    const boot = HAS_SUPABASE ? Promise.resolve() : ensureContentFile();
+    const boot = HAS_SUPABASE ? studentUsersRepository.ensureSchema() : ensureContentFile();
     boot.then(() => {
       server = app.listen(port, () => {
         console.log(`NexaSphere server listening on http://localhost:${port}`);
