@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { BRAND_LOGO_FULL, BRAND_LOGO_ICON } from './brandAssets';
 import NotificationBell from '../components/NotificationBell';
 import { ThemeToggle } from '../components/common/ThemeToggle';
@@ -18,18 +18,7 @@ const TABS = [
   'Contact',
 ];
 
-/* Map tab name → URL route (tabs that are full pages) */
-const TAB_ROUTES = {
-  Activities: '/activities',
-  Events: '/events',
-  Projects: '/projects',
-  Roadmaps: '/roadmaps',
-  Portfolio: '/portfolio',
-  Gamification: '/gamification',
-  About: '/about',
-  'Core Team': '/team',
-  Contact: '/contact',
-};
+
 
 function BookmarkToggle({ onToggle }) {
   return (
@@ -71,7 +60,6 @@ function BookmarkToggle({ onToggle }) {
 
 export default function Navbar({ activeTab, onTabChange, onApply, onJoin, onToggleBookmarks }) {
   const navigate = useNavigate();
-  const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [compact, setCompact] = useState(window.innerWidth <= 790);
   const [menuOpen, setMenuOpen] = useState(false);

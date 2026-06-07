@@ -114,7 +114,7 @@ if (isStorageWritable) {
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   levels,
-  format,
+  format: baseFileFormat,
   transports: activeTransports, 
   exceptionHandlers: isStorageWritable ? [
     new DailyRotateFile({
@@ -137,3 +137,5 @@ const logger = winston.createLogger({
     }),
   ] : undefined, 
 });
+
+export default logger;

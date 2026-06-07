@@ -39,6 +39,7 @@ function cleanupClient(res, reason, meta = {}) {
 function writeToClient(client, message) {
   try {
     const ok = client.write(message);
+    if (typeof client.flush === 'function') client.flush();
     if (!ok) {
       client._droppedWrites = (client._droppedWrites || 0) + 1;
       if (client._droppedWrites >= MAX_DROPPED_WRITES) {
@@ -141,26 +142,6 @@ export function broadcastSSEEvent(eventName, data) {
     if (!adminCanReceiveEvent(eventName, entry.admin.permissions)) {
       skipped += 1;
       continue;
-  adminClients.forEach((joined, client) => {
-    try {
-      const ok = client.write(message);
-      if (typeof client.flush === 'function') client.flush();
-      if (!ok) {
-        client._droppedWrites = (client._droppedWrites || 0) + 1;
-        if (client._droppedWrites >= MAX_DROPPED_WRITES) {
-          cleanupClient(client, 'backpressure');
-          try {
-            client.end();
-          } catch (_) {
-            // ignore
-          }
-        }
-      } else {
-        client._droppedWrites = 0;
-      }
-    } catch (error) {
-      logger.error('Failed to send SSE event', { error: error.message });
-      cleanupClient(client, 'write_error', { error: error?.message });
     }
     if (writeToClient(client, message)) {
       delivered += 1;

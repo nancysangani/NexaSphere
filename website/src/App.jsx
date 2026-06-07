@@ -592,6 +592,7 @@ function MainRouter({
       '/gamification': 'Gamification',
       '/apply': 'Apply',
       '/join': 'Join',
+      '/explore': 'Explore',
     };
     const tab = pathMap[location.pathname] || 'Home';
     setActiveTab(tab);
@@ -656,6 +657,7 @@ function MainRouter({
         Roadmaps: '/roadmaps',
         Portfolio: '/portfolio',
         Collab: '/collab',
+        Explore: '/explore',
         About: '/about',
         'Core Team': '/team',
         Contact: '/contact',

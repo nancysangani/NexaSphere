@@ -8,15 +8,15 @@ export default function GamificationDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [toasts, setToasts] = useState([]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = async () => {
     setUserStats(gamificationService.getUserStats());
     const lb = await gamificationService.getLeaderboard();
     setLeaderboard(lb);
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const handleAction = (action) => {
     const result = gamificationService.trackAction(action);

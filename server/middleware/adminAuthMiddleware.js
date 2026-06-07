@@ -327,3 +327,5 @@ export const adminAuthMiddleware = {
   _getAttemptsTimer: () => cleanupAttemptsTimer,
   _safeEqual: safeEqual,
 };
+
+export { login, logout, requireAdmin, requireRole, requireScope };

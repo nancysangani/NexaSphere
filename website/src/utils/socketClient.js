@@ -5,7 +5,7 @@
  */
 
 import { captureHandledException } from './errorTracking';
-import { getSocketPath, getSocketServerUrl } from './runtimeConfig';
+import { getSocketServerUrl } from './runtimeConfig';
 import {
   initializeSocket as initCoreSocket,
   getSocket as getCoreSocket,

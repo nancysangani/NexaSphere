@@ -12,10 +12,6 @@ export default function ModerationDashboard() {
   const [selectedTab, setSelectedTab] = useState('pending');
   const [stats, setStats] = useState({ pending: 0, reviewed: 0, blocked: 0 });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = () => {
     const flagged = moderationService.getFlaggedContent();
     setFlaggedContent(flagged.filter((f) => f.status === selectedTab));
@@ -26,6 +22,10 @@ export default function ModerationDashboard() {
     });
     setUserReputations(moderationService.getUserReputationSummary());
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const handleResolve = (flagId, action) => {
     moderationService.resolveFlag(flagId, action);

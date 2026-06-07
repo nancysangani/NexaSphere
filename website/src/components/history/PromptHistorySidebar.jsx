@@ -10,10 +10,6 @@ const PromptHistorySidebar = ({ isOpen, onSelectPrompt, currentWorkspace = 'defa
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  useEffect(() => {
-    loadData();
-  }, [selectedWorkspace]);
-
   const loadData = async () => {
     setLoading(true);
     try {
@@ -28,6 +24,10 @@ const PromptHistorySidebar = ({ isOpen, onSelectPrompt, currentWorkspace = 'defa
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, [selectedWorkspace]);
 
   const handleDeletePrompt = async (e, id) => {
     e.stopPropagation();
