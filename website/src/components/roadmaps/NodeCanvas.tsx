@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRoadmapBuilder } from '../../hooks/useRoadmapBuilder';
 import { RoadmapNode } from '../../context/RoadmapBuilderContext';
-import { Edit2, Trash2, Plus, Sparkles, AlertCircle } from 'lucide-react';
+import { Edit2, Trash2, Sparkles } from 'lucide-react';
 
 interface NodeCanvasProps {
   theme: 'dark' | 'light';
