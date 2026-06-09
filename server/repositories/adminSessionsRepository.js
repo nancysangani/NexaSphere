@@ -169,9 +169,11 @@ export async function getAdminSession(token) {
       });
     }
 
-    // Bounded memory defense: safeguard map from unbounded growth in extreme production environments
+    // Bounded memory defense: evict oldest entry instead of clearing the entire map,
+    // which would cause a thundering herd of UPDATE queries from the next 1000+ requests
     if (lastSeenThrottleMap.size > 1000) {
-      lastSeenThrottleMap.clear();
+      const oldestKey = lastSeenThrottleMap.keys().next().value;
+      if (oldestKey) lastSeenThrottleMap.delete(oldestKey);
     }
 
     return {

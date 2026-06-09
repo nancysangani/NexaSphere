@@ -13,6 +13,7 @@ import { MembershipResponsesManager } from './pages/MembershipResponsesManager';
 import { RecruitmentResponsesManager } from './pages/RecruitmentResponsesManager';
 import { CertificateManager } from './pages/CertificateManager';
 import { AnnouncementsManager } from './pages/AnnouncementsManager';
+import { PortfolioManager } from './pages/PortfolioManager';
 import './styles/admin.css';
 
 function RequireAuth() {
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/dashboard/recruitment" element={<RecruitmentResponsesManager />} />
             <Route path="/dashboard/certificates" element={<CertificateManager />} />
             <Route path="/dashboard/announcements" element={<AnnouncementsManager />} />
+            <Route path="/dashboard/portfolios" element={<PortfolioManager />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />

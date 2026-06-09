@@ -81,7 +81,7 @@ export default function ResumeAnalyzerPage() {
           setStep('result');
           return;
         }
-      } catch (_) {
+      } catch {
         // Network error or backend unavailable — fall through to demo mode
       }
     }
@@ -160,8 +160,8 @@ export default function ResumeAnalyzerPage() {
               { label: 'ATS Score', value: result.atsScore, color: '#10b981' },
               { label: 'Skills Detected', value: result.skills.length, color: '#f59e0b' },
               { label: 'Gaps Found', value: result.missingSkills.length, color: '#ef4444' },
-            ].map((s, i) => (
-              <div key={i} className="score-card">
+            ].map((s) => (
+              <div key={s.label} className="score-card">
                 <p className="score-card-label">{s.label}</p>
                 <p className="score-card-value" style={{ color: s.color }}>
                   {s.value}
@@ -186,8 +186,8 @@ export default function ResumeAnalyzerPage() {
           <div className="ra-section">
             <h3 className="section-title">Missing / In-Demand Skills</h3>
             <div className="missing-skills">
-              {result.missingSkills.map((s, i) => (
-                <span key={i} className="skill-tag missing">
+              {result.missingSkills.map((s) => (
+                <span key={s} className="skill-tag missing">
                   {s}
                 </span>
               ))}

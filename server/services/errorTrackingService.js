@@ -30,7 +30,7 @@ async function logError(error, context = {}) {
     userEmail: context.userEmail,
     ipAddress: context.ipAddress,
     requestBody: sanitizeData(context.requestBody),
-    queryParams: context.queryParams,
+    queryParams: truncateData(context.queryParams, 512),
     headers: sanitizeHeaders(context.headers),
   };
 
@@ -148,6 +148,22 @@ function getUserErrors(userId, limit = 20) {
 }
 
 /**
+ * Truncate an object to a maximum JSON byte length before storing in memory.
+ * Prevents a single large request body or query parameter set from consuming
+ * excessive memory in the error store.
+ */
+function truncateData(data, maxBytes) {
+  if (!data) return null;
+  const str = JSON.stringify(data);
+  if (str.length <= maxBytes) return data;
+  try {
+    return JSON.parse(str.slice(0, maxBytes));
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Sanitize sensitive data from request body
  * Uses pattern matching to catch variations like adminPassword, refreshToken, etc.
  * @param {Object} data - Request data
@@ -182,7 +198,7 @@ function sanitizeData(data) {
     }
   }
 
-  return sanitized;
+  return truncateData(sanitized, 2048);
 }
 
 /**
@@ -192,7 +208,15 @@ function sanitizeData(data) {
 function sanitizeHeaders(headers) {
   if (!headers) return null;
 
-  const sanitized = { ...headers };
+  const sanitized = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (typeof value === 'string' && value.length > 500) {
+      sanitized[key] = value.slice(0, 500);
+    } else {
+      sanitized[key] = value;
+    }
+  }
+
   const sensitiveHeaders = [
     'authorization',
     'cookie',
@@ -211,7 +235,7 @@ function sanitizeHeaders(headers) {
     }
   });
 
-  return sanitized;
+  return truncateData(sanitized, 2048);
 }
 
 /**

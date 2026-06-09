@@ -6,7 +6,7 @@ import { BookmarkType } from '../../utils/bookmarkStorage';
 interface BookmarksDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigate?: (type: string, key: string) => void;
+  onNavigate?: (_type: string, _key: string) => void;
 }
 
 export default function BookmarksDrawer({ isOpen, onClose, onNavigate }: BookmarksDrawerProps) {

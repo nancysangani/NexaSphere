@@ -1,3 +1,5 @@
+import React from 'react';
+
 export type CommandContext = {
   theme: string;
   setTheme: (theme: string) => void;

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRoadmapBuilder } from '../../hooks/useRoadmapBuilder';
-import { X, Plus, Trash2, Globe, Link, CheckSquare, ListPlus } from 'lucide-react';
+import { X, Plus, Trash2, Globe, AlertCircle } from 'lucide-react';
 
 interface NodeModalProps {
   theme: 'dark' | 'light';

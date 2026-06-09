@@ -23,9 +23,31 @@ import { performanceMonitor } from './middleware/performanceMonitor.js';
 import { tracingMiddleware } from './middleware/tracingMiddleware.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { initializeSentry, addSentryErrorHandler } from './utils/sentry.js';
-import { apiRateLimiter, validateLimiters } from './middleware/rateLimiter.js';
+import {
+  apiRateLimiter,
+  formRateLimiter,
+  notificationRateLimiter,
+  validateLimiters,
+} from './middleware/rateLimiter.js';
+import {
+  authRateLimiter,
+  protectedActionRateLimiter,
+  passwordResetRateLimiter,
+} from './middleware/authRateLimiter.js';
+import { portfolioRepository } from './repositories/portfolioRepository.js';
+import { portfolioContentSchema, portfolioPutSchema } from './validators/portfolioSchemas.js';
+import { searchController } from './controllers/searchController.js';
+import { pushSubscriptionsRepository } from './repositories/pushSubscriptionsRepository.js';
 import { getPublicAppUrl } from './utils/publicAppUrl.js';
-import { HAS_SUPABASE } from './storage/supabaseClient.js';
+import * as eventsController from './controllers/eventsController.js';
+import * as activityEventsController from './controllers/activityEventsController.js';
+import * as coreTeamController from './controllers/coreTeamController.js';
+import * as formsController from './controllers/formsController.js';
+import { eventsService } from './services/eventsService.js';
+import { coreTeamService } from './services/coreTeamService.js';
+import notificationsService from './services/notificationsService.js';
+import { notificationPreferencesRepository } from './repositories/notificationPreferencesRepository.js';
+import { supabaseRequest, HAS_SUPABASE } from './storage/supabaseClient.js';
 
 validateLimiters();
 
@@ -58,6 +80,148 @@ if (!process.env.CORS_ORIGIN) {
 const allowedOrigins = process.env.CORS_ORIGIN.split(',')
   .map((s) => s.trim())
   .filter(Boolean);
+
+```js id="kpxvgr"
+app.use(
+  helmet({
+
+    // Prevent MIME sniffing
+    noSniff: true,
+
+    // Prevent clickjacking
+    frameguard: {
+      action: "deny",
+    },
+
+    // Hide X-Powered-By
+    hidePoweredBy: true,
+
+    // Disable old IE XSS filter
+    xssFilter: false,
+
+    // Restrict referrer leakage
+    referrerPolicy: {
+      policy: "strict-origin-when-cross-origin",
+    },
+
+    // Enforce HTTPS in production
+    hsts: env.NODE_ENV === "production"
+      ? {
+          maxAge: 31536000,
+          includeSubDomains: true,
+          preload: true,
+        }
+      : false,
+
+    // Strict Content Security Policy
+    contentSecurityPolicy: {
+
+      useDefaults: false,
+
+      directives: {
+
+        // Default restriction
+        defaultSrc: ["'self'"],
+
+        // Prevent inline scripts + third-party execution
+        scriptSrc: [
+          "'self'",
+        ],
+
+        // Allow styles from self only
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+        ],
+
+        // Images
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "https:",
+        ],
+
+        // Fonts
+        fontSrc: [
+          "'self'",
+          "https:",
+          "data:",
+        ],
+
+        // API/WebSocket connections
+        connectSrc: [
+          "'self'",
+          "https:",
+          "wss:",
+        ],
+
+        // Block Flash/object/embed
+        objectSrc: ["'none'"],
+
+        // Prevent <base> hijacking
+        baseUri: ["'self'"],
+
+        // Prevent iframe embedding
+        frameAncestors: ["'none'"],
+
+        // Restrict forms
+        formAction: ["'self'"],
+
+        // Prevent mixed content
+        upgradeInsecureRequests: [],
+
+        // Restrict workers
+        workerSrc: [
+          "'self'",
+          "blob:",
+        ],
+
+        // Restrict manifests
+        manifestSrc: ["'self'"],
+
+        // Restrict media
+        mediaSrc: ["'self'"],
+
+        // Restrict frames
+        frameSrc: ["'none'"],
+
+        // Restrict child browsing contexts
+        childSrc: ["'none'"],
+      },
+    },
+
+    // Safer cross-origin behavior
+    crossOriginEmbedderPolicy: false,
+
+    crossOriginOpenerPolicy: {
+      policy: "same-origin",
+    },
+
+    crossOriginResourcePolicy: {
+      policy: "same-origin",
+    },
+
+    // Disable DNS prefetching
+    dnsPrefetchControl: {
+      allow: false,
+    },
+
+    // Prevent browser feature abuse
+    permissionsPolicy: {
+      features: {
+        geolocation: [],
+        microphone: [],
+        camera: [],
+        payment: [],
+        usb: [],
+        magnetometer: [],
+        gyroscope: [],
+      },
+    },
+  })
+);
+```
 
 app.use(
   helmet({
@@ -185,6 +349,94 @@ async function ensureContentFile() {
 app.use('/api/admin/analytics', adminAuth, analyticsRouter);
 app.use('/api/admin/metrics', adminAuth, adminStreamRouter);
 
+// ── Push subscription persistence ──────────────────────────────────────────
+// The in-memory Set is a fast local mirror. When a PostgreSQL database is
+// configured (DATABASE_URL present), subscriptions are also persisted to the
+// push_subscriptions table so they survive server restarts, deploys, and
+// crashes. When no database is configured the store degrades to memory-only,
+// preserving the previous behavior for local development.
+const pushSubscriptions = new Set();
+
+const PUSH_PERSISTENCE_ENABLED = Boolean(process.env.DATABASE_URL);
+
+// Load any previously persisted subscriptions into the in-memory mirror at
+// startup so a restart does not silently drop registered subscribers.
+async function loadPersistedPushSubscriptions() {
+  if (!PUSH_PERSISTENCE_ENABLED) return;
+  try {
+    const rows = await pushSubscriptionsRepository.list({ limit: 10000 });
+    for (const sub of rows) {
+      pushSubscriptions.add(JSON.stringify(sub));
+    }
+    console.log(`Loaded ${rows.length} persisted push subscription(s).`);
+  } catch (err) {
+    console.error('Failed to load persisted push subscriptions:', err.message);
+  }
+}
+
+async function persistPushSubscription(subscription) {
+  if (!PUSH_PERSISTENCE_ENABLED) return;
+  try {
+    await pushSubscriptionsRepository.add(subscription);
+  } catch (err) {
+    console.error('Failed to persist push subscription:', err.message);
+  }
+}
+
+async function removePersistedPushSubscription(subscription) {
+  if (!PUSH_PERSISTENCE_ENABLED) return;
+  try {
+    await pushSubscriptionsRepository.remove(subscription.endpoint);
+  } catch (err) {
+    console.error('Failed to remove persisted push subscription:', err.message);
+  }
+}
+
+// Notification Preferences
+app.get('/api/notifications/preferences', async (req, res) => {
+  try {
+    const userId = req.query.userId || 'global';
+    const prefs = await notificationPreferencesRepository.list(userId);
+    return res.json({ preferences: prefs });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/notifications/preferences', async (req, res) => {
+  try {
+    const userId = req.body.userId || 'global';
+    const { category, email, push, in_app } = req.body;
+    if (!category) return res.status(400).json({ error: 'category is required' });
+    const pref = await notificationPreferencesRepository.set(userId, category, {
+      email,
+      push,
+      in_app,
+    });
+    return res.json({ preference: pref });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/notifications/preferences/bulk', async (req, res) => {
+  try {
+    const userId = req.body.userId || 'global';
+    const { preferences } = req.body;
+    if (!Array.isArray(preferences) || !preferences.length) {
+      return res.status(400).json({ error: 'preferences array is required' });
+    }
+    const results = await notificationPreferencesRepository.setBulk(userId, preferences);
+    return res.json({ preferences: results });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Search, Discovery & Recommendation Engine ──
+app.get('/api/search', searchController.search);
+app.get('/api/search/trending', searchController.trending);
+app.get('/api/recommendations', searchController.recommendations);
 // Must be registered after all routes.
 app.use(notFoundHandler);
 addSentryErrorHandler(app);
@@ -209,13 +461,16 @@ let server;
 if (process.env.NODE_ENV !== 'test') {
   if (!process.env.VERCEL) {
     const boot = HAS_SUPABASE ? Promise.resolve() : ensureContentFile();
-    boot.then(() => {
-      server = app.listen(port, () => {
-        console.log(`NexaSphere server listening on http://localhost:${port}`);
+    boot
+      .then(() => loadPersistedPushSubscriptions())
+      .then(() => {
+        server = app.listen(port, () => {
+          console.log(`NexaSphere server listening on http://localhost:${port}`);
+        });
+        initializeSocketIO(server);
       });
-      initializeSocketIO(server);
-    });
   } else {
+    loadPersistedPushSubscriptions();
     server = app.listen(port, () => {
       console.log(`NexaSphere server listening on http://localhost:${port}`);
     });

@@ -48,6 +48,9 @@ async function ensureSchema(client) {
       roadmaps JSONB DEFAULT '[]'::jsonb,
       bio TEXT,
       title TEXT,
+      avatar_url VARCHAR(2048) DEFAULT '',
+      education JSONB DEFAULT '[]'::jsonb,
+      work_experience JSONB DEFAULT '[]'::jsonb,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     )
@@ -124,13 +127,15 @@ async function ensureReady() {
 
   schemaReady = withDb(async (client) => {
     await ensureSchema(client);
-  }).then(() => {
-    schemaOk = true;
-  }).catch((err) => {
-    schemaReady = null;
-    lastDbFailTime = Date.now();
-    throw err;
-  });
+  })
+    .then(() => {
+      schemaOk = true;
+    })
+    .catch((err) => {
+      schemaReady = null;
+      lastDbFailTime = Date.now();
+      throw err;
+    });
 
   try {
     await schemaReady;
@@ -178,6 +183,12 @@ function mapRow(row) {
     roadmaps: typeof row.roadmaps === 'string' ? JSON.parse(row.roadmaps) : row.roadmaps || [],
     bio: row.bio || '',
     title: row.title || '',
+    avatarUrl: row.avatar_url || '',
+    education: typeof row.education === 'string' ? JSON.parse(row.education) : row.education || [],
+    workExperience:
+      typeof row.work_experience === 'string'
+        ? JSON.parse(row.work_experience)
+        : row.work_experience || [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -297,6 +308,9 @@ export const portfolioRepository = {
     const roadmaps = clean.roadmaps;
     const bio = clean.bio;
     const title = clean.title;
+    const avatarUrl = clean.avatarUrl || '';
+    const education = clean.education || [];
+    const workExperience = clean.workExperience || [];
 
     if (isDbAvailable) {
       try {
@@ -304,8 +318,8 @@ export const portfolioRepository = {
           const { rows } = await client.query(
             `INSERT INTO portfolios (
               username, passkey_hash, theme, visible_sections, social_links,
-              custom_domain, seo_metadata, skills, badges, projects, roadmaps, bio, title, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+              custom_domain, seo_metadata, skills, badges, projects, roadmaps, bio, title, avatar_url, education, work_experience, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
             ON CONFLICT (username) DO UPDATE SET
               passkey_hash = EXCLUDED.passkey_hash,
               theme = EXCLUDED.theme,
@@ -319,6 +333,9 @@ export const portfolioRepository = {
               roadmaps = EXCLUDED.roadmaps,
               bio = EXCLUDED.bio,
               title = EXCLUDED.title,
+              avatar_url = EXCLUDED.avatar_url,
+              education = EXCLUDED.education,
+              work_experience = EXCLUDED.work_experience,
               updated_at = NOW()
             RETURNING *`,
             [
@@ -335,6 +352,9 @@ export const portfolioRepository = {
               JSON.stringify(roadmaps),
               bio,
               title,
+              avatarUrl,
+              JSON.stringify(education),
+              JSON.stringify(workExperience),
             ]
           );
           return mapRow(rows[0]);
@@ -348,6 +368,31 @@ export const portfolioRepository = {
     }
 
     throw new Error('Portfolio storage is unavailable. Please try again later.');
+  },
+
+  async listAll() {
+    const isDbAvailable = await ensureReady();
+    if (isDbAvailable) {
+      try {
+        return await withDb(async (client) => {
+          const { rows } = await client.query('SELECT * FROM portfolios ORDER BY updated_at DESC');
+          return rows.map(mapRow);
+        });
+      } catch (err) {
+        console.error('Failed to list portfolios:', err);
+      }
+    }
+    return [];
+  },
+
+  async delete(username) {
+    const isDbAvailable = await ensureReady();
+    if (isDbAvailable) {
+      return withDb(async (client) => {
+        await client.query('DELETE FROM portfolios WHERE username = $1', [username]);
+      });
+    }
+    throw new Error('Portfolio storage is unavailable');
   },
 };
 

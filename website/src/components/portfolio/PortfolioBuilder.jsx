@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import apiClient from '../../utils/apiClient.js';
 import { projectsData } from '../../data/projectsData';
 import { roadmapData } from '../../data/roadmapData';

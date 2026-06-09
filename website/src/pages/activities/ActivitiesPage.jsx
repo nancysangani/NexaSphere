@@ -316,9 +316,17 @@ export default function ActivitiesPage({ onNavigate, onBack }) {
       },
       { threshold: 0, rootMargin: '0px 0px -10px 0px' }
     );
+    // Filter out elements that already have the 'fired' class — on re-mount
+    // (user navigates away and back) querySelectorAll finds all elements again
+    // including ones that already animated in the previous mount. Re-observing
+    // them wastes observer slots and may re-trigger animations.
     document
       .querySelectorAll('#activities-page .pop-in, #activities-page .pop-word')
-      .forEach((el) => obs.observe(el));
+      .forEach((el) => {
+        if (!el.classList.contains('fired')) {
+          obs.observe(el);
+        }
+      });
     return () => obs.disconnect();
   }, []);
 

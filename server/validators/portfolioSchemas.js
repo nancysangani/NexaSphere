@@ -72,6 +72,28 @@ const RoadmapSchema = z
   })
   .strict();
 
+const EducationSchema = z
+  .object({
+    institution: z.string().trim().min(1).max(200),
+    degree: z.string().trim().max(200).optional(),
+    field: z.string().trim().max(200).optional(),
+    startYear: z.string().trim().max(20).optional(),
+    endYear: z.string().trim().max(20).optional(),
+    gpa: z.string().trim().max(10).optional(),
+  })
+  .strict();
+
+const WorkExperienceSchema = z
+  .object({
+    company: z.string().trim().min(1).max(200),
+    role: z.string().trim().max(200).optional(),
+    startDate: z.string().trim().max(20).optional(),
+    endDate: z.string().trim().max(20).optional(),
+    description: z.string().trim().max(5000).optional(),
+    current: z.boolean().optional(),
+  })
+  .strict();
+
 const BadgeSchema = z
   .object({
     name: z.string().trim().min(1).max(120),
@@ -130,6 +152,9 @@ export const portfolioContentSchema = z
     roadmaps: z.array(RoadmapSchema).max(50).optional(),
     bio: z.string().trim().max(5000).optional(),
     title: z.string().trim().max(200).optional(),
+    avatarUrl: z.string().trim().max(2048).optional(),
+    education: z.array(EducationSchema).max(20).optional(),
+    workExperience: z.array(WorkExperienceSchema).max(20).optional(),
   })
   .strict();
 

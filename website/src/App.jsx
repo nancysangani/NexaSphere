@@ -101,6 +101,7 @@ const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const AnalyticsPage = lazy(() => import('./pages/analytics/AnalyticsPage'));
 const WorkspacePage = lazy(() => import('./pages/workspace/WorkspacePage'));
 const GamificationDashboard = lazy(() => import('./components/gamification/GamificationDashboard'));
+const NotificationHistoryPage = lazy(() => import('./pages/notifications/NotificationHistoryPage'));
 
 const MNH = 88,
   DNH = 64;
@@ -589,6 +590,7 @@ function MainRouter({
       '/gamification': 'Gamification',
       '/apply': 'Apply',
       '/join': 'Join',
+      '/explore': 'Explore',
     };
     const tab = pathMap[location.pathname] || 'Home';
     setActiveTab(tab);
@@ -653,6 +655,7 @@ function MainRouter({
         Roadmaps: '/roadmaps',
         Portfolio: '/portfolio',
         Collab: '/collab',
+        Explore: '/explore',
         About: '/about',
         'Core Team': '/team',
         Contact: '/contact',
@@ -804,6 +807,16 @@ function MainRouter({
               element={<EventDetailWrapper onBack={() => nav('/events')} events={eventsData} />}
             />
 
+            {/* ── Discover / Explore ── */}
+            <Route
+              path="/explore"
+              element={
+                <PageIn k="explore">
+                  <ExplorePage onBack={onBackHome} eventsData={eventsData} />
+                </PageIn>
+              }
+            />
+
             {/* ── Dashboard ── */}
             <Route
               path="/dashboard"
@@ -865,6 +878,10 @@ function MainRouter({
             />
             {/* ── Public Portfolio ── */}
             <Route path="/p/:username" element={<PublicPortfolioWrapper onBack={onBackHome} />} />
+            <Route
+              path="/profile/:username"
+              element={<PublicPortfolioWrapper onBack={onBackHome} />}
+            />
 
             {/* ── Collab ── */}
             <Route
@@ -938,6 +955,16 @@ function MainRouter({
               element={
                 <PageIn k="admin">
                   <AdminPage onBack={onBackHome} />
+                </PageIn>
+              }
+            />
+
+            {/* ── Notification History ── */}
+            <Route
+              path="/notifications"
+              element={
+                <PageIn k="notifications">
+                  <NotificationHistoryPage />
                 </PageIn>
               }
             />

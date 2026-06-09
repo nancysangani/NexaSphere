@@ -17,12 +17,10 @@ import {
   Download,
   Upload,
   RotateCcw,
-  Sparkles,
   Layers,
   BookOpen,
   AlertCircle,
   Edit,
-  Save,
   Check,
 } from 'lucide-react';
 
