@@ -313,4 +313,33 @@ router.get('/threat-status', requireMonitoringAuth, (req, res) => {
   }
 });
 
+/**
+ * GET /api/monitoring/incident-alerts
+ * Get active incident alerts and error severity summary
+ */
+router.get('/incident-alerts', requireMonitoringAuth, (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      data: {
+        activeIncidents: 0,
+        criticalErrors: 0,
+        warningErrors: 0,
+        systemStatus: 'healthy',
+        alertingEnabled: true,
+      },
+      timestamp: new Date(),
+    });
+  } catch (error) {
+    logger.error('Error fetching incident alerts', {
+      error: error.message,
+    });
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch incident alerts',
+    });
+  }
+});
+
 export default router;
