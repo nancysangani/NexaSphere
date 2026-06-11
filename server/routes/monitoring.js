@@ -16,6 +16,7 @@ import logger from '../utils/logger.js';
 import { validateDataIntegrity } from '../utils/dataIntegrityValidator.js';
 import { getSessionSecurityData } from '../utils/sessionSecurity.js';
 import { getMigrationStatus } from '../utils/migrationSafety.js';
+import { recordPageLoad } from '../observability/metrics.js';
 
 function requireMonitoringAuth(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -231,17 +232,27 @@ router.post('/test-error', requireMonitoringAuth, (req, res, next) => {
  * GET /api/monitoring/backup-status
  * Get backup and recovery monitoring status
  */
+router.post('/rum', requireMonitoringAuth, (req, res) => {
+  try {
+    const duration = parseFloat(req.body?.durationSeconds);
+    if (!Number.isFinite(duration) || duration < 0) {
+      return res.status(400).json({ success: false, error: 'durationSeconds required' });
+    }
+    recordPageLoad(duration);
+    res.status(204).end();
+  } catch (error) {
+    logger.error('Error recording RUM metric', { error: error.message });
+    res.status(500).json({ success: false, error: 'Failed to record RUM metric' });
+  }
+});
+
 router.get('/backup-status', requireMonitoringAuth, (req, res) => {
   try {
     res.status(200).json({
       success: true,
       data: {
-        lastBackupTime: new Date().toISOString(),
-        backupStatus: 'healthy',
-        recoveryReady: true,
-        backupFrequency: 'daily',
-        backupStorage: 'configured',
-        totalBackups: 7,
+        status: 'unknown',
+        message: 'Backup probe not configured. Wire to your backup provider API.',
       },
       timestamp: new Date(),
     });

@@ -1,4 +1,7 @@
 import 'dotenv/config';
+import { initObservability } from './observability/index.js';
+import { setTraceIdResolver } from './utils/logContext.js';
+import { getActiveTraceId } from './observability/tracing.js';
 import helmet from 'helmet';
 import express from 'express';
 import { body, validationResult } from 'express-validator';
@@ -86,6 +89,11 @@ function validateEnvironment() {
 validateEnvironment();
 
 const app = express();
+
+setTraceIdResolver(getActiveTraceId);
+initObservability(app);
+
+const useStructuredHttpLog = (process.env.LOG_FORMAT || '').toLowerCase() === 'json';
 
 // Trust the first reverse proxy hop (e.g., Vercel, Render, Nginx, Cloudflare)
 // to correctly populate req.ip and securely discard spoofed X-Forwarded-For headers
@@ -254,7 +262,9 @@ app.use(tracingMiddleware);
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(xssSanitizer);
-app.use(morgan('combined'));
+if (!useStructuredHttpLog) {
+  app.use(morgan('combined'));
+}
 app.use(performanceMonitor);
 app.use(cookieParser());
 
@@ -283,7 +293,9 @@ function requestLogger(req, res, next) {
   next();
 }
 
-app.use(requestLogger);
+if (!useStructuredHttpLog) {
+  app.use(requestLogger);
+}
 
 // ── Health check (required by Render, Railway, and load balancers) ──
 app.get('/health', (_req, res) => {
