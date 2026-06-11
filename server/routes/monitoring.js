@@ -342,4 +342,32 @@ router.get('/incident-alerts', requireMonitoringAuth, (req, res) => {
   }
 });
 
+/**
+ * GET /api/monitoring/incidents
+ * Get active incidents and maintenance information
+ */
+router.get('/incidents', requireMonitoringAuth, (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      data: {
+        activeIncidents: [],
+        scheduledMaintenance: [],
+        systemStatus: 'operational',
+        lastUpdated: new Date().toISOString(),
+      },
+      timestamp: new Date(),
+    });
+  } catch (error) {
+    logger.error('Error fetching incident information', {
+      error: error.message,
+    });
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch incident information',
+    });
+  }
+});
+
 export default router;
