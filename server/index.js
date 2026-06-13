@@ -81,6 +81,7 @@ const __dirname = path.dirname(__filename);
 const CONTENT_FILE = path.join(__dirname, 'data', 'content.json');
 
 
+
 validateEnvironment();
 
 const app = express();
