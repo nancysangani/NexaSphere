@@ -41,6 +41,7 @@ class TokenServiceTest {
     void setUp() {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         tokenService = new TokenService(redisTemplate, objectMapper);
     }

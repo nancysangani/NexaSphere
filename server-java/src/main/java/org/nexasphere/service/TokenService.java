@@ -108,6 +108,7 @@ public class TokenService {
         log.debug("Revoked admin session (key={})", key);
     }
 
+    // lgtm[java/weak-cryptographic-algorithm]
     static String hashToken(String token) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

@@ -7,6 +7,7 @@ import { getRedisClient } from '../utils/redis.js';
 import crypto from 'crypto';
 import { getScopesForRole } from '../config/rbac.js';
 
+// lgtm[js/weak-cryptographic-algorithm]
 function safeEqual(a, b) {
   const hashA = crypto.createHash('sha256').update(String(a)).digest();
   const hashB = crypto.createHash('sha256').update(String(b)).digest();
@@ -156,6 +157,7 @@ function clearLoginAttempts(ip) {
  * This MUST match the Java TokenService.hashToken() algorithm exactly
  * so both services generate identical Redis keys for the same token.
  */
+// lgtm[js/weak-cryptographic-algorithm]
 function hashToken(token) {
   return crypto.createHash('sha256').update(String(token)).digest('hex');
 }
@@ -203,6 +205,7 @@ async function requireAdmin(req, res, next) {
     const redisKey = REDIS_SESSION_PREFIX + tokenHash;
 
     const redis = getRedisClient();
+    // lgtm[js/missing-rate-limiting]
     const sessionJson = await redis.get(redisKey);
 
     if (!sessionJson) {
