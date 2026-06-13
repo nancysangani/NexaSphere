@@ -17,6 +17,7 @@ import { validateDataIntegrity } from '../utils/dataIntegrityValidator.js';
 import { getSessionSecurityData } from '../utils/sessionSecurity.js';
 import { getMigrationStatus } from '../utils/migrationSafety.js';
 import { recordPageLoad } from '../observability/metrics.js';
+import { getServiceHealth, getFailoverStatus } from '../utils/failoverManager.js';
 
 function requireMonitoringAuth(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -428,6 +429,14 @@ router.get('/migration-status', requireMonitoringAuth, (req, res) => {
       error: 'Failed to fetch migration status',
     });
   }
+});
+
+router.get('/health', (req, res) => {
+  res.json(getServiceHealth());
+});
+
+router.get('/failover-status', (req, res) => {
+  res.json(getFailoverStatus());
 });
 
 export default router;
