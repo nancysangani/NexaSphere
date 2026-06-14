@@ -1,3 +1,4 @@
+# CI/CD Build and Test Workflow
 name: CI — Build & Test
 
 on:
@@ -13,19 +14,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
 
-      - name: Clean cache
-        run: rm -rf node_modules package-lock.json
+      - name: Upgrade npm to v11 (matches lockfile generator)
+        run: npm install -g npm@11
 
       - name: Install dependencies
-        run: rm -rf node_modules package-lock.json && npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build (production)
         run: npm run build --workspace=website
@@ -34,7 +34,7 @@ jobs:
           VITE_API_BASE: ''
 
       - name: Upload dist artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: website-dist
           path: website/dist/
@@ -46,21 +46,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
 
-      - name: Clean cache
-        run: rm -rf node_modules package-lock.json
+      - name: Upgrade npm to v11 (matches lockfile generator)
+        run: npm install -g npm@11
 
       - name: Install dependencies
-        run: |
-          rm -rf package-lock.json node_modules
-          npm install --no-audit
+        run: npm install --legacy-peer-deps
 
       - name: Run unit tests
         run: npm run test --workspace=admin-dashboard
@@ -81,19 +78,25 @@ jobs:
         working-directory: server
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
 
-      - name: Clean cache
-        run: rm -rf node_modules package-lock.json
+      - name: Upgrade npm to v11 (matches lockfile generator)
+        run: npm install -g npm@11
 
       - name: Install dependencies
-        run: npm install --prefer-offline --no-audit
+        run: npm install --legacy-peer-deps
+
+      - name: Run SQL Injection security audit
+        run: npm run audit:sql
+
+      - name: Run dependency security scan
+        run: npm audit --audit-level=high
 
       - name: Run unit tests
         run: npm test

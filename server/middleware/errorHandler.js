@@ -3,9 +3,10 @@
  * Handles all errors in a centralized location
  */
 
-import logger from "../utils/logger.js";
-import { captureException } from "../utils/sentry.js";
-import { sendSlackAlert } from "../utils/slack.js";
+import logger from '../utils/logger.js';
+import { captureException } from '../utils/sentry.js';
+import { sendSlackAlert } from '../utils/slack.js';
+import { logError } from '../services/errorTrackingService.js';
 
 function resolveUserId(req) {
   return req.user?.id || req.adminSession?.username || null;
@@ -21,7 +22,7 @@ function resolveUserId(req) {
 const errorHandler = (err, req, res, next) => {
   // Determine error status code
   const status = err.statusCode || err.status || 500;
-  const message = err.message || "Internal Server Error";
+  const message = err.message || 'Internal Server Error';
 
   // Log error details
   const errorLog = {
@@ -35,7 +36,30 @@ const errorHandler = (err, req, res, next) => {
     stack: err.stack,
   };
 
-  logger.error("Global Error Handler", errorLog);
+  logger.error('Global Error Handler', errorLog);
+
+  // Transaction Recovery Audit Log
+  logger.warn('Transaction Recovery Triggered', {
+    endpoint: req.originalUrl,
+    method: req.method,
+    recoveryAction: 'ROLLBACK_REQUIRED',
+    statusCode: status,
+    userId: resolveUserId(req),
+    timestamp: new Date().toISOString(),
+  });
+
+  if (process.env.ENABLE_ERROR_TRACKING !== 'false') {
+    logError(err, {
+      status,
+      url: req.originalUrl,
+      method: req.method,
+      userId: resolveUserId(req),
+      ipAddress: req.ip,
+      headers: req.headers,
+      queryParams: req.query,
+      requestBody: req.body,
+    });
+  }
 
   // Capture to Sentry
   captureException(err, {
@@ -46,12 +70,19 @@ const errorHandler = (err, req, res, next) => {
     extra: { errorLog },
   });
 
-  // Send Slack alert for critical errors
-  if (status >= 500 || (status === 401 && !resolveUserId(req))) {
+  // Send Slack alert for server-side incidents only.
+  // 401 responses are expected client behavior (bots, scanners, health checks,
+  // and users acting before login) and previously fired an alert for every
+  // unauthenticated request, flooding the channel and masking real incidents.
+  // Restricting alerts to status >= 500 keeps the signal limited to genuine
+  // server faults. The query string is stripped from the alerted URL so any
+  // sensitive query parameter values are not forwarded to Slack.
+  if (status >= 500) {
+    const pathOnly = req.originalUrl.split('?')[0];
     sendSlackAlert({
       title: `🚨 ${status} Error Detected`,
       message,
-      url: req.originalUrl,
+      url: pathOnly,
       method: req.method,
       userId: resolveUserId(req),
       timestamp: errorLog.timestamp,
@@ -62,10 +93,11 @@ const errorHandler = (err, req, res, next) => {
   // Send response
   res.status(status).json({
     success: false,
+    recoveryRequired: status >= 500,
     error: {
       status,
-      message: process.env.NODE_ENV === "production" ? "Something went wrong" : message,
-      ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
+      message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : message,
+      ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
     },
     timestamp: new Date().toISOString(),
   });
@@ -80,7 +112,7 @@ const notFoundHandler = (req, res) => {
   const status = 404;
   const message = `Route ${req.originalUrl} not found`;
 
-  logger.warn("404 Not Found", {
+  logger.warn('404 Not Found', {
     url: req.originalUrl,
     method: req.method,
     ip: req.ip,
@@ -106,11 +138,11 @@ const validationErrorHandler = (errors) => {
     value: err.value,
   }));
 
-  logger.warn("Validation Error", { errors: formattedErrors });
+  logger.warn('Validation Error', { errors: formattedErrors });
 
   return {
     status: 400,
-    message: "Validation failed",
+    message: 'Validation failed',
     errors: formattedErrors,
   };
 };
@@ -122,14 +154,9 @@ const validationErrorHandler = (errors) => {
  */
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch((err) => {
-    logger.error("Async handler error", { error: err.message, stack: err.stack });
+    logger.error('Async handler error', { error: err.message, stack: err.stack });
     next(err);
   });
 };
 
-export {
-  errorHandler,
-  notFoundHandler,
-  validationErrorHandler,
-  asyncHandler,
-};
+export { errorHandler, notFoundHandler, validationErrorHandler, asyncHandler };

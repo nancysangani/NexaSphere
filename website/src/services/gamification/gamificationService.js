@@ -8,7 +8,6 @@ export const XP_VALUES = {
   COMMENT_POSTED: 5,
   REFERRAL: 100,
   DAILY_STREAK: 20,
-  ACHIEVEMENT_UNLOCK: 0,
   SHARE_EVENT: 15,
   FEEDBACK_GIVEN: 10,
 };
@@ -191,12 +190,33 @@ class GamificationService {
   }
 
   saveUserData() {
+    // Cap notifications to last 50 to prevent unbounded localStorage growth
+    if (this.userData.notifications.length > 50) {
+      this.userData.notifications = this.userData.notifications.slice(-50);
+    }
     try {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('gamification_user_data', JSON.stringify(this.userData));
       }
-    } catch (e) {
-      console.warn('LocalStorage write failed:', e);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+        console.warn(
+          '[GamificationService] localStorage quota exceeded — trimming notifications ' +
+            'and retrying. Consider migrating to IndexedDB for long-term storage.'
+        );
+        // Aggressively trim notifications and retry once
+        this.userData.notifications = [];
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('gamification_user_data', JSON.stringify(this.userData));
+          }
+        } catch (_) {
+          // If it still fails, data loss is preferable to a thrown error
+          console.warn('[GamificationService] Retry after trim also failed — skipping save.');
+        }
+      } else {
+        console.warn('LocalStorage write failed:', err);
+      }
     }
   }
 
@@ -403,16 +423,37 @@ class GamificationService {
     return nextLevel ? nextLevel.xpRequired : this.userData.xp;
   }
 
-  getLeaderboard() {
-    // For demo, return mock leaderboard
-    // In production, this would fetch from backend
-    return [
+  async getLeaderboard() {
+    const MOCK_LEADERBOARD = [
       { rank: 1, name: 'Alex Johnson', xp: 2850, level: 8, avatar: '👨‍💻' },
       { rank: 2, name: 'Sarah Chen', xp: 2420, level: 7, avatar: '👩‍💻' },
       { rank: 3, name: 'Mike Ross', xp: 2100, level: 7, avatar: '👨‍💼' },
       { rank: 4, name: 'Emma Watson', xp: 1850, level: 6, avatar: '👩‍🎓' },
       { rank: 5, name: 'David Kim', xp: 1520, level: 6, avatar: '👨‍🔬' },
     ];
+
+    const base = (
+      (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE) ||
+      ''
+    ).replace(/\/+$/, '');
+    if (!base) return MOCK_LEADERBOARD;
+
+    try {
+      const res = await fetch(`${base}/api/dashboard/leaderboard`);
+      if (!res.ok) return MOCK_LEADERBOARD;
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) return MOCK_LEADERBOARD;
+      // Map backend UserProfileEntity shape to leaderboard display shape
+      return data.map((user, i) => ({
+        rank: i + 1,
+        name: user.username || user.name || 'Anonymous',
+        xp: user.xp ?? 0,
+        level: user.level ?? 1,
+        avatar: '👤',
+      }));
+    } catch {
+      return MOCK_LEADERBOARD;
+    }
   }
 
   getTierColor(tier) {

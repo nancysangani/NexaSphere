@@ -56,8 +56,8 @@ describe('GamificationDashboard Component', () => {
     // Switch to Leaderboard
     const leaderboardTab = screen.getByRole('button', { name: 'Leaderboard' });
     fireEvent.click(leaderboardTab);
-    expect(screen.getByText('Alex Johnson')).toBeInTheDocument();
-    expect(screen.getByText('Sarah Chen')).toBeInTheDocument();
+    expect(await screen.findByText('Alex Johnson')).toBeInTheDocument();
+    expect(await screen.findByText('Sarah Chen')).toBeInTheDocument();
 
     // Switch to Earn XP (Actions)
     const actionsTab = screen.getByRole('button', { name: 'Earn XP' });

@@ -46,6 +46,14 @@ const vikasImg = teamImg('vikas.png');
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
 
+const safeJsonParse = (str, defaultVal) => {
+  try {
+    return str ? JSON.parse(str) : defaultVal;
+  } catch {
+    return defaultVal;
+  }
+};
+
 // Migration: upgrade pre-v2 localStorage seed to the full 12-member official team.
 // Uses a version key so migrations are idempotent — they run exactly once per browser.
 // If the schema version is already >= 2, skip entirely to avoid touching real data.
@@ -246,7 +254,7 @@ function notifyContentUpdated(key) {
   // Post to the sync-bridge iframe embedded by the website
   const bridge = document.querySelector('iframe[title="NexaSphere Sync Bridge"]');
   if (bridge?.contentWindow) {
-    bridge.contentWindow.postMessage({ type: 'ns-sync', key }, '*');
+    bridge.contentWindow.postMessage({ type: 'ns-sync', key }, window.location.origin);
   }
 }
 
@@ -263,7 +271,6 @@ async function fetchWithAuth(url, options = {}) {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.getToken()}`,
           ...options.headers,
         },
       });
@@ -383,6 +390,32 @@ async function fetchWithAuth(url, options = {}) {
         });
       }
 
+      // /api/admin/portfolios
+      else if (url.startsWith('/api/admin/portfolios')) {
+        let portfolios = getDb('portfolios', []);
+        if (method === 'GET') {
+          const queryParams = new URLSearchParams(url.split('?')[1] || '');
+          const username = queryParams.get('username');
+          if (username) {
+            const found = portfolios.find((p) => p.username === username);
+            resolve({ portfolios: found ? [found] : [] });
+          } else {
+            resolve({ portfolios });
+          }
+        }
+        if (method === 'DELETE' && url.includes('/achievements/')) {
+          resolve({ ok: true });
+        }
+        if (method === 'POST' && url.includes('/achievements')) {
+          const newAch = {
+            ...body,
+            id: Date.now().toString(),
+            awarded_at: new Date().toISOString(),
+          };
+          resolve({ achievement: newAch });
+        }
+      }
+
       // /api/admin/announcements
       else if (url.startsWith('/api/admin/announcements')) {
         let announcements = getDb('announcements', []);
@@ -412,11 +445,105 @@ async function fetchWithAuth(url, options = {}) {
           resolve({ success: true });
         }
       }
+
+      // /api/admin/events/:eventId/registrations
+      else if (url.match(/\/api\/admin\/events\/[^\/]+\/registrations/)) {
+        const eventId = url.split('/')[4];
+        let regDb = getDb('event_registrations', {});
+        let regs = regDb[eventId] || [];
+        if (method === 'GET') resolve({ registrations: regs });
+        if (method === 'POST') {
+          const newReg = {
+            ...body,
+            id: Date.now().toString(),
+            created_at: new Date().toISOString(),
+          };
+          regs = [newReg, ...regs];
+          regDb[eventId] = regs;
+          setDb('event_registrations', regDb);
+          resolve(newReg);
+        }
+      }
+
+      // /api/admin/events/:eventId/attendance
+      else if (url.match(/\/api\/admin\/events\/[^\/]+\/attendance/)) {
+        const eventId = url.split('/')[4];
+        let regDb = getDb('event_registrations', {});
+        let regs = regDb[eventId] || [];
+        if (method === 'POST' && body) {
+          const idx = regs.findIndex(
+            (r) => r.email === body.email || r.ticket_token === body.token
+          );
+          if (idx >= 0) {
+            regs[idx] = { ...regs[idx], attended: true, attended_at: new Date().toISOString() };
+            regDb[eventId] = regs;
+            setDb('event_registrations', regDb);
+            resolve({ ...regs[idx], already_attended: false });
+          } else {
+            resolve({ error: 'Registration not found' });
+          }
+        }
+      }
+
+      // /api/admin/events/:eventId/analytics
+      else if (url.match(/\/api\/admin\/events\/[^\/]+\/analytics/)) {
+        const eventId = url.split('/')[4];
+        let regDb = getDb('event_registrations', {});
+        let regs = regDb[eventId] || [];
+        const total = regs.length;
+        const confirmed = regs.filter((r) => r.status === 'confirmed').length;
+        const attended = regs.filter((r) => r.attended).length;
+        resolve({
+          eventId,
+          stats: { total, confirmed, waitlisted: total - confirmed, attended },
+          attendanceRate: confirmed > 0 ? Math.round((attended / confirmed) * 100) : 0,
+          departmentBreakdown: [],
+          yearBreakdown: [],
+          waitlist: [],
+        });
+      }
     }, 300); // simulate slight network delay
   });
 }
 
 export const api = {
+  mentorship: {
+    getAll: async (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      if (auth.isOfflineMode()) {
+        return { mentorships: [], total: 0 };
+      }
+      return fetchWithAuth(`/api/admin/mentorships${query ? `?${query}` : ''}`);
+    },
+    getMentors: async (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      if (auth.isOfflineMode()) {
+        return { mentors: [], total: 0 };
+      }
+      return fetchWithAuth(`/api/admin/mentors${query ? `?${query}` : ''}`);
+    },
+    updateStatus: async (id, status) => {
+      if (auth.isOfflineMode()) {
+        eventEmitter.emit(EVENTS.NOTIFY, { type: 'warning', message: 'Offline mode' });
+        return;
+      }
+      const result = await fetchWithAuth(`/api/mentorship/requests/${id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status }),
+      });
+      eventEmitter.emit(EVENTS.NOTIFY, { type: 'success', message: `Mentorship ${status}` });
+      return result;
+    },
+  },
+  eventRegistrations: {
+    list: (eventId) => fetchWithAuth(`/api/admin/events/${eventId}/registrations`),
+    markAttendance: (eventId, payload) =>
+      fetchWithAuth(`/api/admin/events/${eventId}/attendance`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+    analytics: (eventId) => fetchWithAuth(`/api/admin/events/${eventId}/analytics`),
+  },
   events: {
     getAll: () => fetchWithAuth('/api/admin/events'),
     create: async (event) => {
@@ -467,6 +594,15 @@ export const api = {
         });
       }
       await fetchWithAuth(`/api/admin/events/${id}`, { method: 'DELETE' });
+      // Record tombstone for offline sync to avoid resurrecting deleted events
+      try {
+        const tombstoneKey = 'ns_tombstone_events';
+        const existing = safeJsonParse(localStorage.getItem(tombstoneKey), []);
+        const updated = Array.isArray(existing) ? [...existing, id] : [id];
+        localStorage.setItem(tombstoneKey, JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Failed to record tombstone for event deletion', e);
+      }
       eventEmitter.emit(EVENTS.EVENT_DELETED, { id });
       eventEmitter.emit(EVENTS.NOTIFY, {
         type: 'success',
@@ -669,6 +805,24 @@ export const api = {
     },
   },
 
+  portfolios: {
+    getAll: (params = '') => fetchWithAuth(`/api/admin/portfolios${params}`),
+    getAchievements: (username) =>
+      fetchWithAuth(`/api/admin/portfolios/${encodeURIComponent(username)}/achievements`),
+    awardAchievement: (username, achievement) =>
+      fetchWithAuth(`/api/admin/portfolios/${encodeURIComponent(username)}/achievements`, {
+        method: 'POST',
+        body: JSON.stringify(achievement),
+      }),
+    removeAchievement: (username, name) =>
+      fetchWithAuth(
+        `/api/admin/portfolios/${encodeURIComponent(username)}/achievements/${encodeURIComponent(name)}`,
+        {
+          method: 'DELETE',
+        }
+      ),
+  },
+
   announcements: {
     getAll: () => fetchWithAuth('/api/admin/announcements'),
     create: async (announcement) => {
@@ -726,6 +880,63 @@ export const api = {
       });
       broadcastContentUpdate('announcements');
       notifyContentUpdated('ns_db_announcements');
+    },
+  },
+  circuitBreaker: {
+    getMetrics: () => fetchWithAuth('/api/admin/circuit-breaker/metrics'),
+    reset: (name) =>
+      fetchWithAuth(`/api/admin/circuit-breaker/reset/${encodeURIComponent(name)}`, {
+        method: 'POST',
+      }),
+    retry: (name) =>
+      fetchWithAuth(`/api/admin/circuit-breaker/retry/${encodeURIComponent(name)}`, {
+        method: 'POST',
+      }),
+  },
+
+  forum: {
+    getAll: async (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      if (auth.isOfflineMode()) {
+        return { threads: [], total: 0 };
+      }
+      return fetchWithAuth(`/api/admin/forum/threads${query ? `?${query}` : ''}`);
+    },
+    moderate: async (id, status) => {
+      if (auth.isOfflineMode()) {
+        eventEmitter.emit(EVENTS.NOTIFY, { type: 'warning', message: 'Offline mode' });
+        return;
+      }
+      const result = await fetchWithAuth(`/api/admin/forum/threads/${id}/moderate`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      eventEmitter.emit(EVENTS.NOTIFY, { type: 'success', message: `Thread ${status}` });
+      broadcastContentUpdate('forum');
+      return result;
+    },
+    delete: async (id) => {
+      if (auth.isOfflineMode()) {
+        eventEmitter.emit(EVENTS.NOTIFY, { type: 'warning', message: 'Offline mode' });
+        return;
+      }
+      await fetchWithAuth(`/api/forum/threads/${id}`, { method: 'DELETE' });
+      eventEmitter.emit(EVENTS.NOTIFY, { type: 'success', message: 'Thread deleted' });
+      broadcastContentUpdate('forum');
+    },
+    moderateReply: async (id, status) => {
+      if (auth.isOfflineMode()) {
+        eventEmitter.emit(EVENTS.NOTIFY, { type: 'warning', message: 'Offline mode' });
+        return;
+      }
+      const result = await fetchWithAuth(`/api/admin/forum/replies/${id}/moderate`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      eventEmitter.emit(EVENTS.NOTIFY, { type: 'success', message: `Reply ${status}` });
+      return result;
     },
   },
 };

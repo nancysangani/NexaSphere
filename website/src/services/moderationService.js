@@ -195,8 +195,8 @@ class ModerationService {
       newScore = Math.min(100, newScore + 1);
     }
 
-    // Determine reputation level
-    let level = REPUTATION.NORMAL;
+    // Determine reputation level based on current score to update user profile
+    let level;
     if (newScore >= 80) level = REPUTATION.TRUSTED;
     else if (newScore >= 60) level = REPUTATION.NORMAL;
     else if (newScore >= 40) level = REPUTATION.WATCHED;
@@ -225,6 +225,11 @@ class ModerationService {
     return 'allow';
   }
 
+  // Maximum number of flagged content entries to retain in localStorage.
+  // Prevents unbounded growth that could overflow the ~5MB quota and
+  // corrupt unrelated localStorage keys (bookmarks, roadmap autosave).
+  static MAX_FLAGGED_ENTRIES = 200;
+
   // Flag content for admin review
   flagForReview(content, userId, result) {
     const flag = {
@@ -238,8 +243,12 @@ class ModerationService {
     };
     this.flaggedContent.unshift(flag);
 
-    // Store in localStorage for persistence
-    localStorage.setItem('moderation_flagged', JSON.stringify(this.flaggedContent));
+    // Evict oldest entries beyond the cap before saving
+    if (this.flaggedContent.length > ModerationService.MAX_FLAGGED_ENTRIES) {
+      this.flaggedContent = this.flaggedContent.slice(0, ModerationService.MAX_FLAGGED_ENTRIES);
+    }
+
+    this._saveFlaggedContent();
   }
 
   // Get flagged content for admin
@@ -258,7 +267,33 @@ class ModerationService {
       flag.status = 'reviewed';
       flag.resolvedAt = new Date().toISOString();
       flag.resolution = action;
+      this._saveFlaggedContent();
+    }
+  }
+
+  // Safe localStorage write — catches QuotaExceededError instead of
+  // letting it propagate and corrupt unrelated localStorage operations.
+  _saveFlaggedContent() {
+    try {
       localStorage.setItem('moderation_flagged', JSON.stringify(this.flaggedContent));
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+        console.warn(
+          '[ModerationService] localStorage quota exceeded — trimming flagged content and retrying.'
+        );
+        // Aggressively trim to half the cap and retry once
+        this.flaggedContent = this.flaggedContent.slice(
+          0,
+          Math.floor(ModerationService.MAX_FLAGGED_ENTRIES / 2)
+        );
+        try {
+          localStorage.setItem('moderation_flagged', JSON.stringify(this.flaggedContent));
+        } catch (_) {
+          console.warn('[ModerationService] Retry after trim also failed — skipping save.');
+        }
+      } else {
+        throw err;
+      }
     }
   }
 

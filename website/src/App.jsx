@@ -15,6 +15,7 @@ import {
   useNavigate,
   useLocation,
   useParams,
+  Navigate,
 } from 'react-router-dom';
 
 import './styles/themes.css';
@@ -70,6 +71,7 @@ import Terminal from './components/developer/Terminal';
 import { useDeveloperMode } from './hooks/useDeveloperMode';
 
 import { BookmarkProvider } from './context/BookmarkContext';
+import { StudentAuthProvider, useStudentAuth } from './context/StudentAuthContext';
 import BookmarksDrawer from './components/bookmarks/BookmarksDrawer';
 import { useTheme } from './hooks/useTheme';
 import { useInteractionEffects } from './hooks/useInteractionEffects';
@@ -101,6 +103,13 @@ const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const AnalyticsPage = lazy(() => import('./pages/analytics/AnalyticsPage'));
 const WorkspacePage = lazy(() => import('./pages/workspace/WorkspacePage'));
 const GamificationDashboard = lazy(() => import('./components/gamification/GamificationDashboard'));
+const ForumPage = lazy(() => import('./pages/forum/ForumPage'));
+const ForumThreadPage = lazy(() => import('./pages/forum/ForumThreadPage'));
+const LoginPage = lazy(() => import('./pages/login/LoginPage'));
+const MentorsPage = lazy(() => import('./pages/mentorship/MentorsPage'));
+const MentorshipDashboard = lazy(() => import('./pages/mentorship/MentorshipDashboard'));
+const StatusPage = lazy(() => import('./pages/StatusPage'));
+const LiveStreamPage = lazy(() => import('./pages/streaming/LiveStreamPage'));
 
 const MNH = 88,
   DNH = 64;
@@ -360,7 +369,9 @@ function Cursor() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppShell />
+      <StudentAuthProvider>
+        <AppShell />
+      </StudentAuthProvider>
     </BrowserRouter>
   );
 }
@@ -438,10 +449,15 @@ function AppShell() {
     };
 
     fetchEvents();
-    const interval = setInterval(fetchEvents, 4000);
+    // Removed unconditional 4s polling — socket event handles live updates.
+    // Re-fetch once when the tab becomes visible again after being backgrounded.
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') fetchEvents();
+    };
     const onContentUpdated = (data) => {
       if (data?.type === 'events' || data?.type === 'activities') fetchEvents();
     };
+    document.addEventListener('visibilitychange', onVisibilityChange);
     on('content:updated', onContentUpdated);
 
     return () => {
@@ -538,6 +554,16 @@ function AppShell() {
 }
 
 /* ─────────────────────────────────────────────────────
+   RequireAuth Wrapper
+───────────────────────────────────────────────────── */
+function RequireAuth({ children }) {
+  const { isAuthenticated, loading } = useStudentAuth();
+  if (loading) return <PageLoadingSpinner />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
+}
+
+/* ─────────────────────────────────────────────────────
    MainRouter — renders the Navbar + Routes
 ───────────────────────────────────────────────────── */
 function MainRouter({
@@ -584,6 +610,11 @@ function MainRouter({
       '/gamification': 'Gamification',
       '/apply': 'Apply',
       '/join': 'Join',
+      '/explore': 'Explore',
+      '/forum': 'Forum',
+      '/mentorship': 'Mentorship',
+      '/mentorship/mentors': 'Mentorship',
+      '/mentorship/dashboard': 'Mentorship',
     };
     const tab = pathMap[location.pathname] || 'Home';
     setActiveTab(tab);
@@ -648,9 +679,12 @@ function MainRouter({
         Roadmaps: '/roadmaps',
         Portfolio: '/portfolio',
         Collab: '/collab',
+        Explore: '/explore',
         About: '/about',
         'Core Team': '/team',
         Contact: '/contact',
+        Forum: '/forum',
+        Mentorship: '/mentorship',
       };
       const targetPath = routeMap[tab];
       if (targetPath) {
@@ -799,13 +833,33 @@ function MainRouter({
               element={<EventDetailWrapper onBack={() => nav('/events')} events={eventsData} />}
             />
 
-            {/* ── Dashboard ── */}
+            {/* ── Live Streaming ── */}
+            <Route
+              path="/stream/:eventId"
+              element={
+                <PageIn k="stream">
+                  <LiveStreamPage />
+                </PageIn>
+              }
+            />
+            <Route
+              path="/stream/:eventId/:streamId"
+              element={
+                <PageIn k="stream-id">
+                  <LiveStreamPage />
+                </PageIn>
+              }
+            />
+
+            {/* ── Dashboard (requires auth) ── */}
             <Route
               path="/dashboard"
               element={
-                <PageIn k="dashboard">
-                  <DashboardPage onBack={onBackHome} />
-                </PageIn>
+                <RequireAuth>
+                  <PageIn k="dashboard">
+                    <DashboardPage onBack={onBackHome} />
+                  </PageIn>
+                </RequireAuth>
               }
             />
 
@@ -860,6 +914,10 @@ function MainRouter({
             />
             {/* ── Public Portfolio ── */}
             <Route path="/p/:username" element={<PublicPortfolioWrapper onBack={onBackHome} />} />
+            <Route
+              path="/profile/:username"
+              element={<PublicPortfolioWrapper onBack={onBackHome} />}
+            />
 
             {/* ── Collab ── */}
             <Route
@@ -927,12 +985,76 @@ function MainRouter({
             {/* ── Workspace (collaborative room) ── */}
             <Route path="/workspace/:roomId" element={<WorkspaceWrapper onBack={onBackHome} />} />
 
+            {/* ── Forum ── */}
+            <Route
+              path="/forum"
+              element={
+                <PageIn k="forum">
+                  <ForumPage onBack={onBackHome} />
+                </PageIn>
+              }
+            />
+            <Route
+              path="/forum/:id"
+              element={
+                <PageIn k="forum-thread">
+                  <ForumThreadPage onBack={() => nav('/forum')} />
+                </PageIn>
+              }
+            />
+
+            {/* ── Mentorship ── */}
+            <Route
+              path="/mentorship"
+              element={
+                <PageIn k="mentorship">
+                  <MentorsPage />
+                </PageIn>
+              }
+            />
+            <Route
+              path="/mentorship/mentors"
+              element={
+                <PageIn k="mentorship-mentors">
+                  <MentorsPage />
+                </PageIn>
+              }
+            />
+            <Route
+              path="/mentorship/dashboard"
+              element={
+                <PageIn k="mentorship-dashboard">
+                  <MentorshipDashboard />
+                </PageIn>
+              }
+            />
+
             {/* ── Admin (embedded, for quick access) ── */}
             <Route
               path="/admin"
               element={
                 <PageIn k="admin">
                   <AdminPage onBack={onBackHome} />
+                </PageIn>
+              }
+            />
+
+            {/* ── Login / SSO ── */}
+            <Route
+              path="/login"
+              element={
+                <PageIn k="login">
+                  <LoginPage />
+                </PageIn>
+              }
+            />
+
+            {/* ── Status Page ── */}
+            <Route
+              path="/status"
+              element={
+                <PageIn k="status">
+                  <StatusPage />
                 </PageIn>
               }
             />

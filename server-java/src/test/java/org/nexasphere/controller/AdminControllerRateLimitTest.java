@@ -13,12 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -54,7 +53,7 @@ class AdminControllerRateLimitTest {
         AdminController.LoginRequest validReq = new AdminController.LoginRequest("admin@test.com", "password");
         
         when(adminAuthService.login(anyString(), anyString())).thenReturn(
-                new TokenSession(UUID.randomUUID().toString(), new SessionInfo("admin@test.com", LocalDateTime.now().plusDays(1)))
+                new TokenSession(UUID.randomUUID().toString(), new SessionInfo(UUID.randomUUID().toString(), "admin@test.com", Instant.now(), Instant.now().plusSeconds(86400)))
         );
 
         AdminController.LoginResponse response = adminController.login(validReq, request);
@@ -62,6 +61,7 @@ class AdminControllerRateLimitTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void testRateLimitingOnFailedLogins() {
         AdminController.LoginRequest invalidReq = new AdminController.LoginRequest("admin@test.com", "wrong");
         when(adminAuthService.login(anyString(), anyString())).thenThrow(

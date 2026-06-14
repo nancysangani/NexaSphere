@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../utils/apiClient.js';
+import { getApiBase } from '../../utils/runtimeConfig';
 import { useCertificateExport } from '../../hooks/useCertificateExport';
 import { projectsData } from '../../data/projectsData';
 import { roadmapData } from '../../data/roadmapData';
 import ResumePrintTemplate from '../../components/portfolio/ResumePrintTemplate';
 import { Helmet } from 'react-helmet-async';
 import { generatePortfolioMeta } from '../../utils/seoUtils';
+import { safeHref } from '../../utils/safeHref';
 import '../../styles/print.css';
 
 export default function PublicPortfolio({ username, onBack }) {
@@ -17,8 +19,8 @@ export default function PublicPortfolio({ username, onBack }) {
     let alive = true;
     const fetchPortfolio = async () => {
       try {
-        const base = (import.meta?.env?.VITE_API_BASE || '').replace(/\/+$/, '');
-        const url = base ? `${base}/api/portfolio/${username}` : `/api/portfolio/${username}`;
+        const base = getApiBase();
+        const url = `${base}/api/portfolio/${username}`;
 
         const data = await apiClient(url);
         if (alive) {
@@ -221,9 +223,9 @@ export default function PublicPortfolio({ username, onBack }) {
 
             {/* Social connections links */}
             <div className="portfolio-socials" role="list">
-              {socialLinks?.github && (
+              {safeHref(socialLinks?.github) && (
                 <a
-                  href={socialLinks.github}
+                  href={safeHref(socialLinks.github)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="portfolio-social-btn"
@@ -244,9 +246,9 @@ export default function PublicPortfolio({ username, onBack }) {
                   </svg>
                 </a>
               )}
-              {socialLinks?.linkedin && (
+              {safeHref(socialLinks?.linkedin) && (
                 <a
-                  href={socialLinks.linkedin}
+                  href={safeHref(socialLinks.linkedin)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="portfolio-social-btn"
@@ -269,9 +271,9 @@ export default function PublicPortfolio({ username, onBack }) {
                   </svg>
                 </a>
               )}
-              {socialLinks?.twitter && (
+              {safeHref(socialLinks?.twitter) && (
                 <a
-                  href={socialLinks.twitter}
+                  href={safeHref(socialLinks.twitter)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="portfolio-social-btn"
@@ -292,9 +294,9 @@ export default function PublicPortfolio({ username, onBack }) {
                   </svg>
                 </a>
               )}
-              {socialLinks?.resume && (
+              {safeHref(socialLinks?.resume) && (
                 <a
-                  href={socialLinks.resume}
+                  href={safeHref(socialLinks.resume)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="portfolio-social-btn"
@@ -326,7 +328,8 @@ export default function PublicPortfolio({ username, onBack }) {
         {/* Dynamic section grid layouts */}
         <main className="portfolio-grid">
           {/* Section A: Certified Skills & Badges */}
-          {visibleSections?.quests && skills && skills.length > 0 && (
+          {/* skillsAndQuests key controls both Skills and Quests sections */}
+          {visibleSections?.skillsAndQuests && skills && skills.length > 0 && (
             <section className="portfolio-panel" aria-labelledby="skills-heading">
               <h2 id="skills-heading" className="portfolio-section-title">
                 <svg
@@ -461,9 +464,9 @@ export default function PublicPortfolio({ username, onBack }) {
                         </div>
                       </div>
                       <div className="project-card-footer">
-                        {proj.github && proj.github !== '#' && (
+                        {safeHref(proj.github) && proj.github !== '#' && (
                           <a
-                            href={proj.github}
+                            href={safeHref(proj.github)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="portfolio-social-btn"
@@ -482,9 +485,9 @@ export default function PublicPortfolio({ username, onBack }) {
                             </svg>
                           </a>
                         )}
-                        {proj.demo && proj.demo !== '#' && (
+                        {safeHref(proj.demo) && proj.demo !== '#' && (
                           <a
-                            href={proj.demo}
+                            href={safeHref(proj.demo)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="portfolio-social-btn"

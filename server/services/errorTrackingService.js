@@ -3,14 +3,12 @@
  * Manages error logging, tracking, and analysis
  */
 
-import logger from "../utils/logger.js";
-import { captureException, captureMessage, addBreadcrumb } from "../utils/sentry.js";
+import logger from '../utils/logger.js';
+import { captureException, captureMessage, addBreadcrumb } from '../utils/sentry.js';
 
 // In-memory error store (consider using database in production)
 const errorStore = {
   errors: [],
-  errorsByStatus: {},
-  errorsByEndpoint: {},
 };
 
 /**
@@ -30,33 +28,31 @@ async function logError(error, context = {}) {
     userEmail: context.userEmail,
     ipAddress: context.ipAddress,
     requestBody: sanitizeData(context.requestBody),
-    queryParams: context.queryParams,
+    queryParams: truncateData(context.queryParams, 512),
     headers: sanitizeHeaders(context.headers),
   };
 
   // Store error
   errorStore.errors.push(errorData);
 
-  // Limit stored errors to last 1000
-  if (errorStore.errors.length > 1000) {
+  // Limit stored errors to configured capacity limit
+  const limit = (() => {
+    const envLimit = parseInt(process.env.ERROR_BUFFER_LIMIT, 10);
+    if (!isNaN(envLimit) && envLimit > 0) {
+      return envLimit;
+    }
+    return 1000;
+  })();
+
+  while (errorStore.errors.length > limit) {
     errorStore.errors.shift();
   }
 
-  // Update status code stats
-  if (!errorStore.errorsByStatus[errorData.status]) {
-    errorStore.errorsByStatus[errorData.status] = 0;
-  }
-  errorStore.errorsByStatus[errorData.status]++;
-
-  // Update endpoint stats
+  // Define endpoint for tagging and logging
   const endpoint = `${errorData.method} ${errorData.url}`;
-  if (!errorStore.errorsByEndpoint[endpoint]) {
-    errorStore.errorsByEndpoint[endpoint] = 0;
-  }
-  errorStore.errorsByEndpoint[endpoint]++;
 
   // Log to Winston
-  logger.error("Error logged", errorData);
+  logger.error('Error logged', errorData);
 
   // Send to Sentry
   captureException(error, {
@@ -69,9 +65,9 @@ async function logError(error, context = {}) {
 
   // Add breadcrumb
   addBreadcrumb({
-    category: "error",
+    category: 'error',
     message: error.message,
-    level: "error",
+    level: 'error',
     data: { status: errorData.status, url: errorData.url },
   });
 
@@ -83,20 +79,27 @@ async function logError(error, context = {}) {
  */
 function getErrorStats() {
   const total = errorStore.errors.length;
-  const lastHour = errorStore.errors.filter(
-    (e) => new Date() - e.timestamp < 3600000
-  ).length;
-  const last24Hours = errorStore.errors.filter(
-    (e) => new Date() - e.timestamp < 86400000
-  ).length;
+  const lastHour = errorStore.errors.filter((e) => new Date() - e.timestamp < 3600000).length;
+  const last24Hours = errorStore.errors.filter((e) => new Date() - e.timestamp < 86400000).length;
 
-  const errorsByStatus = Object.entries(errorStore.errorsByStatus).map(([status, count]) => ({
+  const errorsByStatusMap = {};
+  const errorsByEndpointMap = {};
+
+  for (const err of errorStore.errors) {
+    const status = err.status || 500;
+    errorsByStatusMap[status] = (errorsByStatusMap[status] || 0) + 1;
+
+    const endpoint = `${err.method} ${err.url}`;
+    errorsByEndpointMap[endpoint] = (errorsByEndpointMap[endpoint] || 0) + 1;
+  }
+
+  const errorsByStatus = Object.entries(errorsByStatusMap).map(([status, count]) => ({
     status: parseInt(status),
     count,
-    percentage: ((count / total) * 100).toFixed(2),
+    percentage: total > 0 ? ((count / total) * 100).toFixed(2) : '0.00',
   }));
 
-  const topEndpoints = Object.entries(errorStore.errorsByEndpoint)
+  const topEndpoints = Object.entries(errorsByEndpointMap)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10)
     .map(([endpoint, count]) => ({
@@ -152,6 +155,22 @@ function getUserErrors(userId, limit = 20) {
 }
 
 /**
+ * Truncate an object to a maximum JSON byte length before storing in memory.
+ * Prevents a single large request body or query parameter set from consuming
+ * excessive memory in the error store.
+ */
+function truncateData(data, maxBytes) {
+  if (!data) return null;
+  const str = JSON.stringify(data);
+  if (str.length <= maxBytes) return data;
+  try {
+    return JSON.parse(str.slice(0, maxBytes));
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Sanitize sensitive data from request body
  * Uses pattern matching to catch variations like adminPassword, refreshToken, etc.
  * @param {Object} data - Request data
@@ -180,13 +199,13 @@ function sanitizeData(data) {
   for (const key of Object.keys(sanitized)) {
     for (const pattern of sensitivePatterns) {
       if (pattern.test(key)) {
-        sanitized[key] = "***REDACTED***";
+        sanitized[key] = '***REDACTED***';
         break;
       }
     }
   }
 
-  return sanitized;
+  return truncateData(sanitized, 2048);
 }
 
 /**
@@ -196,26 +215,34 @@ function sanitizeData(data) {
 function sanitizeHeaders(headers) {
   if (!headers) return null;
 
-  const sanitized = { ...headers };
+  const sanitized = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (typeof value === 'string' && value.length > 500) {
+      sanitized[key] = value.slice(0, 500);
+    } else {
+      sanitized[key] = value;
+    }
+  }
+
   const sensitiveHeaders = [
-    "authorization",
-    "cookie",
-    "x-api-key",
-    "x-csrf-token",
-    "x-session-id",
-    "x-auth-token",
-    "x-access-token",
-    "x-refresh-token",
-    "set-cookie",
+    'authorization',
+    'cookie',
+    'x-api-key',
+    'x-csrf-token',
+    'x-session-id',
+    'x-auth-token',
+    'x-access-token',
+    'x-refresh-token',
+    'set-cookie',
   ];
 
   sensitiveHeaders.forEach((header) => {
     if (sanitized[header.toLowerCase()]) {
-      sanitized[header.toLowerCase()] = "***REDACTED***";
+      sanitized[header.toLowerCase()] = '***REDACTED***';
     }
   });
 
-  return sanitized;
+  return truncateData(sanitized, 2048);
 }
 
 /**
@@ -236,15 +263,6 @@ function getTimeSince(timestamp) {
  */
 function clearErrors() {
   errorStore.errors = [];
-  errorStore.errorsByStatus = {};
-  errorStore.errorsByEndpoint = {};
 }
 
-export {
-  logError,
-  getErrorStats,
-  getRecentErrors,
-  getEndpointErrors,
-  getUserErrors,
-  clearErrors,
-};
+export { logError, getErrorStats, getRecentErrors, getEndpointErrors, getUserErrors, clearErrors };

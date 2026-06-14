@@ -5,6 +5,8 @@ import { Toast } from './components/Toast';
 import { OfflineBanner } from './components/OfflineBanner';
 import { LoginPage } from './pages/LoginPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
+import { ForumManager } from './pages/ForumManager';
+import { MentorshipManager } from './pages/MentorshipManager';
 import { DashboardHome } from './pages/DashboardHome';
 import { EventsManager } from './pages/EventsManager';
 import { ActivityEventsManager } from './pages/ActivityEventsManager';
@@ -13,6 +15,9 @@ import { MembershipResponsesManager } from './pages/MembershipResponsesManager';
 import { RecruitmentResponsesManager } from './pages/RecruitmentResponsesManager';
 import { CertificateManager } from './pages/CertificateManager';
 import { AnnouncementsManager } from './pages/AnnouncementsManager';
+import { PortfolioManager } from './pages/PortfolioManager';
+import { StreamManager } from './pages/StreamManager';
+import { CircuitBreakerManager } from './pages/CircuitBreakerManager';
 import './styles/admin.css';
 
 function RequireAuth() {
@@ -37,7 +42,7 @@ function DashboardLayout() {
     <div className="app-layout">
       <OfflineBanner />
       <Sidebar />
-      <main className="main-content">
+      <main className="main-content" id="main-content">
         <Outlet />
       </main>
       <Toast />
@@ -61,6 +66,11 @@ export default function App() {
             <Route path="/dashboard/recruitment" element={<RecruitmentResponsesManager />} />
             <Route path="/dashboard/certificates" element={<CertificateManager />} />
             <Route path="/dashboard/announcements" element={<AnnouncementsManager />} />
+            <Route path="/dashboard/portfolios" element={<PortfolioManager />} />
+            <Route path="/dashboard/forum" element={<ForumManager />} />
+            <Route path="/dashboard/mentorship" element={<MentorshipManager />} />
+            <Route path="/dashboard/streams" element={<StreamManager />} />
+            <Route path="/dashboard/circuit-breaker" element={<CircuitBreakerManager />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />

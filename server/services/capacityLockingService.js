@@ -1,5 +1,5 @@
 import { supabaseRequest, HAS_SUPABASE } from '../storage/supabaseClient.js';
-import { emitToRoom, getRoom } from '../config/socket.js';
+import { emitToRole } from '../config/socket.js';
 import { broadcastSSEEvent } from './sseService.js';
 
 export const capacityLockingService = {
@@ -26,7 +26,7 @@ export const capacityLockingService = {
           fullName,
           timestamp: new Date().toISOString(),
         });
-        emitToRoom(getRoom('admin'), 'admin:event-registration', {
+        emitToRole('events_admin', 'admin:event-registration', {
           eventId,
           userName: fullName,
           timestamp: new Date(),

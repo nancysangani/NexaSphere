@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, unmountComponentAtNode } from 'react-dom';
-import { act } from 'react-dom/test-utils';
-import React, { useEffect } from 'react';
+import { render, cleanup } from '@testing-library/react';
+import React from 'react';
 import socketClient from '../utils/socketClient';
 import { SocketProvider } from '../context/SocketContext';
-import { useSocket } from '../hooks/useSocket';
+import { useSocket } from '../hooks/useSocketConnection';
 import { useNotifications } from '../hooks/useNotifications';
 
 // Mock components to simulate app navigation
@@ -19,33 +18,24 @@ function PageMock() {
 }
 
 describe('Socket.IO Lifecycle Management', () => {
-  let container = null;
-  let socketInstance = null;
-
   beforeEach(() => {
-    container = document.createElement('div');
-    document.body.appendChild(container);
+    vi.stubEnv('VITE_SOCKET_URL', 'http://test-server');
     vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    unmountComponentAtNode(container);
-    container.remove();
-    container = null;
+    cleanup();
     socketClient.destroySocket();
     vi.restoreAllMocks();
   });
 
   it('Scenario 1: Initial page load should establish exactly one socket connection', () => {
-    act(() => {
-      render(
-        <SocketProvider>
-          <NotificationsMock />
-          <PageMock />
-        </SocketProvider>,
-        container
-      );
-    });
+    render(
+      <SocketProvider>
+        <NotificationsMock />
+        <PageMock />
+      </SocketProvider>
+    );
 
     const socket = socketClient.getSocket();
     expect(socket).toBeDefined();
@@ -57,22 +47,17 @@ describe('Socket.IO Lifecycle Management', () => {
   });
 
   it('Scenario 2: Component unmount should not destroy the shared connection', () => {
-    act(() => {
-      render(
-        <SocketProvider>
-          <NotificationsMock />
-        </SocketProvider>,
-        container
-      );
-    });
+    const { rerender } = render(
+      <SocketProvider>
+        <NotificationsMock />
+      </SocketProvider>
+    );
 
     const socket = socketClient.getSocket();
     const disconnectSpy = vi.spyOn(socket, 'disconnect');
 
-    // Unmount NotificationsMock
-    act(() => {
-      render(<SocketProvider></SocketProvider>, container);
-    });
+    // Unmount NotificationsMock by rerendering empty provider
+    rerender(<SocketProvider></SocketProvider>);
 
     // The shared socket should NOT have been disconnected
     expect(disconnectSpy).not.toHaveBeenCalled();
@@ -89,20 +74,15 @@ describe('Socket.IO Lifecycle Management', () => {
 
     // Cycle 10 times
     for (let i = 0; i < 10; i++) {
-      act(() => {
-        render(
-          <SocketProvider>
-            <NotificationsMock />
-            <PageMock />
-          </SocketProvider>,
-          container
-        );
-      });
+      const { unmount } = render(
+        <SocketProvider>
+          <NotificationsMock />
+          <PageMock />
+        </SocketProvider>
+      );
 
       // Unmount between routes
-      act(() => {
-        unmountComponentAtNode(container);
-      });
+      unmount();
     }
 
     // Every 'on' for custom events should have a matching 'off'

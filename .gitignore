@@ -23,6 +23,7 @@ admin-dashboard/dist/
 .env.*.local
 .env.production
 .env.staging
+vault-secrets.json
 
 # ── Vite ──────────────────────────────────────────────────────────
 *.local
@@ -75,8 +76,13 @@ playwright-report/
 
 # ── Logs ──────────────────────────────────────────────────────────
 *.log
+logs/
 server/logs/
 ci-logs.txt
+
+# ── Patch & Diff files (never commit these) ───────────────────────
+*.patch
+*.diff
 
 # ── Scratch / Debug files (developer local artifacts) ─────────────
 # These files are temporary debug outputs and should never be committed.
@@ -123,3 +129,4 @@ issues*.json
 ci-logs.txt
 *_EXAMPLE*.js
 *_EXAMPLE*.jsx
+vault-secrets.json

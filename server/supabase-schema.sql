@@ -109,3 +109,13 @@ create table if not exists form_submissions (
   payload jsonb not null,
   created_at timestamptz not null default now()
 );
+
+create table if not exists push_subscriptions (
+  endpoint text primary key,
+  p256dh text not null,
+  auth text not null,
+  subscription jsonb not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_push_subscriptions_created on push_subscriptions (created_at desc);

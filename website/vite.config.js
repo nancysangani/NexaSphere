@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   // Supports Vercel (/) and GitHub Pages (/NexaSphere/) via env var
-  base: process.env.VITE_BASE_PATH || '/',
+  base: process.env.VITE_CDN_URL || process.env.VITE_BASE_PATH || '/',
   plugins: [
     react(),
     sentryVitePlugin({
@@ -23,12 +23,13 @@ export default defineConfig({
       // Don't fail build if Sentry token is not set
       silent: true,
     }),
-    process.env.ANALYZE === 'true' && visualizer({
-      filename: 'bundle-report.html',
-      open: false,
-      gzipSize: true,
-      brotliSize: true,
-    }),
+    process.env.ANALYZE === 'true' &&
+      visualizer({
+        filename: 'bundle-report.html',
+        open: false,
+        gzipSize: true,
+        brotliSize: true,
+      }),
     VitePWA({
       disable: process.env.DISABLE_PWA === 'true',
       registerType: 'autoUpdate',

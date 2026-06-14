@@ -20,10 +20,9 @@ export default function GamificationDashboard() {
     }, 4000);
   };
 
-  const loadData = () => {
+  const loadData = async () => {
     const stats = gamificationService.getUserStats();
     setUserStats(stats);
-    setLeaderboard(gamificationService.getLeaderboard());
 
     // Show initial notifications (e.g., loaded from constructor) as toasts and clear them
     if (stats.notifications && stats.notifications.length > 0) {
@@ -32,9 +31,12 @@ export default function GamificationDashboard() {
       });
       gamificationService.clearNotifications();
     }
+
+    const lb = await gamificationService.getLeaderboard();
+    setLeaderboard(lb);
   };
 
-  const handleAction = (action) => {
+  const handleAction = async (action) => {
     const result = gamificationService.trackAction(action);
     const stats = gamificationService.getUserStats();
     setUserStats(stats);
@@ -55,6 +57,9 @@ export default function GamificationDashboard() {
       });
       gamificationService.clearNotifications();
     }
+
+    const lb = await gamificationService.getLeaderboard();
+    setLeaderboard(lb);
   };
 
   if (!userStats) {
@@ -394,8 +399,8 @@ export default function GamificationDashboard() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead style={{ background: '#0F0F0F' }}>
               <tr>
-                <th style={{ padding: '12px 16px', textAlign: 'left', color: '#9CA3AF' }}>Rank</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', color: '#9CA3AF' }}>User</th>
+                <th style={{ padding: '12px 16px', color: '#9CA3AF', textAlign: 'left' }}>Rank</th>
+                <th style={{ padding: '12px 16px', color: '#9CA3AF', textAlign: 'left' }}>User</th>
                 <th style={{ padding: '12px 16px', textAlign: 'right', color: '#9CA3AF' }}>
                   Level
                 </th>

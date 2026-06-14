@@ -6,20 +6,12 @@
 import * as Sentry from '@sentry/node';
 
 let nodeProfilingIntegration = null;
-try {
-  // Optional dependency: native bindings may be unavailable on some platforms.
-  // If profiling cannot be loaded, fall back to Sentry without profiling.
-  const profiling = await import('@sentry/profiling-node');
-  nodeProfilingIntegration = profiling.nodeProfilingIntegration;
-} catch (error) {
-  nodeProfilingIntegration = null;
-}
 
 /**
  * Initialize Sentry for backend monitoring
  * @param {Object} app - Express app instance
  */
-function initializeSentry(app) {
+async function initializeSentry(app) {
   const isDevelopment = process.env.NODE_ENV === 'development';
   const dsn = process.env.SENTRY_DSN;
 
@@ -28,28 +20,47 @@ function initializeSentry(app) {
     return;
   }
 
+  // Safely lazy-load profiling runtime inside async scope to prevent startup syntax failure
+  if (!nodeProfilingIntegration) {
+    try {
+      const profiling = await import('@sentry/profiling-node');
+      nodeProfilingIntegration = profiling.nodeProfilingIntegration;
+    } catch (error) {
+      nodeProfilingIntegration = null;
+    }
+  }
+
   Sentry.init({
     dsn: dsn,
     environment: process.env.NODE_ENV || 'development',
-    integrations: [
-      new Sentry.Integrations.Http({ tracing: true }),
-      new Sentry.Integrations.Express({
-        app: true,
-        request: true,
-        serverName: true,
-      }),
-      ...(nodeProfilingIntegration ? [nodeProfilingIntegration()] : []),
-    ],
+    integrations: [...(nodeProfilingIntegration ? [nodeProfilingIntegration()] : [])],
     tracesSampleRate: isDevelopment ? 1.0 : 0.1,
     profilesSampleRate: isDevelopment ? 1.0 : 0.1,
     attachStacktrace: true,
+    beforeSend(event, hint) {
+      const error = hint.originalException;
+      if (error) {
+        // Group by error name and first line of error message
+        event.fingerprint = [
+          '{{ default }}',
+          error.name || 'Error',
+          (error.message || '').split('\n')[0],
+        ];
+      }
+      return event;
+    },
   });
 
-  // The request handler must be the first middleware on the app
-  app.use(Sentry.Handlers.requestHandler());
-
-  // TracingHandler creates a trace for every incoming request
-  app.use(Sentry.Handlers.tracingHandler());
+  try {
+    const os = await import('os');
+    Sentry.setContext('environment_metadata', {
+      'Node version': process.version,
+      OS: os.platform(),
+      'OS Release': os.release(),
+    });
+  } catch (err) {
+    // Graceful fallback if os import fails
+  }
 
   return Sentry;
 }
@@ -60,7 +71,11 @@ function initializeSentry(app) {
  */
 function addSentryErrorHandler(app) {
   // The error handler must be the last middleware on the app
-  app.use(Sentry.Handlers.errorHandler());
+  if (typeof Sentry.setupExpressErrorHandler === 'function') {
+    Sentry.setupExpressErrorHandler(app);
+  } else if (Sentry.Handlers && typeof Sentry.Handlers.errorHandler === 'function') {
+    app.use(Sentry.Handlers.errorHandler());
+  }
 }
 
 /**
@@ -110,6 +125,34 @@ function addBreadcrumb(data) {
   });
 }
 
+/**
+ * Register system lifecycle event hooks to gracefully close and flush Sentry
+ * @param {number} timeout - Maximum time in ms to wait for pending events to flush
+ */
+function registerSentryShutdown(timeout = 2000) {
+  const signals = ['SIGTERM', 'SIGINT'];
+
+  signals.forEach((signal) => {
+    process.on(signal, async () => {
+      console.log(`[Sentry] Received ${signal}. Flushing pending events...`);
+
+      try {
+        // close() flushes queued events and disables the SDK from accepting new events
+        const cleanClose = await Sentry.close(timeout);
+        if (cleanClose) {
+          console.log('[Sentry] Successfully flushed buffered telemetry and closed.');
+        } else {
+          console.warn('[Sentry] Flush timeout reached; some events may have been dropped.');
+        }
+      } catch (err) {
+        console.error('[Sentry] Error occurred during graceful shutdown:', err);
+      } finally {
+        process.exit(0);
+      }
+    });
+  });
+}
+
 export {
   Sentry,
   initializeSentry,
@@ -117,4 +160,5 @@ export {
   captureException,
   captureMessage,
   addBreadcrumb,
+  registerSentryShutdown,
 };
