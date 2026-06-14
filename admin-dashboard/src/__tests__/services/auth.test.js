@@ -56,7 +56,9 @@ describe('auth.login', () => {
   test('throws "Invalid credentials" when response json() fails', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
-      json: async () => { throw new Error('parse fail'); },
+      json: async () => {
+        throw new Error('parse fail');
+      },
     });
 
     await expect(auth.login('a@b.com', 'x')).rejects.toThrow('Invalid credentials');
@@ -93,7 +95,13 @@ describe('auth.logout', () => {
     await auth.logout();
 
     expect(auth.getEmail()).toBeNull();
-    expect(auth.getScopes()).toEqual(['users:read', 'users:write', 'settings:admin', 'events:read', 'events:write']);
+    expect(auth.getScopes()).toEqual([
+      'users:read',
+      'users:write',
+      'settings:admin',
+      'events:read',
+      'events:write',
+    ]);
   });
 });
 

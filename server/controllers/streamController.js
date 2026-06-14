@@ -22,7 +22,12 @@ export const listStreams = wrapAsync(async (req, res) => {
   const result = await streamService.listStreams({ page, limit, status, event_id });
   return res.json({
     streams: result.rows,
-    pagination: { page, limit, total: result.total, totalPages: Math.ceil(result.total / limit) || 1 },
+    pagination: {
+      page,
+      limit,
+      total: result.total,
+      totalPages: Math.ceil(result.total / limit) || 1,
+    },
   });
 });
 

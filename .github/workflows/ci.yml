@@ -1,4 +1,4 @@
-# CI/CD Build and Test Workflow (Recreated to refresh runner queue)
+# CI/CD Build and Test Workflow
 name: CI — Build & Test
 
 on:
@@ -14,15 +14,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
+      - name: Upgrade npm to v11 (matches lockfile generator)
+        run: npm install -g npm@11
+
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build (production)
         run: npm run build --workspace=website
@@ -31,7 +34,7 @@ jobs:
           VITE_API_BASE: ''
 
       - name: Upload dist artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: website-dist
           path: website/dist/
@@ -43,15 +46,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
+      - name: Upgrade npm to v11 (matches lockfile generator)
+        run: npm install -g npm@11
+
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Run unit tests
         run: npm run test --workspace=admin-dashboard
@@ -72,16 +78,19 @@ jobs:
         working-directory: server
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
 
+      - name: Upgrade npm to v11 (matches lockfile generator)
+        run: npm install -g npm@11
+
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Run SQL Injection security audit
         run: npm run audit:sql

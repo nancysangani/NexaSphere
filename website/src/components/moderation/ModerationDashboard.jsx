@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  moderationService,
-  REPUTATION,
-} from '../../services/moderationService';
+import { moderationService, REPUTATION } from '../../services/moderationService';
 
 export default function ModerationDashboard() {
   const [flaggedContent, setFlaggedContent] = useState([]);

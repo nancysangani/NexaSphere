@@ -11,6 +11,7 @@ assignees: ''
 ## Issue Type
 
 ## Priority
+
 (P0 Critical / P1 High / P2 Medium / P3 Low)
 
 ## Summary
@@ -22,6 +23,7 @@ assignees: ''
 ## Expected Behavior
 
 ## User Story
+
 As a [user]
 I want [goal]
 So that [benefit]
@@ -41,10 +43,12 @@ So that [benefit]
 ### Infrastructure Impact
 
 ## Acceptance Criteria
+
 - [ ]
 - [ ]
 
 ## Edge Cases
+
 - [ ]
 - [ ]
 
@@ -57,18 +61,23 @@ So that [benefit]
 ## Testing Requirements
 
 ### Unit Tests
+
 - [ ]
 
 ### Integration Tests
+
 - [ ]
 
 ### E2E Tests
+
 - [ ]
 
 ### Manual Testing
+
 - [ ]
 
 ## Definition of Done
+
 - [ ] Implementation completed
 - [ ] Acceptance criteria met
 - [ ] Tests passing
@@ -86,6 +95,7 @@ So that [benefit]
 ## Suggested Labels
 
 ## Estimated Effort
+
 (XS / S / M / L / XL)
 
 ## Additional Context

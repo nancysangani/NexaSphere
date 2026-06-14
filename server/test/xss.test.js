@@ -9,10 +9,10 @@ test('XSS Sanitizer Middleware', async (t) => {
         title: '<script>alert("XSS")</script>Hello World',
         nested: {
           bio: '<iframe src="javascript:alert(1)"></iframe>Safe Text',
-          count: 42
+          count: 42,
         },
-        tags: ['<a href="javascript:alert(1)">Link</a>', 'safe']
-      }
+        tags: ['<a href="javascript:alert(1)">Link</a>', 'safe'],
+      },
     };
     const res = {};
     xssSanitizer(req, res, () => {});
@@ -26,7 +26,7 @@ test('XSS Sanitizer Middleware', async (t) => {
   await t.test('strips tags from req.query and req.params', () => {
     const req = {
       query: { search: '<img src=x onerror=alert(1)>Query' },
-      params: { id: '<script></script>123' }
+      params: { id: '<script></script>123' },
     };
     const res = {};
     xssSanitizer(req, res, () => {});

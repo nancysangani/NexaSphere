@@ -41,7 +41,7 @@ export const syncController = {
            WHERE updated_at > $1`,
           [sinceDate]
         );
-        
+
         return res.json({
           serverTime: new Date().toISOString(),
           events: eventsRes.rows,
@@ -65,14 +65,14 @@ export const syncController = {
       await withDb(async (client) => {
         for (const change of changes) {
           const { type, id, data, lastKnownTimestamp } = change;
-          
+
           if (type === 'event') {
             // 1. Check for conflict
             const currentRes = await client.query(
               'SELECT updated_at, name, description FROM events WHERE id = $1',
               [id]
             );
-            
+
             if (currentRes.rows.length > 0) {
               const current = currentRes.rows[0];
               const serverUpdated = new Date(current.updated_at);
@@ -113,7 +113,7 @@ export const syncController = {
         }
       });
 
-      const hasConflicts = results.some(r => r.status === 'conflict');
+      const hasConflicts = results.some((r) => r.status === 'conflict');
       return res.status(hasConflicts ? 409 : 200).json({
         serverTime: new Date().toISOString(),
         results,
@@ -122,5 +122,5 @@ export const syncController = {
       logger.error('Sync batch execution failed', { error: err.message });
       return res.status(500).json({ error: 'Sync batch failed' });
     }
-  }
+  },
 };

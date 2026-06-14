@@ -1,9 +1,11 @@
 # Summary
 
 ## Related Issue
+
 Fixes #[ISSUE_NUMBER]
 
 ## Type of Change
+
 - [ ] Feature
 - [ ] Bug Fix
 - [ ] UI/UX Improvement
@@ -38,15 +40,19 @@ Fixes #[ISSUE_NUMBER]
 ## Testing
 
 ### Unit Tests
+
 - [ ]
 
 ### Integration Tests
+
 - [ ]
 
 ### E2E Tests
+
 - [ ]
 
 ### Manual Testing
+
 - [ ]
 
 ## Security Review
@@ -56,6 +62,7 @@ Fixes #[ISSUE_NUMBER]
 ## Performance Impact
 
 ## Breaking Changes
+
 - [ ] No Breaking Changes
 - [ ] Breaking Changes Documented
 
@@ -64,6 +71,7 @@ Fixes #[ISSUE_NUMBER]
 ## Rollback Plan
 
 ## Checklist
+
 - [ ] Code follows project standards
 - [ ] Tests added or updated
 - [ ] Documentation updated

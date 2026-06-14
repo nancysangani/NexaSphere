@@ -12,17 +12,19 @@ export const createStreamSchema = z.object({
   polls_enabled: z.boolean().optional().default(true),
 });
 
-export const updateStreamSchema = z.object({
-  title: z.string().trim().max(255).optional(),
-  description: z.string().trim().max(2000).optional(),
-  stream_url: z.string().trim().url().optional().or(z.literal('')),
-  hls_url: z.string().trim().url().optional().or(z.literal('')),
-  recording_url: z.string().trim().url().optional().or(z.literal('')),
-  recording_duration: z.number().int().positive().optional(),
-  chat_enabled: z.boolean().optional(),
-  polls_enabled: z.boolean().optional(),
-  max_viewers: z.number().int().positive().optional(),
-}).passthrough();
+export const updateStreamSchema = z
+  .object({
+    title: z.string().trim().max(255).optional(),
+    description: z.string().trim().max(2000).optional(),
+    stream_url: z.string().trim().url().optional().or(z.literal('')),
+    hls_url: z.string().trim().url().optional().or(z.literal('')),
+    recording_url: z.string().trim().url().optional().or(z.literal('')),
+    recording_duration: z.number().int().positive().optional(),
+    chat_enabled: z.boolean().optional(),
+    polls_enabled: z.boolean().optional(),
+    max_viewers: z.number().int().positive().optional(),
+  })
+  .passthrough();
 
 export const streamStatusSchema = z.object({
   status: z.enum(['scheduled', 'live', 'ended', 'archived']),
@@ -43,9 +45,17 @@ export const votePollSchema = z.object({
   option_index: z.number().int().min(0),
 });
 
-export const streamPaginationSchema = z.object({
-  page: z.string().optional().transform(v => Math.max(1, parseInt(v, 10) || 1)),
-  limit: z.string().optional().transform(v => Math.min(100, Math.max(1, parseInt(v, 10) || 20))),
-  status: z.string().optional(),
-  event_id: z.string().optional(),
-}).passthrough();
+export const streamPaginationSchema = z
+  .object({
+    page: z
+      .string()
+      .optional()
+      .transform((v) => Math.max(1, parseInt(v, 10) || 1)),
+    limit: z
+      .string()
+      .optional()
+      .transform((v) => Math.min(100, Math.max(1, parseInt(v, 10) || 20))),
+    status: z.string().optional(),
+    event_id: z.string().optional(),
+  })
+  .passthrough();

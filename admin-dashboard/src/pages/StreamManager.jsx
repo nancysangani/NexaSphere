@@ -31,7 +31,15 @@ export function StreamManager() {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ event_id: '', title: '', description: '', stream_url: '', hls_url: '', scheduled_start: '', max_viewers: '' });
+  const [form, setForm] = useState({
+    event_id: '',
+    title: '',
+    description: '',
+    stream_url: '',
+    hls_url: '',
+    scheduled_start: '',
+    max_viewers: '',
+  });
   const [submitting, setSubmitting] = useState(false);
 
   const load = useCallback(async () => {
@@ -49,7 +57,9 @@ export function StreamManager() {
     }
   }, [statusFilter]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleStatus = async (id, status) => {
     try {
@@ -85,7 +95,15 @@ export function StreamManager() {
         }),
       });
       setShowForm(false);
-      setForm({ event_id: '', title: '', description: '', stream_url: '', hls_url: '', scheduled_start: '', max_viewers: '' });
+      setForm({
+        event_id: '',
+        title: '',
+        description: '',
+        stream_url: '',
+        hls_url: '',
+        scheduled_start: '',
+        max_viewers: '',
+      });
       await load();
     } catch (e) {
       setError(e.message);
@@ -97,7 +115,9 @@ export function StreamManager() {
   if (loading) {
     return (
       <div className="page">
-        <div className="page-header"><h2 className="page-title">Stream Manager</h2></div>
+        <div className="page-header">
+          <h2 className="page-title">Stream Manager</h2>
+        </div>
         <Skeleton lines={8} />
       </div>
     );
@@ -106,7 +126,9 @@ export function StreamManager() {
   if (error) {
     return (
       <div className="page">
-        <div className="page-header"><h2 className="page-title">Stream Manager</h2></div>
+        <div className="page-header">
+          <h2 className="page-title">Stream Manager</h2>
+        </div>
         <div className="page-error">{error}</div>
       </div>
     );
@@ -124,22 +146,64 @@ export function StreamManager() {
       {showForm && (
         <div className="mb-6 p-4 bg-gray-800 border border-gray-700 rounded-lg space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <input placeholder="Event ID *" value={form.event_id} onChange={e => setForm(p => ({ ...p, event_id: e.target.value }))} className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm" />
-            <input placeholder="Title *" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm" />
-            <input placeholder="Stream URL (RTMP)" value={form.stream_url} onChange={e => setForm(p => ({ ...p, stream_url: e.target.value }))} className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm" />
-            <input placeholder="HLS URL (.m3u8)" value={form.hls_url} onChange={e => setForm(p => ({ ...p, hls_url: e.target.value }))} className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm" />
-            <input placeholder="Scheduled start (ISO)" type="datetime-local" value={form.scheduled_start} onChange={e => setForm(p => ({ ...p, scheduled_start: e.target.value }))} className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm" />
-            <input placeholder="Max viewers" type="number" value={form.max_viewers} onChange={e => setForm(p => ({ ...p, max_viewers: e.target.value }))} className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm" />
+            <input
+              placeholder="Event ID *"
+              value={form.event_id}
+              onChange={(e) => setForm((p) => ({ ...p, event_id: e.target.value }))}
+              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm"
+            />
+            <input
+              placeholder="Title *"
+              value={form.title}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm"
+            />
+            <input
+              placeholder="Stream URL (RTMP)"
+              value={form.stream_url}
+              onChange={(e) => setForm((p) => ({ ...p, stream_url: e.target.value }))}
+              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm"
+            />
+            <input
+              placeholder="HLS URL (.m3u8)"
+              value={form.hls_url}
+              onChange={(e) => setForm((p) => ({ ...p, hls_url: e.target.value }))}
+              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm"
+            />
+            <input
+              placeholder="Scheduled start (ISO)"
+              type="datetime-local"
+              value={form.scheduled_start}
+              onChange={(e) => setForm((p) => ({ ...p, scheduled_start: e.target.value }))}
+              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm"
+            />
+            <input
+              placeholder="Max viewers"
+              type="number"
+              value={form.max_viewers}
+              onChange={(e) => setForm((p) => ({ ...p, max_viewers: e.target.value }))}
+              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm"
+            />
           </div>
-          <textarea placeholder="Description" rows={2} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm" />
-          <button onClick={handleCreate} disabled={submitting || !form.event_id || !form.title} className="px-4 py-2 bg-purple-600 rounded text-sm hover:bg-purple-700 disabled:opacity-50">
+          <textarea
+            placeholder="Description"
+            rows={2}
+            value={form.description}
+            onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm"
+          />
+          <button
+            onClick={handleCreate}
+            disabled={submitting || !form.event_id || !form.title}
+            className="px-4 py-2 bg-purple-600 rounded text-sm hover:bg-purple-700 disabled:opacity-50"
+          >
             {submitting ? 'Creating...' : 'Create Stream'}
           </button>
         </div>
       )}
 
       <div className="tabs" style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        {['', 'scheduled', 'live', 'ended', 'archived'].map(s => (
+        {['', 'scheduled', 'live', 'ended', 'archived'].map((s) => (
           <button
             key={s}
             className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-secondary'}`}
@@ -154,34 +218,63 @@ export function StreamManager() {
         <div className="empty-state">No streams found.</div>
       ) : (
         <div className="list">
-          {streams.map(s => (
+          {streams.map((s) => (
             <div key={s.id} className="list-item">
               <div className="list-item-left">
                 <div className="item-name">{s.title}</div>
                 <div className="item-meta">
                   Event: {s.eventId} · {s.viewerCount || 0} viewers
                   {s.scheduledStart && <> · {new Date(s.scheduledStart).toLocaleString()}</>}
-                  {s.hlsUrl && <> · <a href={s.hlsUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--admin-accent)' }}>HLS</a></>}
+                  {s.hlsUrl && (
+                    <>
+                      {' '}
+                      ·{' '}
+                      <a
+                        href={s.hlsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--admin-accent)' }}
+                      >
+                        HLS
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="list-item-right">
                 <span className={`status-badge ${statusColors[s.status] || ''}`}>{s.status}</span>
                 {s.status === 'scheduled' && (
-                  <button className="btn-icon" title="Go Live" onClick={() => handleStatus(s.id, 'live')}>
+                  <button
+                    className="btn-icon"
+                    title="Go Live"
+                    onClick={() => handleStatus(s.id, 'live')}
+                  >
                     <AdminIcon name="Play" size={16} />
                   </button>
                 )}
                 {s.status === 'live' && (
-                  <button className="btn-icon danger" title="End Stream" onClick={() => handleStatus(s.id, 'ended')}>
+                  <button
+                    className="btn-icon danger"
+                    title="End Stream"
+                    onClick={() => handleStatus(s.id, 'ended')}
+                  >
                     <AdminIcon name="Square" size={16} />
                   </button>
                 )}
                 {s.status === 'ended' && (
-                  <button className="btn-icon" title="Archive" onClick={() => handleStatus(s.id, 'archived')}>
+                  <button
+                    className="btn-icon"
+                    title="Archive"
+                    onClick={() => handleStatus(s.id, 'archived')}
+                  >
                     <AdminIcon name="Archive" size={16} />
                   </button>
                 )}
-                <button className="btn-icon danger" title="Delete" onClick={() => handleDelete(s.id)}>
+                <button
+                  className="btn-icon danger"
+                  title="Delete"
+                  onClick={() => handleDelete(s.id)}
+                >
                   <AdminIcon name="Trash2" size={16} />
                 </button>
               </div>

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { DynamicIcon } from '../../shared/Icons';
 import EventCountdown from '../../components/events/EventCountdown.jsx';
-import { getEventCountdownStatus } from '../../hooks/useCountdown.js';
+import { getEventCountdownStatus, parseDate } from '../../hooks/useCountdown.js';
 import './EventsSection.css';
 
 export default function EventsSection({ onEventClick, events = [] }) {
@@ -57,8 +57,8 @@ export default function EventsSection({ onEventClick, events = [] }) {
       const aIsUpcoming = a._effectiveStatus !== 'completed';
       const bIsUpcoming = b._effectiveStatus !== 'completed';
       if (aIsUpcoming !== bIsUpcoming) return bIsUpcoming ? 1 : -1;
-      const da = parseDate(a)?.getTime() ?? 0;
-      const db = parseDate(b)?.getTime() ?? 0;
+      const da = parseDate(a.startDate ?? a.date)?.getTime() ?? 0;
+      const db = parseDate(b.startDate ?? b.date)?.getTime() ?? 0;
       return aIsUpcoming ? da - db : db - da;
     });
 
@@ -226,20 +226,12 @@ export default function EventsSection({ onEventClick, events = [] }) {
                         </>
                       ) : ev._effectiveStatus === 'live' ? (
                         <>
-                          <DynamicIcon
-                            name="PlayCircle"
-                            size={11}
-                            style={{ marginRight: '4px' }}
-                          />{' '}
+                          <DynamicIcon name="PlayCircle" size={11} style={{ marginRight: '4px' }} />{' '}
                           Live Now
                         </>
                       ) : ev._effectiveStatus === 'starting-soon' ? (
                         <>
-                          <DynamicIcon
-                            name="Clock"
-                            size={11}
-                            style={{ marginRight: '4px' }}
-                          />{' '}
+                          <DynamicIcon name="Clock" size={11} style={{ marginRight: '4px' }} />{' '}
                           Starting Soon
                         </>
                       ) : (

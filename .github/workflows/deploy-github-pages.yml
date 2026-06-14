@@ -1,4 +1,4 @@
-# Deploy to GitHub Pages Workflow (Recreated to refresh runner queue)
+# Deploy to GitHub Pages Workflow
 name: Deploy to GitHub Pages
 
 on:
@@ -18,28 +18,31 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          # No cache — npm ci handles clean install from lockfile
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Upgrade npm to v11 (matches lockfile generator)
+        run: npm install -g npm@11
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build with GitHub Pages base path
-        run: npm run build
+        run: npm run build --workspace=website
         env:
           VITE_BASE_PATH: /NexaSphere/
           NODE_ENV: production
 
       - name: Setup Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@v3
         with:
           path: website/dist/
 
@@ -54,4 +57,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v4

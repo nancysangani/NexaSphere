@@ -21,13 +21,13 @@ setWithDbOverride(async (fn) => {
   const mockClient = {
     query: async (sql, params) => {
       dbQueries.push({ sql: sql.trim().replace(/\s+/g, ' '), params });
-      
+
       const sqlLower = sql.toLowerCase();
       if (sqlLower.includes('select updated_at') || sqlLower.includes('select id, name')) {
         return { rows: mockDbResult.select, rowCount: mockDbResult.select.length };
       }
       return { rows: [], rowCount: 1 };
-    }
+    },
   };
   return fn(mockClient);
 });
@@ -120,9 +120,9 @@ test('Offline-First Sync and Compression Verification', async (t) => {
             data: {
               name: 'My local offline changes',
               description: 'My text',
-            }
-          }
-        ]
+            },
+          },
+        ],
       };
 
       const res = await sendRequest('POST', '/api/sync/batch', batchPayload);
@@ -149,9 +149,9 @@ test('Offline-First Sync and Compression Verification', async (t) => {
             data: {
               name: 'My local offline changes',
               description: 'My text',
-            }
-          }
-        ]
+            },
+          },
+        ],
       };
 
       const res = await sendRequest('POST', '/api/sync/batch', batchPayload);

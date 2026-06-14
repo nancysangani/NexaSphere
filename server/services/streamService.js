@@ -27,7 +27,11 @@ export const streamService = {
     if (stream) {
       const io = getIO();
       if (io) {
-        io.to('events-room').emit('stream:status-change', { streamId: id, status, eventId: stream.eventId });
+        io.to('events-room').emit('stream:status-change', {
+          streamId: id,
+          status,
+          eventId: stream.eventId,
+        });
       }
     }
     return stream;

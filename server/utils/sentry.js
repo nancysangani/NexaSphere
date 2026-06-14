@@ -44,18 +44,18 @@ async function initializeSentry(app) {
         event.fingerprint = [
           '{{ default }}',
           error.name || 'Error',
-          (error.message || '').split('\n')[0]
+          (error.message || '').split('\n')[0],
         ];
       }
       return event;
-    }
+    },
   });
 
   try {
     const os = await import('os');
     Sentry.setContext('environment_metadata', {
       'Node version': process.version,
-      'OS': os.platform(),
+      OS: os.platform(),
       'OS Release': os.release(),
     });
   } catch (err) {
@@ -135,7 +135,7 @@ function registerSentryShutdown(timeout = 2000) {
   signals.forEach((signal) => {
     process.on(signal, async () => {
       console.log(`[Sentry] Received ${signal}. Flushing pending events...`);
-      
+
       try {
         // close() flushes queued events and disables the SDK from accepting new events
         const cleanClose = await Sentry.close(timeout);

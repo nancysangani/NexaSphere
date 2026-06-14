@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 
 const DEFAULT_SOON_THRESHOLD = 60 * 60 * 1000;
 
-function parseDate(value) {
+export function parseDate(value) {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;

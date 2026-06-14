@@ -21,11 +21,11 @@ This folder contains all official brand assets for the NexaSphere project.
 
 ## 🔤 Typography
 
-| Use Case       | Font          | Weight        |
-| -------------- | ------------- | ------------- |
-| Headings       | `Outfit`      | 600 / 700     |
-| Body Text      | `Inter`       | 400 / 500     |
-| Code / Mono    | `Fira Code`   | 400           |
+| Use Case    | Font        | Weight    |
+| ----------- | ----------- | --------- |
+| Headings    | `Outfit`    | 600 / 700 |
+| Body Text   | `Inter`     | 400 / 500 |
+| Code / Mono | `Fira Code` | 400       |
 
 ---
 
@@ -33,14 +33,14 @@ This folder contains all official brand assets for the NexaSphere project.
 
 Place the following files in this directory:
 
-| File                      | Format  | Description                           |
-| ------------------------- | ------- | ------------------------------------- |
-| `logo.svg`                | SVG     | Primary logo (transparent background) |
-| `logo-dark.svg`           | SVG     | Logo on dark backgrounds              |
-| `logo-light.svg`          | SVG     | Logo on light backgrounds             |
-| `favicon.svg`             | SVG     | Favicon version                       |
-| `color-palette.json`      | JSON    | Design tokens in JSON format          |
-| `brand-guidelines.pdf`    | PDF     | Full brand guidelines document        |
+| File                   | Format | Description                           |
+| ---------------------- | ------ | ------------------------------------- |
+| `logo.svg`             | SVG    | Primary logo (transparent background) |
+| `logo-dark.svg`        | SVG    | Logo on dark backgrounds              |
+| `logo-light.svg`       | SVG    | Logo on light backgrounds             |
+| `favicon.svg`          | SVG    | Favicon version                       |
+| `color-palette.json`   | JSON   | Design tokens in JSON format          |
+| `brand-guidelines.pdf` | PDF    | Full brand guidelines document        |
 
 ---
 

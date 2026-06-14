@@ -39,16 +39,16 @@ export const initializeSentry = (environment = import.meta.env.MODE) => {
         event.fingerprint = [
           '{{ default }}',
           error.name || 'Error',
-          (error.message || '').split('\n')[0]
+          (error.message || '').split('\n')[0],
         ];
       }
       return event;
-    }
+    },
   });
 
   Sentry.setContext('environment_metadata', {
     'Node version': 'N/A (Browser)',
-    'OS': navigator.userAgentData?.platform || navigator.platform || 'Unknown',
+    OS: navigator.userAgentData?.platform || navigator.platform || 'Unknown',
     'OS Release': navigator.userAgent || 'Unknown',
   });
 };

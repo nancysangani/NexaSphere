@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Play, Pause, Send, MessageSquare, BarChart3, Users, Radio, AlertCircle, X, Loader, ThumbsUp } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  Send,
+  MessageSquare,
+  BarChart3,
+  Users,
+  Radio,
+  AlertCircle,
+  X,
+  Loader,
+  ThumbsUp,
+} from 'lucide-react';
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
 
@@ -48,7 +60,10 @@ function HlsPlayer({ streamUrl, hlsUrl, status }) {
         <div className="w-full h-full flex items-center justify-center bg-gray-900">
           {streamUrl || hlsUrl ? (
             <video ref={videoRef} className="w-full h-full" controls>
-              <source src={hlsUrl || streamUrl} type={hlsUrl ? 'application/x-mpegURL' : 'video/mp4'} />
+              <source
+                src={hlsUrl || streamUrl}
+                type={hlsUrl ? 'application/x-mpegURL' : 'video/mp4'}
+              />
             </video>
           ) : (
             <div className="text-center">
@@ -100,18 +115,23 @@ function ChatPanel({ streamId, messages, onSendMessage }) {
         <input
           placeholder="Your name"
           value={userName}
-          onChange={e => { setUserName(e.target.value); localStorage.setItem('stream_chat_name', e.target.value); }}
+          onChange={(e) => {
+            setUserName(e.target.value);
+            localStorage.setItem('stream_chat_name', e.target.value);
+          }}
           className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {messages.filter(m => !m.isModerated).map(m => (
-          <div key={m.id} className="text-sm">
-            <span className="font-medium text-purple-300">{m.userName}</span>{' '}
-            <span className="text-gray-300">{m.message}</span>
-          </div>
-        ))}
+        {messages
+          .filter((m) => !m.isModerated)
+          .map((m) => (
+            <div key={m.id} className="text-sm">
+              <span className="font-medium text-purple-300">{m.userName}</span>{' '}
+              <span className="text-gray-300">{m.message}</span>
+            </div>
+          ))}
         {messages.length === 0 && (
           <p className="text-gray-500 text-xs text-center py-8">No messages yet</p>
         )}
@@ -121,8 +141,8 @@ function ChatPanel({ streamId, messages, onSendMessage }) {
         <input
           placeholder="Type a message..."
           value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSend()}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
         <button
@@ -143,15 +163,15 @@ function PollPanel({ polls, onVote }) {
   const handleVote = (pollId, optionIndex) => {
     if (votedPolls.has(pollId)) return;
     onVote(pollId, optionIndex);
-    setVotedPolls(prev => new Set([...prev, pollId]));
+    setVotedPolls((prev) => new Set([...prev, pollId]));
   };
 
-  const activePolls = polls.filter(p => p.isActive);
+  const activePolls = polls.filter((p) => p.isActive);
   if (activePolls.length === 0) return null;
 
   return (
     <div className="space-y-3 p-3">
-      {activePolls.map(poll => {
+      {activePolls.map((poll) => {
         const totalVotes = Object.values(poll.votes || {}).reduce((a, b) => a + b, 0);
         return (
           <div key={poll.id} className="bg-gray-700/50 rounded-lg p-3">
@@ -167,16 +187,23 @@ function PollPanel({ polls, onVote }) {
                     disabled={votedPolls.has(poll.id)}
                     className="w-full relative overflow-hidden rounded bg-gray-600 px-3 py-2 text-left text-sm hover:bg-gray-500 transition disabled:opacity-80 disabled:cursor-default"
                   >
-                    <div className="absolute inset-0 bg-purple-500/20 transition-all" style={{ width: `${votedPolls.has(poll.id) ? pct : 0}%` }} />
+                    <div
+                      className="absolute inset-0 bg-purple-500/20 transition-all"
+                      style={{ width: `${votedPolls.has(poll.id) ? pct : 0}%` }}
+                    />
                     <span className="relative flex items-center justify-between">
                       <span>{opt}</span>
-                      {votedPolls.has(poll.id) && <span className="text-xs text-purple-300">{pct}%</span>}
+                      {votedPolls.has(poll.id) && (
+                        <span className="text-xs text-purple-300">{pct}%</span>
+                      )}
                     </span>
                   </button>
                 );
               })}
             </div>
-            {votedPolls.has(poll.id) && <p className="text-xs text-gray-500 mt-1">{totalVotes} votes</p>}
+            {votedPolls.has(poll.id) && (
+              <p className="text-xs text-gray-500 mt-1">{totalVotes} votes</p>
+            )}
           </div>
         );
       })}
@@ -201,9 +228,7 @@ function LiveStreamPage() {
 
   const fetchStream = useCallback(async () => {
     try {
-      const endpoint = streamId
-        ? `/api/streams/${streamId}`
-        : `/api/streams/event/${eventId}`;
+      const endpoint = streamId ? `/api/streams/${streamId}` : `/api/streams/event/${eventId}`;
       const data = await apiFetch(endpoint);
       setStream(data.stream);
       return data.stream;
@@ -251,7 +276,7 @@ function LiveStreamPage() {
         method: 'POST',
         body: JSON.stringify({ user_name, message }),
       });
-      setMessages(prev => [...prev, data.message]);
+      setMessages((prev) => [...prev, data.message]);
     } catch (e) {
       showToast(e.message, 'error');
     }
@@ -297,7 +322,9 @@ function LiveStreamPage() {
           <h1 className="text-2xl font-bold">{stream.title}</h1>
           {stream.description && <p className="text-gray-400 text-sm mt-1">{stream.description}</p>}
           <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-            <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {stream.viewerCount || 0} viewers</span>
+            <span className="flex items-center gap-1">
+              <Users className="w-4 h-4" /> {stream.viewerCount || 0} viewers
+            </span>
             {stream.scheduledStart && (
               <span>Scheduled: {new Date(stream.scheduledStart).toLocaleString()}</span>
             )}
@@ -320,18 +347,23 @@ function LiveStreamPage() {
                   onClick={() => setActiveTab('polls')}
                   className={`flex-1 px-4 py-3 text-sm font-medium ${activeTab === 'polls' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-500 hover:text-gray-300'}`}
                 >
-                  <BarChart3 className="w-4 h-4 inline mr-1.5" /> Polls ({polls.filter(p => p.isActive).length})
+                  <BarChart3 className="w-4 h-4 inline mr-1.5" /> Polls (
+                  {polls.filter((p) => p.isActive).length})
                 </button>
               </div>
 
               {activeTab === 'chat' ? (
                 <div className="h-[400px]">
-                  <ChatPanel streamId={stream.id} messages={messages} onSendMessage={handleSendMessage} />
+                  <ChatPanel
+                    streamId={stream.id}
+                    messages={messages}
+                    onSendMessage={handleSendMessage}
+                  />
                 </div>
               ) : (
                 <div className="max-h-[400px] overflow-y-auto">
                   <PollPanel polls={polls} onVote={handleVote} />
-                  {polls.filter(p => p.isActive).length === 0 && (
+                  {polls.filter((p) => p.isActive).length === 0 && (
                     <p className="text-gray-500 text-sm text-center py-8">No active polls</p>
                   )}
                 </div>
@@ -356,19 +388,25 @@ function LiveStreamPage() {
                 {stream.startedAt && (
                   <div className="flex justify-between">
                     <span className="text-gray-400">Started</span>
-                    <span className="font-medium">{new Date(stream.startedAt).toLocaleTimeString()}</span>
+                    <span className="font-medium">
+                      {new Date(stream.startedAt).toLocaleTimeString()}
+                    </span>
                   </div>
                 )}
                 {stream.endedAt && (
                   <div className="flex justify-between">
                     <span className="text-gray-400">Ended</span>
-                    <span className="font-medium">{new Date(stream.endedAt).toLocaleTimeString()}</span>
+                    <span className="font-medium">
+                      {new Date(stream.endedAt).toLocaleTimeString()}
+                    </span>
                   </div>
                 )}
                 {stream.recordingDuration && (
                   <div className="flex justify-between">
                     <span className="text-gray-400">Duration</span>
-                    <span className="font-medium">{Math.floor(stream.recordingDuration / 60)}m {stream.recordingDuration % 60}s</span>
+                    <span className="font-medium">
+                      {Math.floor(stream.recordingDuration / 60)}m {stream.recordingDuration % 60}s
+                    </span>
                   </div>
                 )}
               </div>
@@ -378,10 +416,18 @@ function LiveStreamPage() {
       </div>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-sm z-50 ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
-          {toast.type === 'success' ? <ThumbsUp className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+        <div
+          className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-sm z-50 ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+        >
+          {toast.type === 'success' ? (
+            <ThumbsUp className="w-4 h-4" />
+          ) : (
+            <AlertCircle className="w-4 h-4" />
+          )}
           {toast.message}
-          <button onClick={() => setToast(null)} className="ml-2"><X className="w-4 h-4" /></button>
+          <button onClick={() => setToast(null)} className="ml-2">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
     </div>

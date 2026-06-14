@@ -17,11 +17,14 @@ export function StudentAuthProvider({ children }) {
       setUser(data.user);
       localStorage.setItem(TOKEN_KEY, token);
       if (data.user) {
-        localStorage.setItem('ns_user', JSON.stringify({
-          id: data.user.sub || data.user.id,
-          email: data.user.email,
-          name: data.user.name,
-        }));
+        localStorage.setItem(
+          'ns_user',
+          JSON.stringify({
+            id: data.user.sub || data.user.id,
+            email: data.user.email,
+            name: data.user.name,
+          })
+        );
       }
     } catch {
       localStorage.removeItem(TOKEN_KEY);

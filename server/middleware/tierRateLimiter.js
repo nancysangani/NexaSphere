@@ -38,7 +38,7 @@ setInterval(pruneMemoryStores, 5 * 60 * 1000).unref();
 
 /**
  * Custom tier-based rate limiter middleware
- * 
+ *
  * @param {Object} options Configuration overrides
  * @returns {Function} Express middleware function
  */
@@ -135,7 +135,9 @@ export function tierRateLimiter(options = {}) {
         const cooldownSec = Math.min(baseCooldown * Math.pow(2, violations - 1), 3600);
         await redis.set(blockedKey, '1', 'EX', cooldownSec);
 
-        logger.warn(`[TierRateLimiter] Rate limit violated by ${identifier}. Active block: ${cooldownSec}s. Tier: ${tier}.`);
+        logger.warn(
+          `[TierRateLimiter] Rate limit violated by ${identifier}. Active block: ${cooldownSec}s. Tier: ${tier}.`
+        );
 
         res.setHeader('Retry-After', cooldownSec);
         return res.status(429).json({
@@ -168,7 +170,7 @@ export function tierRateLimiter(options = {}) {
     } else {
       const elapsed = (now - bucket.lastUpdated) / 1000.0;
       if (elapsed > 0) {
-        bucket.tokens = Math.min(capacity, bucket.tokens + (elapsed * refillRate));
+        bucket.tokens = Math.min(capacity, bucket.tokens + elapsed * refillRate);
         bucket.lastUpdated = now;
       }
     }
@@ -196,7 +198,9 @@ export function tierRateLimiter(options = {}) {
     const cooldownSec = Math.min(baseCooldown * Math.pow(2, violationObj.count - 1), 3600);
     memoryBlocked.set(blockedKey, now + cooldownSec * 1000);
 
-    logger.warn(`[TierRateLimiter] Rate limit violated by ${identifier} (memory). Active block: ${cooldownSec}s. Tier: ${tier}.`);
+    logger.warn(
+      `[TierRateLimiter] Rate limit violated by ${identifier} (memory). Active block: ${cooldownSec}s. Tier: ${tier}.`
+    );
 
     res.setHeader('Retry-After', cooldownSec);
     return res.status(429).json({

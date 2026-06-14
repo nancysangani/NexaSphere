@@ -41,7 +41,7 @@ function mapPollRow(row) {
     streamId: row.stream_id,
     question: row.question,
     options: typeof row.options === 'string' ? JSON.parse(row.options) : row.options,
-    votes: typeof row.votes === 'string' ? JSON.parse(row.votes) : (row.votes || {}),
+    votes: typeof row.votes === 'string' ? JSON.parse(row.votes) : row.votes || {},
     isActive: row.is_active,
     createdAt: row.created_at,
   };
@@ -88,7 +88,10 @@ export const streamRepository = {
   async getStreamByEventId(eventId) {
     if (!process.env.DATABASE_URL) return null;
     return withDb(async (client) => {
-      const { rows } = await client.query('select * from streams where event_id = $1 order by created_at desc limit 1', [eventId]);
+      const { rows } = await client.query(
+        'select * from streams where event_id = $1 order by created_at desc limit 1',
+        [eventId]
+      );
       return rows.length ? mapStreamRow(rows[0]) : null;
     });
   },
@@ -98,7 +101,17 @@ export const streamRepository = {
     return withDb(async (client) => {
       const { rows } = await client.query(
         `insert into streams (event_id, title, description, stream_url, hls_url, scheduled_start, max_viewers, chat_enabled, polls_enabled) values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning *`,
-        [input.event_id, input.title, input.description || '', input.stream_url || '', input.hls_url || '', input.scheduled_start ? new Date(input.scheduled_start) : null, input.max_viewers || null, input.chat_enabled !== false, input.polls_enabled !== false]
+        [
+          input.event_id,
+          input.title,
+          input.description || '',
+          input.stream_url || '',
+          input.hls_url || '',
+          input.scheduled_start ? new Date(input.scheduled_start) : null,
+          input.max_viewers || null,
+          input.chat_enabled !== false,
+          input.polls_enabled !== false,
+        ]
       );
       return rows.length ? mapStreamRow(rows[0]) : null;
     });
@@ -113,7 +126,7 @@ export const streamRepository = {
 
       for (const [key, value] of Object.entries(input)) {
         if (value !== undefined) {
-          const column = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+          const column = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
           sets.push(`${column} = $${paramIdx++}`);
           params.push(value);
         }
@@ -141,7 +154,8 @@ export const streamRepository = {
   async incrementViewerCount(id) {
     if (!process.env.DATABASE_URL) return null;
     return withDb(async (client) => {
-      const incrementSql = 'update streams set viewer_count = viewer_count + 1 where id = $1 returning viewer_count';
+      const incrementSql =
+        'update streams set viewer_count = viewer_count + 1 where id = $1 returning viewer_count';
       const { rows } = await client.query(incrementSql, [id]);
       return rows.length ? rows[0].viewer_count : null;
     });
@@ -183,7 +197,10 @@ export const streamRepository = {
   async moderateChatMessage(messageId) {
     if (!process.env.DATABASE_URL) return null;
     return withDb(async (client) => {
-      const { rows } = await client.query('update stream_chat_messages set is_moderated = true where id = $1 returning *', [messageId]);
+      const { rows } = await client.query(
+        'update stream_chat_messages set is_moderated = true where id = $1 returning *',
+        [messageId]
+      );
       return rows.length ? mapChatRow(rows[0]) : null;
     });
   },
@@ -192,7 +209,9 @@ export const streamRepository = {
     if (!process.env.DATABASE_URL) return null;
     return withDb(async (client) => {
       const votesInit = {};
-      input.options.forEach((_, i) => { votesInit[String(i)] = 0; });
+      input.options.forEach((_, i) => {
+        votesInit[String(i)] = 0;
+      });
       const { rows } = await client.query(
         `insert into stream_polls (stream_id, question, options, votes) values ($1, $2, $3, $4) returning *`,
         [streamId, input.question, JSON.stringify(input.options), JSON.stringify(votesInit)]
@@ -204,7 +223,10 @@ export const streamRepository = {
   async listPolls(streamId) {
     if (!process.env.DATABASE_URL) return [];
     return withDb(async (client) => {
-      const { rows } = await client.query('select * from stream_polls where stream_id = $1 order by created_at desc', [streamId]);
+      const { rows } = await client.query(
+        'select * from stream_polls where stream_id = $1 order by created_at desc',
+        [streamId]
+      );
       return rows.map(mapPollRow);
     });
   },
@@ -216,11 +238,14 @@ export const streamRepository = {
       if (!rows.length) return null;
 
       const poll = rows[0];
-      const votes = typeof poll.votes === 'string' ? JSON.parse(poll.votes) : (poll.votes || {});
+      const votes = typeof poll.votes === 'string' ? JSON.parse(poll.votes) : poll.votes || {};
       const key = String(optionIndex);
       votes[key] = (votes[key] || 0) + 1;
 
-      const { rows: updated } = await client.query('update stream_polls set votes = $1 where id = $2 returning *', [JSON.stringify(votes), pollId]);
+      const { rows: updated } = await client.query(
+        'update stream_polls set votes = $1 where id = $2 returning *',
+        [JSON.stringify(votes), pollId]
+      );
       return updated.length ? mapPollRow(updated[0]) : null;
     });
   },
@@ -228,7 +253,10 @@ export const streamRepository = {
   async closePoll(pollId) {
     if (!process.env.DATABASE_URL) return null;
     return withDb(async (client) => {
-      const { rows } = await client.query('update stream_polls set is_active = false where id = $1 returning *', [pollId]);
+      const { rows } = await client.query(
+        'update stream_polls set is_active = false where id = $1 returning *',
+        [pollId]
+      );
       return rows.length ? mapPollRow(rows[0]) : null;
     });
   },

@@ -47,7 +47,9 @@ export function useNotifications() {
 
         const responses = await Promise.all(
           fetchUrls.map((url) =>
-            fetch(url, { headers: getAuthHeaders() }).then((res) => (res.ok ? res.json() : { notifications: [] }))
+            fetch(url, { headers: getAuthHeaders() }).then((res) =>
+              res.ok ? res.json() : { notifications: [] }
+            )
           )
         );
 

@@ -13,40 +13,42 @@ class SecretsManager {
 
   loadSecrets() {
     const env = process.env.NODE_ENV || 'development';
-    
+
     // Default fallback secrets if vault-secrets.json doesn't exist
     if (!fs.existsSync(VAULT_SECRETS_PATH)) {
-      console.warn(`Vault file not found at ${VAULT_SECRETS_PATH}. Initializing with defaults for ${env}...`);
+      console.warn(
+        `Vault file not found at ${VAULT_SECRETS_PATH}. Initializing with defaults for ${env}...`
+      );
       const defaultSecrets = {
         development: {
           JWT_SECRET: 'nexasphere-jwt-dev-secret-change-in-production',
           DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/nexasphere_dev',
           CORS_ORIGIN: 'http://localhost:5175',
-          MONITORING_API_TOKEN: 'dev-monitoring-token-12345'
+          MONITORING_API_TOKEN: 'dev-monitoring-token-12345',
         },
         production: {
           JWT_SECRET: 'super-secret-jwt-key-for-prod',
           DATABASE_URL: 'postgresql://admin:prod-pass@prod-db:5432/nexasphere_prod',
           CORS_ORIGIN: 'https://nexasphere.example.com',
-          MONITORING_API_TOKEN: 'prod-monitoring-token-98765'
-        }
+          MONITORING_API_TOKEN: 'prod-monitoring-token-98765',
+        },
       };
 
       const meta = {};
       const now = new Date().toISOString();
       const currentEnvSecrets = defaultSecrets[env] || defaultSecrets.development;
-      
+
       for (const key of Object.keys(currentEnvSecrets)) {
         meta[key] = {
           lastRotated: now,
-          version: 1
+          version: 1,
         };
       }
 
       const fileData = {
         environment: env,
         secrets: currentEnvSecrets,
-        metadata: meta
+        metadata: meta,
       };
 
       fs.writeFileSync(VAULT_SECRETS_PATH, JSON.stringify(fileData, null, 2));
@@ -57,7 +59,9 @@ class SecretsManager {
       this.secrets = data.secrets || {};
       this.rotationMetadata = data.metadata || {};
       this.environment = data.environment || env;
-      console.log(`Successfully loaded ${Object.keys(this.secrets).length} secrets from Vault store for environment: ${this.environment}`);
+      console.log(
+        `Successfully loaded ${Object.keys(this.secrets).length} secrets from Vault store for environment: ${this.environment}`
+      );
     } catch (err) {
       console.error('Failed to parse secrets vault:', err.message);
     }
@@ -66,7 +70,7 @@ class SecretsManager {
   getSecret(key) {
     const store = appContext.getStore();
     const reqId = store?.reqId || 'SYSTEM';
-    
+
     // Audit secret access
     const auditMsg = `[Secrets Audit] Secret "${key}" accessed by reqId: ${reqId} in environment: ${this.environment}`;
     console.log(auditMsg);
@@ -101,7 +105,7 @@ class SecretsManager {
         key,
         ageInDays,
         needsRotation: ageInDays > 90,
-        lastRotated: meta.lastRotated
+        lastRotated: meta.lastRotated,
       });
     }
     return report;

@@ -65,7 +65,7 @@ export function getLocalEvents(fallbackEvents = []) {
   } catch (e) {
     console.warn('Failed to parse tombstone events', e);
   }
-  const filtered = stored.filter(event => !tombstones.includes(String(event.id)));
+  const filtered = stored.filter((event) => !tombstones.includes(String(event.id)));
 
   return mergeEvents(fallbackEvents, filtered);
 }
@@ -78,8 +78,8 @@ export function mergeEvents(fallbackEvents = [], liveEvents = []) {
   } catch (e) {
     console.warn('Failed to parse tombstone events', e);
   }
-  const filteredFallback = fallbackEvents.filter(event => !tombstones.includes(String(event.id)));
-  const filteredLive = liveEvents.filter(event => !tombstones.includes(String(event.id)));
+  const filteredFallback = fallbackEvents.filter((event) => !tombstones.includes(String(event.id)));
+  const filteredLive = liveEvents.filter((event) => !tombstones.includes(String(event.id)));
   return mergeById(filteredFallback, toArray(filteredLive), (previous, event, key) => ({
     ...previous,
     ...event,

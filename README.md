@@ -18,6 +18,7 @@
 - [🚢 Deployment](#-deployment)
 - [🤝 Contributing](#-contributing)
 - [📚 Documentation](#-documentation)
+- [👥 Contributors](#-contributors)
 - [📄 License](#-license)
 
 ---
@@ -96,10 +97,10 @@ Consistent development environments are crucial for the stability, performance, 
 
 ### Why Node.js v20 (LTS)?
 
-*   **LTS (Long Term Support) Stability**: Node.js 20 provides long-term security updates and bug fixes, ensuring that the NexaSphere platform is built on a rock-solid foundation.
-*   **Modern Runtime Features**: Node.js 20 includes native features such as the stable `fetch` API, a built-in test runner, and refined ESM (ECMAScript Modules) support, which are heavily utilized across our backend services.
-*   **Dependency Compatibility**: Our modern toolchain (including React 18, Vite 5, Express 4, and ESLint) is optimized and tested against Node.js 20. Running older or newer versions might result in unexpected compilation or runtime errors.
-*   **Production Alignment**: Since our backend is deployed on Render and Docker containers configured for Node 20, using the exact same version locally prevents environment-specific bugs.
+- **LTS (Long Term Support) Stability**: Node.js 20 provides long-term security updates and bug fixes, ensuring that the NexaSphere platform is built on a rock-solid foundation.
+- **Modern Runtime Features**: Node.js 20 includes native features such as the stable `fetch` API, a built-in test runner, and refined ESM (ECMAScript Modules) support, which are heavily utilized across our backend services.
+- **Dependency Compatibility**: Our modern toolchain (including React 18, Vite 5, Express 4, and ESLint) is optimized and tested against Node.js 20. Running older or newer versions might result in unexpected compilation or runtime errors.
+- **Production Alignment**: Since our backend is deployed on Render and Docker containers configured for Node 20, using the exact same version locally prevents environment-specific bugs.
 
 ---
 
@@ -115,7 +116,9 @@ We recommend using **NVM (Node Version Manager)** to manage Node versions. NVM a
     ```bash
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
     ```
-    *OR*
+
+    _OR_
+
     ```bash
     wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
     ```
@@ -177,40 +180,41 @@ node -v
 
 You can configure your shell to automatically call `nvm use` whenever you change directories (`cd`) into a folder containing a `.nvmrc` file.
 
-*   **Zsh (~/.zshrc)**:
-    Append the following function to your `~/.zshrc` file:
-    ```bash
-    # Place this at the end of your ~/.zshrc
-    autoload -U add-zsh-hook
-    load-nvmrc() {
-      local nvmrc_path="$(nvm_find_nvmrc)"
-      if [ -n "$nvmrc_path" ]; then
-        local nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
-        if [ "$nvmrc_node_version" = "N/A" ]; then
-          nvm install
-        elif [ "$nvmrc_node_version" != "$(nvm current)" ]; then
-          nvm use
-        fi
-      elif [ "$(nvm current)" != "$(nvm version default)" ]; then
-        echo "Reverting to nvm default..."
-        nvm use default
-      fi
-    }
-    add-zsh-hook chpwd load-nvmrc
-    load-nvmrc
-    ```
+- **Zsh (~/.zshrc)**:
+  Append the following function to your `~/.zshrc` file:
 
-*   **Bash (~/.bashrc)**:
-    Append the following block to your `~/.bashrc`:
-    ```bash
-    cdnvm() {
-      cd "$@" || return
-      if [ -f .nvmrc ]; then
+  ```bash
+  # Place this at the end of your ~/.zshrc
+  autoload -U add-zsh-hook
+  load-nvmrc() {
+    local nvmrc_path="$(nvm_find_nvmrc)"
+    if [ -n "$nvmrc_path" ]; then
+      local nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
+      if [ "$nvmrc_node_version" = "N/A" ]; then
+        nvm install
+      elif [ "$nvmrc_node_version" != "$(nvm current)" ]; then
         nvm use
       fi
-    }
-    alias cd="cdnvm"
-    ```
+    elif [ "$(nvm current)" != "$(nvm version default)" ]; then
+      echo "Reverting to nvm default..."
+      nvm use default
+    fi
+  }
+  add-zsh-hook chpwd load-nvmrc
+  load-nvmrc
+  ```
+
+- **Bash (~/.bashrc)**:
+  Append the following block to your `~/.bashrc`:
+  ```bash
+  cdnvm() {
+    cd "$@" || return
+    if [ -f .nvmrc ]; then
+      nvm use
+    fi
+  }
+  alias cd="cdnvm"
+  ```
 
 ---
 
@@ -219,9 +223,9 @@ You can configure your shell to automatically call `nvm use` whenever you change
 If you find NVM slow during shell startup, you can use **FNM**, a fast, Rust-based alternative:
 
 1.  **Installation**:
-    *   macOS (via Homebrew): `brew install fnm`
-    *   Linux/macOS (via Curl): `curl -fsSL https://fnm.vercel.app/install | bash`
-    *   Windows (via Scoop): `scoop install fnm`
+    - macOS (via Homebrew): `brew install fnm`
+    - Linux/macOS (via Curl): `curl -fsSL https://fnm.vercel.app/install | bash`
+    - Windows (via Scoop): `scoop install fnm`
 
 2.  **Shell Integration**:
     Add the following to your shell profile configuration (`~/.zshrc`, `~/.bashrc`, or PowerShell profile):
@@ -235,29 +239,39 @@ If you find NVM slow during shell startup, you can use **FNM**, a fast, Rust-bas
 ### Troubleshooting & Common Errors
 
 #### 1. `command not found: nvm`
+
 This occurs when NVM is installed, but your shell profile has not been reloaded or does not load NVM automatically.
-*   **Fix**: Verify that your profile file (`~/.zshrc` for Zsh or `~/.bash_profile` / `~/.bashrc` for Bash) contains the NVM loading script. Then run `source ~/.zshrc` or `source ~/.bashrc` to reload.
+
+- **Fix**: Verify that your profile file (`~/.zshrc` for Zsh or `~/.bash_profile` / `~/.bashrc` for Bash) contains the NVM loading script. Then run `source ~/.zshrc` or `source ~/.bashrc` to reload.
 
 #### 2. `nvm use` fails with "N/A version is not installed"
+
 This happens if you run `nvm use` but haven't installed Node v20 locally.
-*   **Fix**: Run `nvm install 20` first, then run `nvm use`.
+
+- **Fix**: Run `nvm install 20` first, then run `nvm use`.
 
 #### 3. Windows PowerShell Execution Policy Error
+
 In PowerShell, running NVM or executing global node scripts may fail due to restricted execution policies.
-*   **Fix**: Run PowerShell as an Administrator and execute:
-    ```powershell
-    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-    ```
+
+- **Fix**: Run PowerShell as an Administrator and execute:
+  ```powershell
+  Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+  ```
 
 #### 4. Permission Denied (`EACCES` or `EPERM`)
+
 If you find yourself needing to run `sudo npm install`, **stop immediately**. Using `sudo` causes permission mismatches on your project directories.
-*   **Fix**: Since NVM installs Node.js and global packages under your user directory (`~/.nvm`), it completely avoids permission issues. Discard the `sudo` command and simply run `npm install` inside the project root with the NVM-managed Node runtime active.
+
+- **Fix**: Since NVM installs Node.js and global packages under your user directory (`~/.nvm`), it completely avoids permission issues. Discard the `sudo` command and simply run `npm install` inside the project root with the NVM-managed Node runtime active.
 
 #### 5. Native Module Compilation Failures (node-gyp)
+
 Some dependencies compile native C/C++ code. If compilation fails:
-*   **macOS Fix**: Install Xcode Command Line Tools: `xcode-select --install`
-*   **Linux Fix**: Install development tools: `sudo apt install build-essential`
-*   **Windows Fix**: Run `npm install --global --production windows-build-tools` from an elevated PowerShell command.
+
+- **macOS Fix**: Install Xcode Command Line Tools: `xcode-select --install`
+- **Linux Fix**: Install development tools: `sudo apt install build-essential`
+- **Windows Fix**: Run `npm install --global --production windows-build-tools` from an elevated PowerShell command.
 
 ---
 
@@ -300,12 +314,12 @@ npm run dev:all     # Start website + admin + API together
 
 Or start services individually:
 
-| Command                 | Service          | URL                          |
-| ----------------------- | ---------------- | ---------------------------- |
-| `npm run dev:website`   | Website          | http://localhost:5175        |
-| `npm run dev:admin`     | Admin Dashboard  | http://localhost:5001        |
-| `npm run dev:server`    | Backend API      | http://localhost:8787        |
-| —                       | API Health Check | http://localhost:8787/health |
+| Command               | Service          | URL                          |
+| --------------------- | ---------------- | ---------------------------- |
+| `npm run dev:website` | Website          | http://localhost:5175        |
+| `npm run dev:admin`   | Admin Dashboard  | http://localhost:5001        |
+| `npm run dev:server`  | Backend API      | http://localhost:8787        |
+| —                     | API Health Check | http://localhost:8787/health |
 
 > **Tip:** The website works in **offline mode** when `VITE_API_BASE` is empty.
 > All data comes from localStorage / static JSON files — no backend needed.
@@ -324,12 +338,12 @@ npx playwright test     # End-to-end tests (Playwright)
 
 ## 🚢 Deployment
 
-| Target              | Config File       | Notes                                              |
-| ------------------- | ----------------- | -------------------------------------------------- |
-| Vercel (frontend)   | `vercel.json`     | Connect repo, set `VITE_API_BASE` env var          |
-| Render (backend)    | `render.yaml`     | Set `sync: false` env vars in Render dashboard     |
-| Docker (backend)    | `server/Dockerfile` | `docker build -t nexasphere-api ./server`        |
-| Docker Compose      | `docker-compose.yml` | `docker-compose up --build`                     |
+| Target            | Config File          | Notes                                          |
+| ----------------- | -------------------- | ---------------------------------------------- |
+| Vercel (frontend) | `vercel.json`        | Connect repo, set `VITE_API_BASE` env var      |
+| Render (backend)  | `render.yaml`        | Set `sync: false` env vars in Render dashboard |
+| Docker (backend)  | `server/Dockerfile`  | `docker build -t nexasphere-api ./server`      |
+| Docker Compose    | `docker-compose.yml` | `docker-compose up --build`                    |
 
 For full deployment instructions see [docs/deployment.md](docs/deployment.md).
 
@@ -347,13 +361,21 @@ This project is part of **GSSoC 2026** — check the open issues for tasks label
 
 Deep-dive references live in the [`/docs`](docs/) directory:
 
-| Document                                            | Description                              |
-| --------------------------------------------------- | ---------------------------------------- |
-| [docs/architecture.md](docs/architecture.md)        | System architecture & component overview |
-| [docs/api-reference.md](docs/api-reference.md)      | REST API endpoint reference              |
-| [docs/deployment.md](docs/deployment.md)            | Full deployment guide (Vercel / Render / Docker) |
-| [docs/database-backups.md](docs/database-backups.md) | Database backup & restore procedures    |
-| [docs/DATABASE_MIGRATIONS.md](docs/DATABASE_MIGRATIONS.md) | Running & writing DB migrations   |
+| Document                                                   | Description                                      |
+| ---------------------------------------------------------- | ------------------------------------------------ |
+| [docs/architecture.md](docs/architecture.md)               | System architecture & component overview         |
+| [docs/api-reference.md](docs/api-reference.md)             | REST API endpoint reference                      |
+| [docs/deployment.md](docs/deployment.md)                   | Full deployment guide (Vercel / Render / Docker) |
+| [docs/database-backups.md](docs/database-backups.md)       | Database backup & restore procedures             |
+| [docs/DATABASE_MIGRATIONS.md](docs/DATABASE_MIGRATIONS.md) | Running & writing DB migrations                  |
+
+---
+
+## 👥 Contributors
+
+Thanks to all contributors ❤️
+
+[![Contributors](https://contrib.rocks/image?repo=Ayushh-Sharmaa/NexaSphere)](https://github.com/Ayushh-Sharmaa/NexaSphere/graphs/contributors)
 
 ---
 

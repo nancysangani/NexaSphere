@@ -178,10 +178,7 @@ registerRoute(
   ({ url }) => url.pathname.startsWith('/api/') && !url.pathname.includes('/auth/'),
   new NetworkFirst({
     cacheName: 'nexasphere-api-mutations',
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      bgSyncPlugin,
-    ],
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] }), bgSyncPlugin],
   }),
   'POST'
 );
@@ -190,10 +187,7 @@ registerRoute(
   ({ url }) => url.pathname.startsWith('/api/') && !url.pathname.includes('/auth/'),
   new NetworkFirst({
     cacheName: 'nexasphere-api-mutations',
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      bgSyncPlugin,
-    ],
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] }), bgSyncPlugin],
   }),
   'PUT'
 );
@@ -202,10 +196,7 @@ registerRoute(
   ({ url }) => url.pathname.startsWith('/api/') && !url.pathname.includes('/auth/'),
   new NetworkFirst({
     cacheName: 'nexasphere-api-mutations',
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      bgSyncPlugin,
-    ],
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] }), bgSyncPlugin],
   }),
   'DELETE'
 );

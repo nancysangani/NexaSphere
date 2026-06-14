@@ -22,9 +22,12 @@ export const activityEventsService = {
   },
 
   async listActivityEvents(activityKey, { page = 1, limit = 20 } = {}) {
-    const { rows, total } = await activityEventsRepository.listByActivityKey(activityKey, { page, limit });
+    const { rows, total } = await activityEventsRepository.listByActivityKey(activityKey, {
+      page,
+      limit,
+    });
     return {
-      rows: rows.map(row => sanitizeActivityEventRecord(row)),
+      rows: rows.map((row) => sanitizeActivityEventRecord(row)),
       total,
     };
   },

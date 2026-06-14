@@ -21,7 +21,12 @@ export const listMentors = wrapAsync(async (req, res) => {
   const result = await mentorshipService.listMentors({ page, limit, domain, q });
   return res.json({
     mentors: result.rows,
-    pagination: { page, limit, total: result.total, totalPages: Math.ceil(result.total / limit) || 1 },
+    pagination: {
+      page,
+      limit,
+      total: result.total,
+      totalPages: Math.ceil(result.total / limit) || 1,
+    },
   });
 });
 
@@ -81,7 +86,9 @@ export const updateMentorshipStatus = wrapAsync(async (req, res) => {
   if (isNaN(id)) return res.status(400).json({ error: 'Invalid mentorship ID' });
   const { status } = req.body;
   if (!['active', 'rejected', 'completed'].includes(status)) {
-    return res.status(400).json({ error: 'Invalid status. Must be active, rejected, or completed' });
+    return res
+      .status(400)
+      .json({ error: 'Invalid status. Must be active, rejected, or completed' });
   }
   const mentorship = await mentorshipService.updateMentorshipStatus(id, status);
   if (!mentorship) return res.status(404).json({ error: 'Mentorship not found' });

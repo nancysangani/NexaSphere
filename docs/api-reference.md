@@ -33,10 +33,10 @@ List all public events.
 
 **Query params:**
 
-| Param    | Type   | Default | Description            |
-| -------- | ------ | ------- | ---------------------- |
-| `page`   | number | `1`     | Page number            |
-| `limit`  | number | `20`    | Results per page       |
+| Param   | Type   | Default | Description      |
+| ------- | ------ | ------- | ---------------- |
+| `page`  | number | `1`     | Page number      |
+| `limit` | number | `20`    | Results per page |
 
 **Response `200`:** paginated array of event objects.
 

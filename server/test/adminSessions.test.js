@@ -262,7 +262,6 @@ test('adminSessionsRepository recovers from database boot failure on subsequent 
     const session = await freshCreateAdminSession({ username: 'admin' });
     assert.ok(session.token);
     assert.ok(schemaQueriesRun > 0, 'Schema initialization should run upon database recovery');
-
   } finally {
     pg.Pool.prototype.connect = connectBackup;
   }

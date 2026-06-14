@@ -2,14 +2,14 @@ import { withDb } from '../repositories/db.js';
 
 async function validateSchema() {
   console.log('[Database Validation] Starting schema and data integrity checks...');
-  
+
   const expectedTables = [
     'admin_sessions',
     'users',
     'events',
     'notifications',
     'push_subscriptions',
-    'notification_preferences'
+    'notification_preferences',
   ];
 
   try {
@@ -20,11 +20,11 @@ async function validateSchema() {
         FROM pg_tables 
         WHERE schemaname = 'public'
       `);
-      
-      const existingTables = tablesRes.rows.map(r => r.tablename);
+
+      const existingTables = tablesRes.rows.map((r) => r.tablename);
       console.log(`[Database Validation] Found existing tables: ${existingTables.join(', ')}`);
 
-      const missingTables = expectedTables.filter(t => !existingTables.includes(t));
+      const missingTables = expectedTables.filter((t) => !existingTables.includes(t));
       if (missingTables.length > 0) {
         throw new Error(`Missing expected tables: ${missingTables.join(', ')}`);
       }
@@ -37,8 +37,8 @@ async function validateSchema() {
         FROM information_schema.columns 
         WHERE table_name = 'admin_sessions' AND table_schema = 'public'
       `);
-      
-      const tokenHashCol = adminSessionsCols.rows.find(r => r.column_name === 'token_hash');
+
+      const tokenHashCol = adminSessionsCols.rows.find((r) => r.column_name === 'token_hash');
       if (!tokenHashCol) {
         throw new Error("Missing critical column 'token_hash' in table 'admin_sessions'");
       }
@@ -50,7 +50,7 @@ async function validateSchema() {
         FROM information_schema.columns 
         WHERE table_name = 'users' AND table_schema = 'public'
       `);
-      const usernameCol = usersCols.rows.find(r => r.column_name === 'username');
+      const usernameCol = usersCols.rows.find((r) => r.column_name === 'username');
       if (!usernameCol) {
         throw new Error("Missing critical column 'username' in table 'users'");
       }
@@ -72,7 +72,7 @@ async function validateSchema() {
 
       console.log('[Database Validation] SUCCESS: All database integrity checks passed.');
     });
-    
+
     process.exit(0);
   } catch (error) {
     console.error('[Database Validation] FAILURE:', error.message);

@@ -15,11 +15,11 @@ The repo ships with a root `vercel.json` pre-configured to serve `website/dist`.
 2. Vercel auto-detects `vercel.json` — no build settings needed.
 3. **Set environment variables** in the Vercel dashboard:
 
-   | Variable                   | Value                                  |
-   | -------------------------- | -------------------------------------- |
-   | `VITE_API_BASE`            | Your Render API URL (see below)        |
-   | `VITE_ADMIN_DASHBOARD_URL` | Your deployed admin dashboard URL      |
-   | `VITE_VAPID_PUBLIC_KEY`    | VAPID public key (push notifications)  |
+   | Variable                   | Value                                 |
+   | -------------------------- | ------------------------------------- |
+   | `VITE_API_BASE`            | Your Render API URL (see below)       |
+   | `VITE_ADMIN_DASHBOARD_URL` | Your deployed admin dashboard URL     |
+   | `VITE_VAPID_PUBLIC_KEY`    | VAPID public key (push notifications) |
 
 4. **Deploy** — Vercel rebuilds automatically on every push to `main`.
 
@@ -87,17 +87,17 @@ The `docker-compose.yml` in the project root starts:
 
 ## Environment Variables Reference
 
-| Variable                    | File                  | Description                          |
-| --------------------------- | --------------------- | ------------------------------------ |
-| `VITE_API_BASE`             | `website/.env.local`  | Backend API base URL                 |
-| `VITE_ADMIN_DASHBOARD_URL`  | `website/.env.local`  | Admin dashboard URL (footer link)    |
-| `PORT`                      | `server/.env`         | Server port (default: `8787`)        |
-| `CORS_ORIGIN`               | `server/.env`         | Comma-separated allowed origins      |
-| `DATABASE_URL`              | `server/.env`         | PostgreSQL connection string         |
-| `SUPABASE_URL`              | `server/.env`         | Supabase project URL                 |
-| `SUPABASE_SERVICE_ROLE_KEY` | `server/.env`         | Supabase service key                 |
-| `ADMIN_USERNAME`            | `server/.env`         | Admin login username                 |
-| `ADMIN_PASSWORD`            | `server/.env`         | Admin login password (≥ 12 chars)    |
-| `ADMIN_EVENT_PASSWORD`      | `server/.env`         | Password for posting activity events |
+| Variable                    | File                 | Description                          |
+| --------------------------- | -------------------- | ------------------------------------ |
+| `VITE_API_BASE`             | `website/.env.local` | Backend API base URL                 |
+| `VITE_ADMIN_DASHBOARD_URL`  | `website/.env.local` | Admin dashboard URL (footer link)    |
+| `PORT`                      | `server/.env`        | Server port (default: `8787`)        |
+| `CORS_ORIGIN`               | `server/.env`        | Comma-separated allowed origins      |
+| `DATABASE_URL`              | `server/.env`        | PostgreSQL connection string         |
+| `SUPABASE_URL`              | `server/.env`        | Supabase project URL                 |
+| `SUPABASE_SERVICE_ROLE_KEY` | `server/.env`        | Supabase service key                 |
+| `ADMIN_USERNAME`            | `server/.env`        | Admin login username                 |
+| `ADMIN_PASSWORD`            | `server/.env`        | Admin login password (≥ 12 chars)    |
+| `ADMIN_EVENT_PASSWORD`      | `server/.env`        | Password for posting activity events |
 
 See `server/.env.example` and `website/.env.example` for the complete list.
