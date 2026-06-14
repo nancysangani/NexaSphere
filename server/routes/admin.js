@@ -17,6 +17,12 @@ import {
   generateRecoveryRecommendation,
   createRecoveryAuditLog,
 } from '../utils/dataIntegrityValidator.js';
+import {
+  activateReadOnlyMode,
+  deactivateReadOnlyMode,
+  getReadOnlyStatus,
+  createIncidentLog,
+} from '../utils/readOnlyMode.js';
 
 const router = Router();
 const adminAuth = [apiRateLimiter, adminAuthMiddleware.requireAdmin];
@@ -93,6 +99,22 @@ router.get('/api/admin/database-recovery', adminAuth, (req, res) => {
 
 router.get('/api/admin/database-audit-log', adminAuth, (req, res) => {
   res.json(createRecoveryAuditLog());
+});
+
+router.get('/api/admin/read-only-status', adminAuth, (req, res) => {
+  res.json(getReadOnlyStatus());
+});
+
+router.post('/api/admin/read-only-enable', adminAuth, (req, res) => {
+  res.json(activateReadOnlyMode());
+});
+
+router.post('/api/admin/read-only-disable', adminAuth, (req, res) => {
+  res.json(deactivateReadOnlyMode());
+});
+
+router.get('/api/admin/read-only-log', adminAuth, (req, res) => {
+  res.json(createIncidentLog());
 });
 
 export default router;
