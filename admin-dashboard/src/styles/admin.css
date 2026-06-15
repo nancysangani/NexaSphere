@@ -1020,3 +1020,34 @@ body {
     opacity: 0.5;
   }
 }
+
+.impersonation-banner {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-w);
+  right: 0;
+  z-index: 151;
+  background: #7f1d1d;
+  border-bottom: 1px solid #ef4444;
+  color: #fecaca;
+  padding: 8px 20px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.impersonation-banner strong {
+  color: #fff;
+}
+
+.impersonation-banner .btn-outline {
+  margin-left: auto;
+  color: #fecaca;
+  border-color: #fca5a5;
+}
+
+.impersonation-banner .btn-outline:hover {
+  background: #dc2626;
+  color: #fff;
+}

@@ -107,6 +107,12 @@ const links = [
     label: 'Circuit Breaker',
     icon: 'Activity',
   },
+  {
+    to: '/dashboard/impersonate',
+    label: 'Impersonate',
+    icon: 'Users',
+    requiredScope: 'settings:admin',
+  },
 ];
 
 export function Sidebar() {

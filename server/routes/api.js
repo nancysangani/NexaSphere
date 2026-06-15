@@ -14,6 +14,8 @@ import { authRateLimiter, protectedActionRateLimiter } from '../middleware/authR
 import { portfolioRepository } from '../repositories/portfolioRepository.js';
 import { achievementsRepository } from '../repositories/achievementsRepository.js';
 import { portfolioService } from '../services/portfolioService.js';
+import { impersonationService } from '../services/impersonationService.js';
+import { usersRepository } from '../repositories/usersRepository.js';
 
 const router = Router();
 
@@ -41,9 +43,24 @@ router.delete(
 
 // Admin auth
 router.get('/api/admin/users', adminAuthMiddleware.requireAdmin, usersController.getAdminUsers);
-router.post('/api/admin/users', adminAuthMiddleware.requireAdmin, adminAuditMiddleware, usersController.adminCreateUser);
-router.put('/api/admin/users/:id', adminAuthMiddleware.requireAdmin, adminAuditMiddleware, usersController.adminUpdateUser);
-router.delete('/api/admin/users/:id', adminAuthMiddleware.requireAdmin, adminAuditMiddleware, usersController.adminDeactivateUser);
+router.post(
+  '/api/admin/users',
+  adminAuthMiddleware.requireAdmin,
+  adminAuditMiddleware,
+  usersController.adminCreateUser
+);
+router.put(
+  '/api/admin/users/:id',
+  adminAuthMiddleware.requireAdmin,
+  adminAuditMiddleware,
+  usersController.adminUpdateUser
+);
+router.delete(
+  '/api/admin/users/:id',
+  adminAuthMiddleware.requireAdmin,
+  adminAuditMiddleware,
+  usersController.adminDeactivateUser
+);
 router.post('/api/admin/login', authRateLimiter, adminAuthMiddleware.login);
 router.post('/api/admin/logout', adminAuthMiddleware.requireAdmin, adminAuthMiddleware.logout);
 
@@ -189,5 +206,32 @@ router.delete(
     }
   }
 );
+
+// Impersonation (Super Admin only)
+router.post(
+  '/api/admin/impersonate/start/:userId',
+  adminAuthMiddleware.requireAdmin,
+  async (req, res) => {
+    try {
+      const role = req.adminSession.metadata?.role || '';
+      if (role !== 'SuperAdmin')
+        return res.status(403).json({ error: 'Only Super Admin can impersonate' });
+      const user = await usersRepository.getById(req.params.userId);
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      impersonationService.start(req.adminSession.token, user);
+      return res.json({ impersonating: true, user });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+);
+router.post('/api/admin/impersonate/stop', adminAuthMiddleware.requireAdmin, (req, res) => {
+  impersonationService.stop(req.adminSession.token);
+  return res.json({ impersonating: false });
+});
+router.get('/api/admin/impersonate/status', adminAuthMiddleware.requireAdmin, (req, res) => {
+  const active = impersonationService.getActive(req.adminSession.token);
+  return res.json({ impersonating: !!active, user: active?.targetUser || null });
+});
 
 export default router;
