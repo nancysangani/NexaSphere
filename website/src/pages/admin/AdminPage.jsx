@@ -56,9 +56,13 @@ export default function AdminPage({ onBack }) {
 
     const listeners = {};
     let closed = false;
-    let reconnectTimeout;
+    let reconnectTimeout = undefined;
 
     async function connect() {
+      // Re-check closed after any await — component may have unmounted
+      // while fetch() was in flight, making the earlier clearTimeout
+      // in sseClient.close() a no-op since reconnectTimeout was not
+      // yet assigned at that point.
       if (closed) return;
       try {
         const response = await fetch(url, {
@@ -104,6 +108,8 @@ export default function AdminPage({ onBack }) {
         console.warn('Admin SSE metrics stream connection interrupted or reconnecting...', err);
       }
 
+      // Re-check closed after await — if component unmounted while fetch
+      // was in flight, closed is now true and we must not schedule a reconnect.
       if (!closed) {
         reconnectTimeout = setTimeout(connect, 3000);
       }
