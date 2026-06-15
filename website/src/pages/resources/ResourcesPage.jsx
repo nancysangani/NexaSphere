@@ -14,7 +14,20 @@ export default function ResourcesPage({ onBack }) {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [votedIds, setVotedIds] = useState(new Set());
+  const [votedIds, setVotedIds] = useState(() => {
+    // Restore voted resource IDs from localStorage so votes survive
+    // page interactions and refreshes without requiring a backend read.
+    try {
+      const stored = localStorage.getItem('ns_resource_voted_ids');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return new Set(parsed);
+      }
+    } catch {
+      // Ignore malformed or unavailable localStorage
+    }
+    return new Set();
+  });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -73,6 +86,12 @@ export default function ResourcesPage({ onBack }) {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      // Persist to localStorage so voted state survives page refresh
+      try {
+        localStorage.setItem('ns_resource_voted_ids', JSON.stringify([...next]));
+      } catch {
+        // Ignore QuotaExceededError
+      }
       return next;
     });
   };
