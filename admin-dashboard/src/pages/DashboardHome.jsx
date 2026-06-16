@@ -1,3 +1,4 @@
+import { DashboardCardSkeleton } from '../components/DashboardCardSkeleton';
 import { useState, useEffect } from 'react';
 import { api, auth } from '../services/api';
 import { Skeleton } from '../components/Skeleton';
@@ -59,7 +60,10 @@ export function DashboardHome() {
 
       {loading ? (
         <div className="stats-grid">
-          <Skeleton height={100} count={4} />
+          <DashboardCardSkeleton />
+          <DashboardCardSkeleton />
+          <DashboardCardSkeleton />
+          <DashboardCardSkeleton />
         </div>
       ) : (
         <div className="stats-grid">
