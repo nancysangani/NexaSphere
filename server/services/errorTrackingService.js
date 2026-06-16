@@ -1,6 +1,6 @@
 
 import 'dotenv/config';
-import { validateEnvironment } from './utils/envValidator.js';
+import { validateEnvironment } from '../utils/envValidator.js';
 
 validateEnvironment();
 

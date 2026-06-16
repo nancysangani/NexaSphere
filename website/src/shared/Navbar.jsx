@@ -12,6 +12,7 @@ const TABS = [
   'Projects',
   'Roadmaps',
   'Portfolio',
+  'Resources',
   'Gamification',
   'Forum',
   'Mentorship',

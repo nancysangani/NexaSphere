@@ -45,7 +45,7 @@ const CommonIdentitySchema = z.object({
 }).strip();
 
 const RecruitmentExtrasSchema = z.object({
-  year: z.string().trim().min(1, 'Year is required').max(40),
+  year: z.string({ message: 'Year is required' }).trim().min(1, 'Year is required').max(40),
   role: OptionalText(80),
   interests: TextList,
   skills: OptionalText(400),
@@ -67,7 +67,7 @@ const RecruitmentExtrasSchema = z.object({
 const MembershipExtrasSchema = z.object({
   rollNumber: OptionalText(40),
   course: OptionalText(80),
-  semester: z.string().trim().min(1, 'Semester is required').max(40),
+  semester: z.string({ message: 'Semester is required' }).trim().min(1, 'Semester is required').max(40),
   groups: TextList,
   whyJoin: z.string().trim().max(1200).optional(),
 }).strip();

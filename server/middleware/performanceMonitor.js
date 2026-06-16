@@ -205,8 +205,60 @@ const performanceMonitor = (req, res, next) => {
   next();
 };
 
+const dbQueryMetrics = {
+  totalQueries: 0,
+  totalQueryTime: 0,
+  slowQueriesCount: 0,
+  queries: {}
+};
+
+const recordDbQueryMetric = (queryText, durationMs, error = null) => {
+  dbQueryMetrics.totalQueries += 1;
+  dbQueryMetrics.totalQueryTime += durationMs;
+  if (durationMs > 100) {
+    dbQueryMetrics.slowQueriesCount += 1;
+  }
+
+  const rawText = typeof queryText === 'string' ? queryText : (queryText?.text || 'unknown');
+  const normalizedQuery = rawText.trim().replace(/\s+/g, ' ').slice(0, 100);
+
+  if (!dbQueryMetrics.queries[normalizedQuery]) {
+    dbQueryMetrics.queries[normalizedQuery] = { count: 0, totalDuration: 0, errors: 0 };
+  }
+  dbQueryMetrics.queries[normalizedQuery].count += 1;
+  dbQueryMetrics.queries[normalizedQuery].totalDuration += durationMs;
+  if (error) {
+    dbQueryMetrics.queries[normalizedQuery].errors += 1;
+  }
+};
+
+const registrationsHistory = [];
+
+const trackRegistration = () => {
+  registrationsHistory.push(Date.now());
+};
+
+const getRegistrationsPerMinute = () => {
+  const oneMinuteAgo = Date.now() - 60000;
+  while (registrationsHistory.length > 0 && registrationsHistory[0] < oneMinuteAgo) {
+    registrationsHistory.shift();
+  }
+  return registrationsHistory.length;
+};
+
 const getMetrics = () => {
-  const result = { endpoints: {} };
+  const result = {
+    endpoints: {},
+    databaseQueries: {
+      totalQueries: dbQueryMetrics.totalQueries,
+      avgQueryDurationMs: dbQueryMetrics.totalQueries > 0 ? dbQueryMetrics.totalQueryTime / dbQueryMetrics.totalQueries : 0,
+      slowQueriesCount: dbQueryMetrics.slowQueriesCount,
+      queries: dbQueryMetrics.queries
+    },
+    customMetrics: {
+      registrationsPerMinute: getRegistrationsPerMinute()
+    }
+  };
   endpointMetrics.forEach((metrics, endpoint) => {
     result.endpoints[endpoint] = {
       '5min': metrics.getMetrics('5min'),
@@ -219,6 +271,11 @@ const getMetrics = () => {
 
 const resetMetrics = () => {
   endpointMetrics.clear();
+  dbQueryMetrics.totalQueries = 0;
+  dbQueryMetrics.totalQueryTime = 0;
+  dbQueryMetrics.slowQueriesCount = 0;
+  dbQueryMetrics.queries = {};
+  registrationsHistory.length = 0;
 };
 
 const checkErrorRateThreshold = (threshold = 5) => {
@@ -240,4 +297,12 @@ const checkErrorRateThreshold = (threshold = 5) => {
   return false;
 };
 
-export { performanceMonitor, getMetrics, resetMetrics, checkErrorRateThreshold };
+export {
+  performanceMonitor,
+  getMetrics,
+  resetMetrics,
+  checkErrorRateThreshold,
+  recordDbQueryMetric,
+  trackRegistration,
+  getRegistrationsPerMinute
+};
