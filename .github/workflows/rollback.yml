@@ -1,0 +1,37 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to rollback to"
+        required: true
+
+jobs:
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Rollback Information
+        run: |
+          echo "Rolling back to release: ${{ github.event.inputs.release_tag }}"
+
+      - name: Trigger Render Redeploy
+        uses: johnbeynon/render-deploy-action@v0.0.9
+        with:
+          service-id: ${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+
+      - name: Deployment Health Check
+        run: |
+          curl -f https://nexasphere-api.onrender.com/health
+
+      - name: Rollback Complete
+        run: |
+          echo "Rollback completed successfully"

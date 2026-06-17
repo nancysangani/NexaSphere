@@ -100,15 +100,20 @@ export default function StatusPage() {
             <span className="text-xs text-gray-500">90 Days Ago — Today</span>
           </div>
           <div className="flex gap-[3px] h-8 justify-between">
-            {Array.from({ length: 45 }).map((_, i) => (
+            {Array.from({ length: 45 }, (_, i) => ({
+              // Use a stable day-offset key derived from data position rather
+              // than array index — prevents unnecessary React reconciliation
+              // when the list is re-rendered.
+              dayOffset: 45 - i,
+            })).map(({ dayOffset }) => (
               <div
-                key={i}
+                key={`uptime-day-${dayOffset}`}
                 className={`flex-1 rounded-sm transition-all duration-300 hover:scale-y-125 ${
-                  i === 38 && !isOperational
+                  dayOffset === 7 && !isOperational
                     ? 'bg-[#D50000] opacity-80'
                     : 'bg-[#00C853] opacity-60 hover:opacity-100'
                 }`}
-                title={`Day ${45 - i} ago: Healthy`}
+                title={`${dayOffset} day${dayOffset === 1 ? '' : 's'} ago: Healthy`}
               />
             ))}
           </div>
@@ -153,7 +158,8 @@ export default function StatusPage() {
                   </div>
                   <div className="text-xs text-gray-500 mb-3">
                     Start: {new Date(incident.startedAt).toLocaleString()}
-                    {incident.resolvedAt && ` | End: ${new Date(incident.resolvedAt).toLocaleString()}`}
+                    {incident.resolvedAt &&
+                      ` | End: ${new Date(incident.resolvedAt).toLocaleString()}`}
                   </div>
                   <div className="space-y-2 mt-2">
                     {incident.updates.map((update, idx) => (

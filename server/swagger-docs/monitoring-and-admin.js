@@ -349,4 +349,29 @@
  *                       example: http://localhost:3000/api/swagger.json
  */
 
+/**
+ * @swagger
+ * /api/monitoring/deployment-status:
+ *   get:
+ *     summary: Get deployment status
+ *     description: Retrieve deployment health and rollback readiness information
+ *     tags:
+ *       - Monitoring
+ *     responses:
+ *       200:
+ *         description: Deployment status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: healthy
+ *                 rollbackAvailable:
+ *                   type: boolean
+ *                 trafficSwitchReady:
+ *                   type: boolean
+ */
+
 export default {};

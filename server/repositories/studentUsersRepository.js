@@ -51,6 +51,12 @@ export const studentUsersRepository = {
   async upsertFromOAuth({ provider, providerId, email, fullName, avatarUrl }) {
     if (!HAS_SUPABASE) return null;
     return withDb(async (client) => {
+      const check = await client.query(
+        'SELECT id FROM student_users WHERE provider = $1 AND provider_id = $2 LIMIT 1',
+        [provider, providerId]
+      );
+      const isNewUser = check.rows.length === 0;
+
       const { rows } = await client.query(
         `INSERT INTO student_users (provider, provider_id, email, full_name, avatar_url, last_login_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
@@ -63,6 +69,16 @@ export const studentUsersRepository = {
          RETURNING *`,
         [provider, providerId, email, fullName || null, avatarUrl || null]
       );
+
+      if (isNewUser && rows[0]) {
+        try {
+          const { trackRegistration } = await import('../middleware/performanceMonitor.js');
+          trackRegistration();
+        } catch (e) {
+          // ignore
+        }
+      }
+
       return rows[0];
     });
   },
@@ -78,6 +94,17 @@ export const studentUsersRepository = {
     });
   },
 
+  async saveRecoveryCode(email, code) {
+  return {
+    email,
+    code,
+  };
+},
+
+async getRecoveryCode(email) {
+  return null;
+},
+
   async listAll() {
     if (!HAS_SUPABASE) return [];
     return withDb(async (client) => {
@@ -88,3 +115,5 @@ export const studentUsersRepository = {
     });
   },
 };
+
+

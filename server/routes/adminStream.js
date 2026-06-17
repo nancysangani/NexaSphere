@@ -30,6 +30,9 @@ router.get('/stream', requireAdmin, (req, res) => {
   logger.info('Admin connected to SSE stream', { adminId });
   addSSEClient(res, req.adminSession);
 
+  // Guard against writing to an already-ended response (e.g. max capacity reached)
+  if (res.writableEnded) return;
+
   // Initialize headers and hand off the response to the SSE service
   setupSSEHeaders(req, res, () => {
     addSSEClient(res);

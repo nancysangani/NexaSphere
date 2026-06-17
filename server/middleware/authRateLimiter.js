@@ -73,6 +73,16 @@ export const passwordResetRateLimiter = rateLimit({
   legacyHeaders: false,
   store: createRateLimitStore('password-reset-limit:'),
   handler: (req, res, _next, options) => {
+    const ipAddress = req.ip;
+const failedAttempts = getFailedAttempts(ipAddress);
+
+if (failedAttempts > 10) {
+  blockIP(ipAddress);
+
+  return res.status(429).json({
+    error: 'IP temporarily blocked due to suspicious activity',
+  });
+}
     logger.warn('[Security] Password Reset rate limit exceeded', {
       ip: req.ip,
       path: req.originalUrl || req.path,

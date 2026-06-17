@@ -1,4 +1,5 @@
 // src/services/gamification/gamificationService.js
+import { getApiBase } from '../../utils/runtimeConfig';
 
 // XP Values for different actions
 export const XP_VALUES = {
@@ -415,10 +416,7 @@ class GamificationService {
       { rank: 5, name: 'David Kim', xp: 1520, level: 6, avatar: '👨‍🔬' },
     ];
 
-    const base = (
-      (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE) ||
-      ''
-    ).replace(/\/+$/, '');
+    const base = getApiBase();
     if (!base) return MOCK_LEADERBOARD;
 
     try {

@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../utils/apiClient';
+import { getApiBase } from '../../utils/runtimeConfig';
 import { fallbackCategories, fallbackThreads } from '../../data/forumData.js';
 import Footer from '../../shared/Footer';
+import { EmptyState } from '../../components/EmptyState';
 
 export default function ForumPage({ onBack }) {
   const navigate = useNavigate();
@@ -25,7 +27,7 @@ export default function ForumPage({ onBack }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const base = import.meta.env.VITE_API_BASE || '';
+    const base = getApiBase();
     if (!base) {
       setThreads(fallbackThreads);
       setLoading(false);
@@ -67,7 +69,7 @@ export default function ForumPage({ onBack }) {
     e.preventDefault();
     setError('');
     setSubmitting(true);
-    const base = import.meta.env.VITE_API_BASE || '';
+    const base = getApiBase();
     if (!base) {
       setError('Forum is in offline mode. Please try again later.');
       setSubmitting(false);
@@ -224,9 +226,15 @@ export default function ForumPage({ onBack }) {
             Loading discussions...
           </div>
         ) : filteredThreads.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-secondary)' }}>
-            No threads found. Start a new discussion!
-          </div>
+          <EmptyState
+            title="No Threads Found"
+            description="No threads match your current filters. Try adjusting your search or selecting a different category."
+            action={
+              <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+                Start a New Discussion
+              </button>
+            }
+          />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {filteredThreads.map((thread) => (

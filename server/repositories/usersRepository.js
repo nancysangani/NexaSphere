@@ -56,15 +56,22 @@ export const usersRepository = {
       const fields = [];
       const values = [];
       let i = 1;
-      if (updates.display_name !== undefined) { fields.push(`display_name = $${i++}`); values.push(updates.display_name); }
-      if (updates.email !== undefined) { fields.push(`email = $${i++}`); values.push(updates.email); }
-      if (updates.admin_roles !== undefined) { fields.push(`admin_roles = $${i++}`); values.push(updates.admin_roles); }
+      if (updates.display_name !== undefined) {
+        fields.push(`display_name = $${i++}`);
+        values.push(updates.display_name);
+      }
+      if (updates.email !== undefined) {
+        fields.push(`email = $${i++}`);
+        values.push(updates.email);
+      }
+      if (updates.admin_roles !== undefined) {
+        fields.push(`admin_roles = $${i++}`);
+        values.push(updates.admin_roles);
+      }
       if (fields.length === 0) return null;
       values.push(id);
-      const { rows } = await client.query(
-        `UPDATE users SET ${fields.join(', ')} WHERE id = $${i} RETURNING id, username, display_name, email, admin_roles, created_at as joined_at`,
-        values
-      );
+      const sql = `UPDATE users SET ${fields.join(', ')} WHERE id = $${i} RETURNING id, username, display_name, email, admin_roles, created_at as joined_at`;
+      const { rows } = await client.query(sql, values);
       return rows[0] || null;
     });
   },

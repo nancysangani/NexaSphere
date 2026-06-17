@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { getApiBase } from '../../utils/runtimeConfig';
 import { useAnalyticsFilters } from '../../context/AnalyticsFilterContext';
 import {
   generateTrendData,
@@ -8,8 +9,6 @@ import {
   DistributionDataPoint,
   ComparisonDataPoint,
 } from '../../utils/chartDataFormatters';
-
-const getApiBase = () => (import.meta as any).env?.VITE_API_BASE?.replace(/\/+$/, '') || '';
 
 /**
  * Returns true when the API base URL is configured for this deployment.

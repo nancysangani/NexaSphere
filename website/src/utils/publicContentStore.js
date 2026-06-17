@@ -160,8 +160,7 @@ export function initStorageSyncBridge() {
   // .env.example for both local dev and production deployments.
   // Falls back to http://localhost:5001 only when running locally.
   const configuredAdminOrigin =
-    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ADMIN_DASHBOARD_URL) ||
-    'http://localhost:5001';
+    import.meta.env?.VITE_ADMIN_DASHBOARD_URL || 'http://localhost:5001';
   const adminOrigin = normalizeOrigin(configuredAdminOrigin) || 'http://localhost:5001';
   const bridgeUrl = `${adminOrigin}/sync-bridge.html`;
 

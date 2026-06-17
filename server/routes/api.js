@@ -39,8 +39,43 @@ router.delete(
   adminAuthMiddleware.requireScope('events:write'),
   activityEventsController.deleteActivityEvent
 );
+router.post('/account-recovery/request', async (req, res) => {
+  const { email } = req.body;
+
+  const recovery =
+    await studentAuthService.createRecoveryRequest(email);
+
+  return res.json({
+    success: true,
+    message: 'Recovery code generated',
+    recovery,
+  });
+});
+router.post('/account-recovery/verify', async (req, res) => {
+  const { savedCode, enteredCode } = req.body;
+
+  const valid =
+    studentAuthService.verifyRecoveryCode(
+      savedCode,
+      enteredCode
+    );
+
+  return res.json({
+    success: valid,
+  });
+});
 
 // Admin auth
+router.post(
+  '/api/attendance/mark',
+  adminAuthMiddleware.requireAdmin,
+  attendanceController.markAttendance
+);
+router.get(
+  '/api/attendance',
+  adminAuthMiddleware.requireAdmin,
+  attendanceController.getAttendanceList
+);
 router.get('/api/admin/users', adminAuthMiddleware.requireAdmin, usersController.getAdminUsers);
 router.post(
   '/api/admin/users',

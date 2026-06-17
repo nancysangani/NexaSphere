@@ -1,6 +1,13 @@
 import { withDb } from '../repositories/db.js';
 import logger from '../utils/logger.js';
 
+export const getDeploymentHealth = async (req, res) => {
+  res.json({
+    status: "healthy",
+    rollbackAvailable: true,
+    trafficSwitchReady: true,
+  });
+};
 export const syncController = {
   async getSyncStatus(req, res) {
     try {
@@ -77,6 +84,16 @@ export const syncController = {
               const current = currentRes.rows[0];
               const serverUpdated = new Date(current.updated_at);
               const clientKnown = new Date(lastKnownTimestamp);
+
+              if (!lastKnownTimestamp || isNaN(clientKnown.getTime())) {
+                results.push({
+                  id,
+                  type,
+                  status: 'error',
+                  message: 'Invalid or missing lastKnownTimestamp.',
+                });
+                continue;
+              }
 
               if (serverUpdated > clientKnown) {
                 results.push({

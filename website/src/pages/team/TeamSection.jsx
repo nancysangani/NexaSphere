@@ -4,6 +4,7 @@ import { on, off } from '../../utils/socketClient.js';
 import TeamMemberModal from './TeamMemberModal';
 import { IconSpark } from '../../shared/Icons';
 import { teamMembers as fallbackTeamMembers } from '../../data/teamData';
+import { getApiBase } from '../../utils/runtimeConfig';
 import {
   getLocalTeamMembers,
   mergeTeamMembers,
@@ -95,7 +96,7 @@ export default function TeamSection({ onApply }) {
 
   useEffect(() => {
     let alive = true;
-    const base = (import.meta?.env?.VITE_API_BASE || '').replace(/\/+$/, '');
+    const base = getApiBase();
     const applyLocalTeam = () => {
       if (alive) setMembers(getLocalTeamMembers(fallbackTeamMembers));
     };

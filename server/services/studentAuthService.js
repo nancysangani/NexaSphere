@@ -45,6 +45,24 @@ export const studentAuthService = {
     return user;
   },
 
+  generateRecoveryCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+},
+
+async createRecoveryRequest(email) {
+  const code = this.generateRecoveryCode();
+
+  return {
+    email,
+    code,
+    createdAt: new Date(),
+  };
+},
+
+verifyRecoveryCode(savedCode, enteredCode) {
+  return savedCode === enteredCode;
+},
+
   generateToken(user) {
     const payload = {
       sub: user.id,

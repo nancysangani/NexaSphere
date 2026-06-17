@@ -14,11 +14,11 @@ import {
 } from 'lucide-react';
 import { mentors as fallbackMentors, mentorDomains } from '../../data/mentorshipData.js';
 import './MentorsPage.css';
-
-const API_BASE = import.meta.env.VITE_API_URL || '';
+import { getApiBase } from '../../utils/runtimeConfig';
 
 async function apiFetch(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const base = getApiBase();
+  const res = await fetch(`${base}${path}`, {
     headers: { 'Content-Type': 'application/json', ...options.headers },
     ...options,
   });

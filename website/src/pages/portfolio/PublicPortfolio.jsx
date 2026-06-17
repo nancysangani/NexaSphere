@@ -350,8 +350,8 @@ export default function PublicPortfolio({ username, onBack }) {
                 Certified Capabilities
               </h2>
               <div className="portfolio-pills-list">
-                {skills.map((skill, index) => (
-                  <span key={index} className="portfolio-pill">
+                {skills.map((skill) => (
+                  <span key={skill} className="portfolio-pill">
                     {skill}
                   </span>
                 ))}
@@ -452,9 +452,9 @@ export default function PublicPortfolio({ username, onBack }) {
                         <h3 className="project-card-heading">{proj.title}</h3>
                         <p className="project-card-description">{proj.shortDesc}</p>
                         <div className="portfolio-pills-list" style={{ gap: '6px' }}>
-                          {proj.techStack?.slice(0, 4).map((tech, idx) => (
+                          {proj.techStack?.slice(0, 4).map((tech) => (
                             <span
-                              key={idx}
+                              key={tech}
                               className="portfolio-pill"
                               style={{ padding: '2px 6px', fontSize: '0.7rem' }}
                             >

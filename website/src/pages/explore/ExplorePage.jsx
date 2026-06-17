@@ -12,6 +12,7 @@ import {
   Tag,
 } from 'lucide-react';
 import apiClient from '../../utils/apiClient';
+import { getApiBase } from '../../utils/runtimeConfig';
 import AdvancedFilters from '../../components/explore/AdvancedFilters';
 
 const SECTION_ICONS = {
@@ -29,16 +30,15 @@ export default function ExplorePage({ onBack, eventsData }) {
   const [filters, setFilters] = useState(null);
   const [activeTab, setActiveTab] = useState('discover');
 
-  const apiBase = import.meta?.env?.VITE_API_BASE || '';
-
   useEffect(() => {
     const fetchData = async () => {
+      const base = getApiBase();
       setLoading(true);
       try {
         const [trendingRes, recsRes, teamRes] = await Promise.all([
-          apiBase ? apiClient(`${apiBase}/api/search/trending`).catch(() => null) : null,
-          apiBase ? apiClient(`${apiBase}/api/recommendations`).catch(() => null) : null,
-          apiBase ? apiClient(`${apiBase}/api/content/team`).catch(() => null) : null,
+          base ? apiClient(`${base}/api/search/trending`).catch(() => null) : null,
+          base ? apiClient(`${base}/api/recommendations`).catch(() => null) : null,
+          base ? apiClient(`${base}/api/content/team`).catch(() => null) : null,
         ]);
 
         if (trendingRes?.trending) setTrending(trendingRes.trending);
@@ -48,7 +48,7 @@ export default function ExplorePage({ onBack, eventsData }) {
       setLoading(false);
     };
     fetchData();
-  }, [apiBase]);
+  }, []);
 
   const filteredEvents = useMemo(() => {
     let items = trending.length > 0 ? trending : eventsData || [];

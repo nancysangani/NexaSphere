@@ -238,6 +238,7 @@ export const streamRepository = {
       if (!rows.length) return null;
 
       const poll = rows[0];
+      if (Number(optionIndex) < 0 || Number(optionIndex) >= poll.options.length) return null;
       const votes = typeof poll.votes === 'string' ? JSON.parse(poll.votes) : poll.votes || {};
       const key = String(optionIndex);
       votes[key] = (votes[key] || 0) + 1;

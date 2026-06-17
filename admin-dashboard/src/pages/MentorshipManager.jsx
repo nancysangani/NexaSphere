@@ -17,6 +17,7 @@ export function MentorshipManager() {
   const [error, setError] = useState(null);
   const [tab, setTab] = useState('mentorships');
   const [activeTab, setActiveTab] = useState('all');
+  const [updating, setUpdating] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -40,11 +41,14 @@ export function MentorshipManager() {
   }, [load]);
 
   const handleStatus = async (id, status) => {
+    setUpdating(id);
     try {
       await api.mentorship.updateStatus(id, status);
       await load();
     } catch (e) {
       setError(e.message);
+    } finally {
+      setUpdating(null);
     }
   };
 
@@ -138,15 +142,17 @@ export function MentorshipManager() {
                           className="btn-icon"
                           title="Approve"
                           onClick={() => handleStatus(m.id, 'active')}
+                          disabled={updating === m.id}
                         >
-                          <AdminIcon name="Check" size={16} />
+                          {updating === m.id ? '…' : <AdminIcon name="Check" size={16} />}
                         </button>
                         <button
                           className="btn-icon danger"
                           title="Reject"
                           onClick={() => handleStatus(m.id, 'rejected')}
+                          disabled={updating === m.id}
                         >
-                          <AdminIcon name="X" size={16} />
+                          {updating === m.id ? '…' : <AdminIcon name="X" size={16} />}
                         </button>
                       </div>
                     )}
@@ -155,8 +161,9 @@ export function MentorshipManager() {
                         className="btn btn-sm btn-secondary"
                         style={{ marginLeft: '8px' }}
                         onClick={() => handleStatus(m.id, 'completed')}
+                        disabled={updating === m.id}
                       >
-                        Mark Complete
+                        {updating === m.id ? 'Completing…' : 'Mark Complete'}
                       </button>
                     )}
                   </div>

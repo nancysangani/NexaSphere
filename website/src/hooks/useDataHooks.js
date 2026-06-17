@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { API_BASE, THEME_STORAGE_KEY, DEFAULT_THEME, EVENTS_API_ENDPOINT } from '../data/config';
+import { THEME_STORAGE_KEY, DEFAULT_THEME, EVENTS_API_ENDPOINT } from '../data/config';
+import { getApiBase } from '../utils/runtimeConfig';
 
 export function useThemeManagement() {
   const [theme, setTheme] = useState(
@@ -26,7 +27,8 @@ export function useDynamicEvents(fallbackEvents) {
 
   useEffect(() => {
     let isMounted = true;
-    const url = API_BASE ? `${API_BASE}${EVENTS_API_ENDPOINT}` : EVENTS_API_ENDPOINT;
+    const base = getApiBase();
+    const url = base ? `${base}${EVENTS_API_ENDPOINT}` : EVENTS_API_ENDPOINT;
 
     fetch(url)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Failed to load events'))))

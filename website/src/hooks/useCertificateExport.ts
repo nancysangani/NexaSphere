@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import React, { useState, useCallback } from 'react';
+import { useReactToPrint, type UseReactToPrintOptions } from 'react-to-print';
 import { isIOS } from '../utils/deviceDetection';
 import { generatePDFBlob } from '../utils/certificateDownload';
 
@@ -16,10 +16,10 @@ export const useCertificateExport = (options: UseCertificateExportOptions) => {
   const isIOSDevice = isIOS();
 
   // Setup standard react-to-print hook for non-iOS devices
-  const handleReactToPrint = useReactToPrint({
-    content: options.content,
+  const printOptions: UseReactToPrintOptions = {
+    contentRef: { current: options.content() } as React.RefObject<HTMLElement>,
     documentTitle: options.documentTitle,
-    onBeforeGetContent: async () => {
+    onBeforePrint: async () => {
       setIsExporting(true);
       if (options.onBeforeGetContent) {
         await options.onBeforeGetContent();
@@ -31,15 +31,16 @@ export const useCertificateExport = (options: UseCertificateExportOptions) => {
         options.onAfterPrint();
       }
     },
-    removeAfterPrint: options.removeAfterPrint ?? true,
-    // Add print error handling to not get stuck in exporting state
-    onPrintError: () => {
+    preserveAfterPrint: !(options.removeAfterPrint ?? true),
+    // Reset exporting state on print error to prevent stuck loading state
+    onPrintError: (_errorLocation, _error) => {
       setIsExporting(false);
       if (options.onAfterPrint) {
         options.onAfterPrint();
       }
     },
-  } as any);
+  };
+  const handleReactToPrint = useReactToPrint(printOptions);
 
   const handlePrint = useCallback(async () => {
     if (!isIOSDevice) {

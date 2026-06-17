@@ -5,13 +5,14 @@ import UserGrowthChart from '../../components/admin/analytics/UserGrowthChart';
 import EventAttendanceChart from '../../components/admin/analytics/EventAttendanceChart';
 import '../../components/admin/analytics/analytics.css';
 import socketClient from '../../utils/socketClient';
+import { getApiBase } from '../../utils/runtimeConfig';
 
 export default function AdminPage({ onBack }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    () => localStorage.getItem('ns_admin_logged_in') === 'true'
-  );
+  // Derive initial auth state from token presence rather than a spoofable
+  // boolean flag — the token is validated server-side on the first API call.
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('ns_admin_token'));
   const [token, setToken] = useState(null);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [data, setData] = useState({
@@ -23,7 +24,7 @@ export default function AdminPage({ onBack }) {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const base = (import.meta?.env?.VITE_API_BASE || '').replace(/\/+$/, '');
+      const base = getApiBase();
       const authToken = token || localStorage.getItem('ns_admin_token');
       const headers = { Authorization: `Bearer ${authToken}` };
 
@@ -51,14 +52,18 @@ export default function AdminPage({ onBack }) {
   useEffect(() => {
     if (!isLoggedIn) return;
 
-    const base = (import.meta?.env?.VITE_API_BASE || '').replace(/\/+$/, '');
+    const base = getApiBase();
     const url = `${base}/api/admin/metrics/stream`;
 
     const listeners = {};
     let closed = false;
-    let reconnectTimeout;
+    let reconnectTimeout = undefined;
 
     async function connect() {
+      // Re-check closed after any await — component may have unmounted
+      // while fetch() was in flight, making the earlier clearTimeout
+      // in sseClient.close() a no-op since reconnectTimeout was not
+      // yet assigned at that point.
       if (closed) return;
       try {
         const response = await fetch(url, {
@@ -68,7 +73,7 @@ export default function AdminPage({ onBack }) {
         if (!response.ok) {
           if (response.status === 401) {
             setIsLoggedIn(false);
-            localStorage.removeItem('ns_admin_logged_in');
+            localStorage.removeItem('ns_admin_token');
             return;
           }
           throw new Error(`SSE connection failed: ${response.status}`);
@@ -104,6 +109,8 @@ export default function AdminPage({ onBack }) {
         console.warn('Admin SSE metrics stream connection interrupted or reconnecting...', err);
       }
 
+      // Re-check closed after await — if component unmounted while fetch
+      // was in flight, closed is now true and we must not schedule a reconnect.
       if (!closed) {
         reconnectTimeout = setTimeout(connect, 3000);
       }
@@ -181,7 +188,7 @@ export default function AdminPage({ onBack }) {
     e.preventDefault();
     try {
       setLoading(true);
-      const base = (import.meta?.env?.VITE_API_BASE || '').replace(/\/+$/, '');
+      const base = getApiBase();
       const result = await apiClient(`${base}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -193,7 +200,6 @@ export default function AdminPage({ onBack }) {
         localStorage.setItem('ns_admin_token', result.token);
         setToken(result.token);
       }
-      localStorage.setItem('ns_admin_logged_in', 'true');
       setIsLoggedIn(true);
       setError(null);
     } catch (err) {
@@ -205,7 +211,7 @@ export default function AdminPage({ onBack }) {
 
   const handleLogout = async () => {
     try {
-      const base = (import.meta?.env?.VITE_API_BASE || '').replace(/\/+$/, '');
+      const base = getApiBase();
       await fetch(`${base}/api/admin/logout`, {
         method: 'POST',
         credentials: 'include',
@@ -213,7 +219,7 @@ export default function AdminPage({ onBack }) {
     } catch (err) {
       console.error(err);
     }
-    localStorage.removeItem('ns_admin_logged_in');
+    localStorage.removeItem('ns_admin_token');
     setIsLoggedIn(false);
     setData({ stats: null, growth: [], events: [] });
     socketClient.destroySocket();

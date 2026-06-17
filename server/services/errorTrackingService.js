@@ -1,6 +1,5 @@
-
 import 'dotenv/config';
-import { validateEnvironment } from './utils/envValidator.js';
+import { validateEnvironment } from '../utils/envValidator.js';
 
 validateEnvironment();
 
@@ -171,11 +170,20 @@ function truncateData(data, maxBytes) {
   if (!data) return null;
   const str = JSON.stringify(data);
   if (str.length <= maxBytes) return data;
-  try {
-    return JSON.parse(str.slice(0, maxBytes));
-  } catch {
-    return null;
+  function truncateStrings(obj, budget) {
+    if (typeof obj === 'string') return obj.slice(0, Math.floor(budget));
+    if (Array.isArray(obj)) return obj.map((item) => truncateStrings(item, budget / obj.length));
+    if (obj && typeof obj === 'object') {
+      const keys = Object.keys(obj);
+      const out = {};
+      for (const key of keys) {
+        out[key] = truncateStrings(obj[key], budget / keys.length);
+      }
+      return out;
+    }
+    return obj;
   }
+  return truncateStrings(data, maxBytes);
 }
 
 /**
@@ -274,3 +282,6 @@ function clearErrors() {
 }
 
 export { logError, getErrorStats, getRecentErrors, getEndpointErrors, getUserErrors, clearErrors };
+export const predictServiceFailure = (history) => {
+  // simple prediction logic
+};

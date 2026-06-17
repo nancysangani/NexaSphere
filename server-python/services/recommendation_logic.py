@@ -55,11 +55,11 @@ def fetch_data_with_sqlalchemy(user_id):
         try:
             with engine.connect() as conn:
                 # 1. Fetch Events
-                events_result = conn.execute(text('SELECT id, name, tags FROM "Events" WHERE status != \'completed\''))
+                events_result = conn.execute(text("SELECT id, name, tags FROM events WHERE status != 'completed'"))
                 events = [{"id": row.id, "name": row.name, "tags": row.tags} for row in events_result]
                 
                 # 2. Fetch all User Profiles
-                users_result = conn.execute(text('SELECT id, interests FROM "Profile"'))
+                users_result = conn.execute(text("SELECT id, interests FROM profiles"))
                 for row in users_result:
                     user_interests = row.interests
                     if isinstance(user_interests, str):

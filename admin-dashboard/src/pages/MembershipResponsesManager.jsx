@@ -1,3 +1,4 @@
+import { EmptyState } from '../components/EmptyState';
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { Skeleton } from '../components/Skeleton';
@@ -158,30 +159,17 @@ export function MembershipResponsesManager() {
       )}
 
       {!loading && !error && filtered.length === 0 && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '60px 24px',
-            color: 'var(--text-muted)',
-            border: '1px dashed var(--border)',
-            borderRadius: 12,
-            marginTop: 8,
-          }}
-        >
-          <AdminIcon name="Inbox" size={40} />
-          <p style={{ marginTop: 12, fontSize: 15 }}>
-            {search ? 'No responses match your search.' : 'No membership responses yet.'}
-          </p>
-          {search && (
-            <button
-              className="btn btn-secondary"
-              style={{ marginTop: 8 }}
-              onClick={() => setSearch('')}
-            >
-              Clear search
-            </button>
-          )}
-        </div>
+        <EmptyState
+          icon="Inbox"
+          title={search ? 'No Matching Responses' : 'No Membership Responses'}
+          description={
+            search
+              ? 'No responses match your current search query.'
+              : 'There are currently no membership responses available.'
+          }
+          actionLabel={search ? 'Clear Search' : undefined}
+          onAction={search ? () => setSearch('') : undefined}
+        />
       )}
 
       {!loading && !error && filtered.length > 0 && (
