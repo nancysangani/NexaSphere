@@ -45,7 +45,7 @@ jobs:
         run: npm install -g npm@11
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Build (production)
         run: npm run build --workspace=website
@@ -77,7 +77,7 @@ jobs:
         run: npm install -g npm@11
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Run unit tests
         run: npm run test --workspace=admin-dashboard
@@ -110,7 +110,7 @@ jobs:
         run: npm install -g npm@11
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Run SQL Injection security audit
         run: npm run audit:sql

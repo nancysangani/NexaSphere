@@ -77,6 +77,28 @@ export const apiClient = async (url, options = {}) => {
     }
 
     if (MUTATING_METHODS.has(method)) {
+      // Security: Do not queue authentication requests to avoid storing credentials in cleartext IDB
+      const urlStr = String(url).toLowerCase();
+      if (
+        urlStr.includes('/login') ||
+        urlStr.includes('/register') ||
+        urlStr.includes('/auth') ||
+        urlStr.includes('/reset')
+      ) {
+        throw new ApiError(
+          'Authentication actions cannot be performed offline. Please reconnect and try again.',
+          0,
+          'OFFLINE_AUTH_UNSUPPORTED'
+        );
+      }
+
+      // Security: Strip sensitive headers before storing in IndexedDB
+      const safeHeaders = { ...(fetchOptions.headers || {}) };
+      delete safeHeaders['Authorization'];
+      delete safeHeaders['authorization'];
+      delete safeHeaders['X-Api-Key'];
+      delete safeHeaders['x-api-key'];
+
       // Queue the mutation for later replay
       let body;
       try {
@@ -89,7 +111,7 @@ export const apiClient = async (url, options = {}) => {
         url,
         method,
         body,
-        headers: fetchOptions.headers || {},
+        headers: safeHeaders,
       });
 
       if (queued) {

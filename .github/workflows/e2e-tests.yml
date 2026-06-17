@@ -62,7 +62,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Install Playwright browsers
         run: npx playwright install ${{ matrix.browser }} --with-deps
@@ -83,7 +83,7 @@ jobs:
       - name: Start server
         run: |
           cd server
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
           npm run migrate:latest
           node index.js &
           echo "SERVER_PID=$!"
