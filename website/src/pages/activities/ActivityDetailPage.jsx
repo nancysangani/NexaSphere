@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { DynamicIcon } from '../../shared/Icons';
 import apiClient from '../../utils/apiClient.js';
+import { getApiBase } from '../../utils/runtimeConfig';
 
 /* ── Animated counter ── */
 function Counter({ value, suffix = '' }) {
@@ -70,7 +71,7 @@ function FloatingOrbs({ color }) {
     >
       {[...Array(6)].map((_, i) => (
         <div
-          key={i}
+          key={`circle-${i}`}
           style={{
             position: 'absolute',
             width: `${80 + i * 40}px`,
@@ -351,7 +352,7 @@ export default function ActivityDetailPage({ activity, onBack, onSelectEvent }) 
   const [mounted, setMounted] = useState(false);
   const [manualEvents, setManualEvents] = useState([]);
   const [fetchState, setFetchState] = useState('idle'); // 'idle' | 'loading' | 'done' | 'error'
-  const apiBase = (import.meta?.env?.VITE_API_BASE || '').replace(/\/+$/, '');
+  const apiBase = getApiBase();
   const activityKey = encodeURIComponent(activity.title);
 
   /* ── Fetch API-managed events with loading state ── */

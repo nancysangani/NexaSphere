@@ -16,6 +16,7 @@ export function PortfolioManager() {
     tier: 'bronze',
   });
   const [achievementError, setAchievementError] = useState('');
+  const [awarding, setAwarding] = useState(false);
 
   const fetchPortfolios = async (query) => {
     setLoading(true);
@@ -57,6 +58,7 @@ export function PortfolioManager() {
     e.preventDefault();
     if (!newAchievement.name || !selectedPortfolio?.username) return;
     setAchievementError('');
+    setAwarding(true);
     try {
       const result = await api.portfolios.awardAchievement(
         selectedPortfolio.username,
@@ -66,6 +68,8 @@ export function PortfolioManager() {
       setNewAchievement({ name: '', description: '', tier: 'bronze' });
     } catch (e) {
       setAchievementError(e.message);
+    } finally {
+      setAwarding(false);
     }
   };
 
@@ -101,8 +105,8 @@ export function PortfolioManager() {
             color: 'var(--admin-text, #eee)',
           }}
         />
-        <button type="submit" className="btn-primary">
-          Search
+        <button type="submit" className="btn-primary" disabled={loading}>
+          {loading ? 'Searching…' : 'Search'}
         </button>
         {searchQuery && (
           <button
@@ -309,8 +313,13 @@ export function PortfolioManager() {
                 {achievementError && (
                   <div style={{ color: '#ef4444', fontSize: '0.8rem' }}>{achievementError}</div>
                 )}
-                <button type="submit" className="btn-primary" style={{ alignSelf: 'flex-start' }}>
-                  Award
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ alignSelf: 'flex-start' }}
+                  disabled={awarding}
+                >
+                  {awarding ? 'Awarding…' : 'Award'}
                 </button>
               </form>
             </div>

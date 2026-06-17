@@ -12,6 +12,7 @@ import {
   Tag,
 } from 'lucide-react';
 import apiClient from '../../utils/apiClient';
+import { getApiBase } from '../../utils/runtimeConfig';
 import AdvancedFilters from '../../components/explore/AdvancedFilters';
 
 const SECTION_ICONS = {
@@ -26,29 +27,34 @@ export default function ExplorePage({ onBack, eventsData }) {
   const [recommendations, setRecommendations] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [filters, setFilters] = useState(null);
   const [activeTab, setActiveTab] = useState('discover');
 
-  const apiBase = import.meta?.env?.VITE_API_BASE || '';
-
   useEffect(() => {
     const fetchData = async () => {
+      const base = getApiBase();
       setLoading(true);
       try {
         const [trendingRes, recsRes, teamRes] = await Promise.all([
-          apiBase ? apiClient(`${apiBase}/api/search/trending`).catch(() => null) : null,
-          apiBase ? apiClient(`${apiBase}/api/recommendations`).catch(() => null) : null,
-          apiBase ? apiClient(`${apiBase}/api/content/team`).catch(() => null) : null,
+          base ? apiClient(`${base}/api/search/trending`).catch(() => null) : null,
+          base ? apiClient(`${base}/api/recommendations`).catch(() => null) : null,
+          base ? apiClient(`${base}/api/content/team`).catch(() => null) : null,
         ]);
 
         if (trendingRes?.trending) setTrending(trendingRes.trending);
         if (recsRes?.recommendations) setRecommendations(recsRes.recommendations);
         if (teamRes?.members) setMembers(teamRes.members);
-      } catch {}
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.warn('[ExplorePage] Failed to fetch explore data:', err.message);
+        }
+        setFetchError('Failed to load content. Please try again.');
+      }
       setLoading(false);
     };
     fetchData();
-  }, [apiBase]);
+  }, []);
 
   const filteredEvents = useMemo(() => {
     let items = trending.length > 0 ? trending : eventsData || [];
@@ -512,9 +518,9 @@ function EventCard({ event, detailed }) {
             <Calendar size={11} /> {date}
           </span>
         )}
-        {tags.slice(0, 3).map((t, i) => (
+        {tags.slice(0, 3).map((t) => (
           <span
-            key={i}
+            key={t}
             style={{
               fontSize: '0.68rem',
               padding: '2px 8px',

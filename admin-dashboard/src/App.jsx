@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth';
 import { Sidebar } from './components/Sidebar';
 import { Toast } from './components/Toast';
 import { OfflineBanner } from './components/OfflineBanner';
+import ErrorBoundary from './components/ErrorBoundary';
 import { LoginPage } from './pages/LoginPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { ForumManager } from './pages/ForumManager';
@@ -18,6 +19,7 @@ import { AnnouncementsManager } from './pages/AnnouncementsManager';
 import { PortfolioManager } from './pages/PortfolioManager';
 import { StreamManager } from './pages/StreamManager';
 import { CircuitBreakerManager } from './pages/CircuitBreakerManager';
+import { SponsorshipsManager } from './pages/SponsorshipsManager';
 import './styles/admin.css';
 
 function RequireAuth() {
@@ -43,7 +45,9 @@ function DashboardLayout() {
       <OfflineBanner />
       <Sidebar />
       <main className="main-content" id="main-content">
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
       <Toast />
     </div>
@@ -71,6 +75,7 @@ export default function App() {
             <Route path="/dashboard/mentorship" element={<MentorshipManager />} />
             <Route path="/dashboard/streams" element={<StreamManager />} />
             <Route path="/dashboard/circuit-breaker" element={<CircuitBreakerManager />} />
+            <Route path="/dashboard/sponsorships" element={<SponsorshipsManager />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />

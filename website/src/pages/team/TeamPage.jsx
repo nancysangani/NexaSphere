@@ -12,6 +12,7 @@ import TeamMemberModal from './TeamMemberModal';
 import { IconSpark } from '../../shared/Icons';
 import { BannerOrbs } from '../../shared/MotionLayer';
 import Footer from '../../shared/Footer';
+import { getApiBase } from '../../utils/runtimeConfig';
 
 function MemberCard({ member, idx, onClick, triggerRef }) {
   const ref = useRef(null);
@@ -106,7 +107,7 @@ export default function TeamPage({ onBack, onApply }) {
 
   useEffect(() => {
     let alive = true;
-    const base = (import.meta?.env?.VITE_API_BASE || '').replace(/\/+$/, '');
+    const base = getApiBase();
     const applyLocalTeam = () => {
       if (alive) setMembers(getLocalTeamMembers(teamMembers));
     };

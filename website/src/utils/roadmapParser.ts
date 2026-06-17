@@ -15,7 +15,7 @@ interface StaticNode {
   practice?: StaticResource[];
 }
 
-interface StaticRoadmap {
+export interface StaticRoadmap {
   title: string;
   description: string;
   nodes: StaticNode[];

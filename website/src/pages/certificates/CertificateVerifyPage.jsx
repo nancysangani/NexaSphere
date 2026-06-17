@@ -206,28 +206,22 @@ export default function CertificateVerifyPage({ certificateId, onGoHome }) {
 
     async function fetchVerification() {
       try {
-        const apiBase = getApiBase();
-        const res = await fetch(
-          `${apiBase}/api/public/certificates/verify/${encodeURIComponent(certificateId)}`,
-          {
-            signal: controller.signal,
-          }
+        const base = getApiBase();
+        // Use apiClient instead of raw fetch — provides Sentry error
+        // tracking, offline IndexedDB cache fallback, and standardised
+        // error handling via ApiError consistent with the rest of the codebase.
+        const json = await apiClient(
+          `${base}/api/public/certificates/verify/${encodeURIComponent(certificateId)}`,
+          { signal: controller.signal }
         );
-
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          setMessage(errData.message || 'Server error during verification.');
-          setStatus('error');
-          return;
-        }
-
-        const json = await res.json();
         setData(json);
         setMessage(json.message);
         setStatus(json.valid ? 'valid' : 'invalid');
       } catch (err) {
         if (err.name === 'AbortError') return;
-        setMessage('Unable to reach the verification server. Please try again later.');
+        setMessage(
+          err.message || 'Unable to reach the verification server. Please try again later.'
+        );
         setStatus('error');
       }
     }

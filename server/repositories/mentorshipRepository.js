@@ -135,16 +135,9 @@ export const mentorshipRepository = {
     return withDb(async (client) => {
       const existing = await client.query('select id from mentors where email = $1', [input.email]);
       if (existing.rows.length > 0) {
-        const updateSql = `update mentors set name = $1, domains = $2, bio = $3, experience = $4, availability = $5, is_available = true, updated_at = now() where email = $6 returning *`;
-        const { rows } = await client.query(updateSql, [
-          input.name,
-          JSON.stringify(input.domains),
-          input.bio || '',
-          input.experience || '',
-          input.availability || '',
-          input.email,
-        ]);
-        return rows.length ? mapMentorRow(rows[0]) : null;
+        const error = new Error('Email already registered');
+        error.status = 409;
+        throw error;
       }
       const { rows } = await client.query(
         `insert into mentors (name, email, domains, bio, experience, availability) values ($1, $2, $3, $4, $5, $6) returning *`,

@@ -107,7 +107,7 @@ export function tierRateLimiter(options = {}) {
             redis.call('EXPIRE', key, 3600)
             return {1, math.floor(tokens)}
           else
-            redis.call('HMSET', key, 'last_updated', last_updated)
+            redis.call('HMSET', key, 'tokens', tokens, 'last_updated', last_updated)
             return {0, 0}
           end
         `;

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { getApiBase } from '../utils/runtimeConfig';
 import { motion } from 'framer-motion';
 import { Activity, ShieldAlert, CheckCircle, Clock, ArrowLeft } from 'lucide-react';
 
@@ -11,7 +12,12 @@ export default function StatusPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/monitoring/status-history')
+    const base = getApiBase();
+    if (!base) {
+      setLoading(false);
+      return;
+    }
+    fetch(`${base}/api/monitoring/status-history`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -49,11 +55,11 @@ export default function StatusPage() {
           transition={{ duration: 0.5 }}
           className={`rounded-2xl p-8 border backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl ${
             isOperational
-              ? 'bg-[#003810]/10 border-[#00C853]/30 shadow-[#00C853]/5'
-              : 'bg-[#3D0A0A]/10 border-[#D50000]/30 shadow-[#D50000]/5'
+              ? 'bg-[#003810]/10 border-[#00C853]/30'
+              : 'bg-[#3D0A0A]/10 border-[#D50000]/30'
           }`}
         >
-          <div className="flex items-center gap-4 text-center md:text-left">
+          <div className="flex items-center gap-4 text-center md:text-left" role="status">
             <div className="relative">
               {isOperational ? (
                 <CheckCircle className="w-12 h-12 text-[#00C853]" />
@@ -61,7 +67,7 @@ export default function StatusPage() {
                 <ShieldAlert className="w-12 h-12 text-[#D50000]" />
               )}
               {isOperational && (
-                <span className="absolute top-0 right-0 flex h-3 w-3">
+                <span className="absolute top-0 right-0 flex h-3 w-3" aria-hidden="true">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C853] opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-[#00C853]"></span>
                 </span>
@@ -100,15 +106,20 @@ export default function StatusPage() {
             <span className="text-xs text-gray-500">90 Days Ago — Today</span>
           </div>
           <div className="flex gap-[3px] h-8 justify-between">
-            {Array.from({ length: 45 }).map((_, i) => (
+            {Array.from({ length: 45 }, (_, i) => ({
+              // Use a stable day-offset key derived from data position rather
+              // than array index — prevents unnecessary React reconciliation
+              // when the list is re-rendered.
+              dayOffset: 45 - i,
+            })).map(({ dayOffset }) => (
               <div
-                key={i}
+                key={`uptime-day-${dayOffset}`}
                 className={`flex-1 rounded-sm transition-all duration-300 hover:scale-y-125 ${
-                  i === 38 && !isOperational
+                  dayOffset === 7 && !isOperational
                     ? 'bg-[#D50000] opacity-80'
                     : 'bg-[#00C853] opacity-60 hover:opacity-100'
                 }`}
-                title={`Day ${45 - i} ago: Healthy`}
+                title={`${dayOffset} day${dayOffset === 1 ? '' : 's'} ago: Healthy`}
               />
             ))}
           </div>
@@ -153,7 +164,8 @@ export default function StatusPage() {
                   </div>
                   <div className="text-xs text-gray-500 mb-3">
                     Start: {new Date(incident.startedAt).toLocaleString()}
-                    {incident.resolvedAt && ` | End: ${new Date(incident.resolvedAt).toLocaleString()}`}
+                    {incident.resolvedAt &&
+                      ` | End: ${new Date(incident.resolvedAt).toLocaleString()}`}
                   </div>
                   <div className="space-y-2 mt-2">
                     {incident.updates.map((update, idx) => (

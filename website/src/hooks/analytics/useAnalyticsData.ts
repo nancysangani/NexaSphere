@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { getApiBase } from '../../utils/runtimeConfig';
 import { useAnalyticsFilters } from '../../context/AnalyticsFilterContext';
 import {
   generateTrendData,
@@ -8,8 +9,6 @@ import {
   DistributionDataPoint,
   ComparisonDataPoint,
 } from '../../utils/chartDataFormatters';
-
-const getApiBase = () => (import.meta as any).env?.VITE_API_BASE?.replace(/\/+$/, '') || '';
 
 /**
  * Returns true when the API base URL is configured for this deployment.
@@ -53,10 +52,14 @@ export const useAnalyticsData = () => {
 
     const base = getApiBase();
 
+    const safeJson = (r: Response) => {
+      if (!r.ok) throw new Error(`Analytics API error: ${r.status} ${r.statusText}`);
+      return r.json();
+    };
     Promise.all([
-      fetch(`${base}/api/admin/analytics/stats`).then((r) => r.json()),
-      fetch(`${base}/api/admin/analytics/growth`).then((r) => r.json()),
-      fetch(`${base}/api/admin/analytics/events`).then((r) => r.json()),
+      fetch(`${base}/api/admin/analytics/stats`).then(safeJson),
+      fetch(`${base}/api/admin/analytics/growth`).then(safeJson),
+      fetch(`${base}/api/admin/analytics/events`).then(safeJson),
     ])
       .then(([stats, growth, events]) => {
         if (!isMounted) return;

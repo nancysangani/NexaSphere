@@ -81,6 +81,7 @@ import MoveToTop from './shared/MoveToTop';
 import OfflineBanner from './components/pwa/OfflineBanner.jsx';
 import InstallPrompt from './components/pwa/InstallPrompt.jsx';
 import UpdatePrompt from './components/pwa/UpdatePrompt.jsx';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy-loaded heavy pages
 const RecruitmentPage = lazy(() => import('./pages/recruitment/RecruitmentPage'));
@@ -110,6 +111,7 @@ const MentorsPage = lazy(() => import('./pages/mentorship/MentorsPage'));
 const MentorshipDashboard = lazy(() => import('./pages/mentorship/MentorshipDashboard'));
 const StatusPage = lazy(() => import('./pages/StatusPage'));
 const LiveStreamPage = lazy(() => import('./pages/streaming/LiveStreamPage'));
+const SponsorsPage = lazy(() => import('./pages/sponsors/SponsorsPage'));
 
 const MNH = 88,
   DNH = 64;
@@ -615,6 +617,7 @@ function MainRouter({
       '/mentorship': 'Mentorship',
       '/mentorship/mentors': 'Mentorship',
       '/mentorship/dashboard': 'Mentorship',
+      '/sponsors': 'Sponsors',
     };
     const tab = pathMap[location.pathname] || 'Home';
     setActiveTab(tab);
@@ -680,11 +683,13 @@ function MainRouter({
         Portfolio: '/portfolio',
         Collab: '/collab',
         Explore: '/explore',
+        Resources: '/resources',
         About: '/about',
         'Core Team': '/team',
         Contact: '/contact',
         Forum: '/forum',
         Mentorship: '/mentorship',
+        Sponsors: '/sponsors',
       };
       const targetPath = routeMap[tab];
       if (targetPath) {
@@ -804,18 +809,22 @@ function MainRouter({
             <Route
               path="/activities"
               element={
-                <PageIn k="activities">
-                  <ActivitiesPage onNavigate={onNavigate} onBack={onBackHome} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="activities">
+                    <ActivitiesPage onNavigate={onNavigate} onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
             <Route
               path="/activities/:activityKey"
               element={
-                <ActivityDetailWrapper
-                  onBack={() => nav('/activities')}
-                  onSelectEvent={onKSSClick}
-                />
+                <ErrorBoundary>
+                  <ActivityDetailWrapper
+                    onBack={() => nav('/activities')}
+                    onSelectEvent={onKSSClick}
+                  />
+                </ErrorBoundary>
               }
             />
 
@@ -823,31 +832,41 @@ function MainRouter({
             <Route
               path="/events"
               element={
-                <PageIn k="events">
-                  <EventsPage onBack={onBackHome} onEventClick={onKSSClick} events={eventsData} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="events">
+                    <EventsPage onBack={onBackHome} onEventClick={onKSSClick} events={eventsData} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
             <Route
               path="/events/:eventId"
-              element={<EventDetailWrapper onBack={() => nav('/events')} events={eventsData} />}
+              element={
+                <ErrorBoundary>
+                  <EventDetailWrapper onBack={() => nav('/events')} events={eventsData} />
+                </ErrorBoundary>
+              }
             />
 
             {/* ── Live Streaming ── */}
             <Route
               path="/stream/:eventId"
               element={
-                <PageIn k="stream">
-                  <LiveStreamPage />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="stream">
+                    <LiveStreamPage />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
             <Route
               path="/stream/:eventId/:streamId"
               element={
-                <PageIn k="stream-id">
-                  <LiveStreamPage />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="stream-id">
+                    <LiveStreamPage />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -855,11 +874,13 @@ function MainRouter({
             <Route
               path="/dashboard"
               element={
-                <RequireAuth>
-                  <PageIn k="dashboard">
-                    <DashboardPage onBack={onBackHome} />
-                  </PageIn>
-                </RequireAuth>
+                <ErrorBoundary>
+                  <RequireAuth>
+                    <PageIn k="dashboard">
+                      <DashboardPage onBack={onBackHome} />
+                    </PageIn>
+                  </RequireAuth>
+                </ErrorBoundary>
               }
             />
 
@@ -867,9 +888,11 @@ function MainRouter({
             <Route
               path="/gamification"
               element={
-                <PageIn k="gamification">
-                  <GamificationDashboard />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="gamification">
+                    <GamificationDashboard />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -877,9 +900,11 @@ function MainRouter({
             <Route
               path="/analytics"
               element={
-                <PageIn k="analytics">
-                  <AnalyticsPage onBack={onBackHome} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="analytics">
+                    <AnalyticsPage onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -887,9 +912,11 @@ function MainRouter({
             <Route
               path="/projects"
               element={
-                <PageIn k="projects">
-                  <ProjectsPage onBack={onBackHome} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="projects">
+                    <ProjectsPage onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -897,9 +924,11 @@ function MainRouter({
             <Route
               path="/roadmaps"
               element={
-                <PageIn k="roadmaps">
-                  <RoadmapsPage onBack={onBackHome} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="roadmaps">
+                    <RoadmapsPage onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -907,25 +936,40 @@ function MainRouter({
             <Route
               path="/portfolio"
               element={
-                <PageIn k="portfolio">
-                  <PortfolioBuilder />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="portfolio">
+                    <PortfolioBuilder />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
             {/* ── Public Portfolio ── */}
-            <Route path="/p/:username" element={<PublicPortfolioWrapper onBack={onBackHome} />} />
+            <Route
+              path="/p/:username"
+              element={
+                <ErrorBoundary>
+                  <PublicPortfolioWrapper onBack={onBackHome} />
+                </ErrorBoundary>
+              }
+            />
             <Route
               path="/profile/:username"
-              element={<PublicPortfolioWrapper onBack={onBackHome} />}
+              element={
+                <ErrorBoundary>
+                  <PublicPortfolioWrapper onBack={onBackHome} />
+                </ErrorBoundary>
+              }
             />
 
             {/* ── Collab ── */}
             <Route
               path="/collab"
               element={
-                <PageIn k="collab">
-                  <CollabPage onBack={onBackHome} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="collab">
+                    <CollabPage onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -933,9 +977,11 @@ function MainRouter({
             <Route
               path="/about"
               element={
-                <PageIn k="about">
-                  <AboutPage onBack={onBackHome} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="about">
+                    <AboutPage onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -943,9 +989,11 @@ function MainRouter({
             <Route
               path="/team"
               element={
-                <PageIn k="team">
-                  <TeamPage onBack={onBackHome} onApply={openApply} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="team">
+                    <TeamPage onBack={onBackHome} onApply={openApply} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -953,9 +1001,11 @@ function MainRouter({
             <Route
               path="/contact"
               element={
-                <PageIn k="contact">
-                  <ContactPage onBack={onBackHome} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="contact">
+                    <ContactPage onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -963,9 +1013,11 @@ function MainRouter({
             <Route
               path="/apply"
               element={
-                <PageIn k="apply">
-                  <RecruitmentPage onBack={onBackHome} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="apply">
+                    <RecruitmentPage onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -973,32 +1025,62 @@ function MainRouter({
             <Route
               path="/join"
               element={
-                <PageIn k="join">
-                  <MembershipPage onBack={onBackHome} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="join">
+                    <MembershipPage onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
             {/* ── Certificate Verify ── */}
-            <Route path="/verify/:certId" element={<CertVerifyWrapper onGoHome={onBackHome} />} />
+            <Route
+              path="/verify/:certId"
+              element={
+                <ErrorBoundary>
+                  <CertVerifyWrapper onGoHome={onBackHome} />
+                </ErrorBoundary>
+              }
+            />
 
             {/* ── Workspace (collaborative room) ── */}
-            <Route path="/workspace/:roomId" element={<WorkspaceWrapper onBack={onBackHome} />} />
+            <Route
+              path="/workspace/:roomId"
+              element={
+                <ErrorBoundary>
+                  <WorkspaceWrapper onBack={onBackHome} />
+                </ErrorBoundary>
+              }
+            />
 
             {/* ── Forum ── */}
             <Route
               path="/forum"
               element={
-                <PageIn k="forum">
-                  <ForumPage onBack={onBackHome} />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="forum">
+                    <ForumPage onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
             <Route
               path="/forum/:id"
               element={
-                <PageIn k="forum-thread">
-                  <ForumThreadPage onBack={() => nav('/forum')} />
+                <ErrorBoundary>
+                  <PageIn k="forum-thread">
+                    <ForumThreadPage onBack={() => nav('/forum')} />
+                  </PageIn>
+                </ErrorBoundary>
+              }
+            />
+
+            {/* ── Sponsors ── */}
+            <Route
+              path="/sponsors"
+              element={
+                <PageIn k="sponsors">
+                  <SponsorsPage />
                 </PageIn>
               }
             />
@@ -1007,25 +1089,31 @@ function MainRouter({
             <Route
               path="/mentorship"
               element={
-                <PageIn k="mentorship">
-                  <MentorsPage />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="mentorship">
+                    <MentorsPage />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
             <Route
               path="/mentorship/mentors"
               element={
-                <PageIn k="mentorship-mentors">
-                  <MentorsPage />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="mentorship-mentors">
+                    <MentorsPage />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
             <Route
               path="/mentorship/dashboard"
               element={
-                <PageIn k="mentorship-dashboard">
-                  <MentorshipDashboard />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="mentorship-dashboard">
+                    <MentorshipDashboard />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -1033,8 +1121,20 @@ function MainRouter({
             <Route
               path="/admin"
               element={
-                <PageIn k="admin">
-                  <AdminPage onBack={onBackHome} />
+                <ErrorBoundary>
+                  <PageIn k="admin">
+                    <AdminPage onBack={onBackHome} />
+                  </PageIn>
+                </ErrorBoundary>
+              }
+            />
+
+            {/* ── Resources / Library ── */}
+            <Route
+              path="/resources"
+              element={
+                <PageIn k="resources">
+                  <ResourcesPage onBack={onBackHome} />
                 </PageIn>
               }
             />
@@ -1043,9 +1143,11 @@ function MainRouter({
             <Route
               path="/login"
               element={
-                <PageIn k="login">
-                  <LoginPage />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="login">
+                    <LoginPage />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 
@@ -1053,9 +1155,11 @@ function MainRouter({
             <Route
               path="/status"
               element={
-                <PageIn k="status">
-                  <StatusPage />
-                </PageIn>
+                <ErrorBoundary>
+                  <PageIn k="status">
+                    <StatusPage />
+                  </PageIn>
+                </ErrorBoundary>
               }
             />
 

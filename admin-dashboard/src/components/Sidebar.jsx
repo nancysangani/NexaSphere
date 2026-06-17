@@ -9,36 +9,8 @@ import { PermissionGuard } from './PermissionGuard';
 const WEBSITE_URL = import.meta.env.VITE_WEBSITE_URL || 'http://localhost:5175';
 
 const links = [
-  {
-    to: '/dashboard',
-    label: 'Dashboard',
-    icon: 'Dashboard',
-  },
-  {
-    to: '/dashboard/events',
-    label: 'Events',
-    icon: 'Calendar',
-  },
   { to: '/dashboard', label: 'Dashboard', icon: 'Dashboard' },
   { to: '/dashboard/events', label: 'Events', icon: 'Calendar', requiredScope: 'events:read' },
-  {
-    to: '/dashboard/event-registrations',
-    label: 'Registrations',
-    icon: 'FileText',
-    requiredScope: 'events:read',
-  },
-  {
-    to: '/dashboard/event-scanner',
-    label: 'Scanner',
-    icon: 'Camera',
-    requiredScope: 'events:write',
-  },
-  {
-    to: '/dashboard/event-analytics',
-    label: 'Analytics',
-    icon: 'BarChart',
-    requiredScope: 'events:read',
-  },
   {
     to: '/dashboard/activity-events',
     label: 'Activity Events',
@@ -50,31 +22,6 @@ const links = [
     label: 'Core Team',
     icon: 'Users',
     requiredScope: 'settings:admin',
-  },
-  {
-    to: '/dashboard/core-team',
-    label: 'Core Team',
-    icon: 'Users',
-  },
-  {
-    to: '/dashboard/membership',
-    label: 'Membership',
-    icon: 'FileText',
-  },
-  {
-    to: '/dashboard/recruitment',
-    label: 'Recruitment',
-    icon: 'UserPlus',
-  },
-  {
-    to: '/dashboard/certificates',
-    label: 'Certificates',
-    icon: 'Award',
-  },
-  {
-    to: '/dashboard/announcements',
-    label: 'Announcements',
-    icon: 'Megaphone',
   },
   { to: '/dashboard/membership', label: 'Membership', icon: 'FileText' },
   { to: '/dashboard/recruitment', label: 'Recruitment', icon: 'UserPlus' },
@@ -106,6 +53,18 @@ const links = [
     to: '/dashboard/circuit-breaker',
     label: 'Circuit Breaker',
     icon: 'Activity',
+  },
+  {
+    to: '/dashboard/sponsorships',
+    label: 'Sponsorships',
+    icon: 'Handshake',
+    requiredScope: 'events:read',
+  },
+  {
+    to: '/dashboard/scheduled-tasks',
+    label: 'Scheduled Tasks',
+    icon: 'Clock',
+    requiredScope: 'settings:admin',
   },
 ];
 

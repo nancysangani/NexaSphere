@@ -98,7 +98,19 @@ export const ChartWrapper: React.FC<ChartWrapperProps> = ({
   );
 };
 
-export const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
+interface TooltipPayloadEntry {
+  color?: string;
+  name?: string;
+  value?: number | string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+export const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div
@@ -123,7 +135,7 @@ export const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
         >
           {label}
         </p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index: number) => (
           <div
             key={`item-${index}`}
             style={{

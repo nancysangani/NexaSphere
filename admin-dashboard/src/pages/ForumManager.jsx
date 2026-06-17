@@ -13,7 +13,9 @@ export function ForumManager() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [moderating, setModerating] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
 
   const loadThreads = async () => {
@@ -44,16 +46,20 @@ export function ForumManager() {
   }, [threads, searchQuery]);
 
   const handleModerate = async (id, status) => {
+    setModerating(id);
     try {
       await api.forum.moderate(id, status);
       setThreads((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
     } catch (err) {
       console.error('Moderation failed:', err);
+    } finally {
+      setModerating(null);
     }
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    setDeleting(true);
     setDeleteError(null);
     try {
       await api.forum.delete(deleteTarget.id);
@@ -61,6 +67,8 @@ export function ForumManager() {
       setDeleteTarget(null);
     } catch {
       setDeleteError('Failed to delete thread');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -139,64 +147,72 @@ export function ForumManager() {
                   <button
                     onClick={() => handleModerate(thread.id, 'approved')}
                     className="btn btn-approve"
+                    disabled={moderating === thread.id}
                     style={{
                       padding: '4px 12px',
                       borderRadius: 6,
                       border: 'none',
                       background: '#065f46',
                       color: '#fff',
-                      cursor: 'pointer',
+                      cursor: moderating === thread.id ? 'not-allowed' : 'pointer',
                       fontSize: '0.8rem',
+                      opacity: moderating === thread.id ? 0.6 : 1,
                     }}
                   >
-                    Approve
+                    {moderating === thread.id ? '…' : 'Approve'}
                   </button>
                 )}
                 {thread.status !== 'flagged' && (
                   <button
                     onClick={() => handleModerate(thread.id, 'flagged')}
                     className="btn btn-flag"
+                    disabled={moderating === thread.id}
                     style={{
                       padding: '4px 12px',
                       borderRadius: 6,
                       border: '1px solid #f59e0b',
                       background: 'transparent',
                       color: '#f59e0b',
-                      cursor: 'pointer',
+                      cursor: moderating === thread.id ? 'not-allowed' : 'pointer',
                       fontSize: '0.8rem',
+                      opacity: moderating === thread.id ? 0.6 : 1,
                     }}
                   >
-                    Flag
+                    {moderating === thread.id ? '…' : 'Flag'}
                   </button>
                 )}
                 {thread.status !== 'rejected' && (
                   <button
                     onClick={() => handleModerate(thread.id, 'rejected')}
                     className="btn btn-reject"
+                    disabled={moderating === thread.id}
                     style={{
                       padding: '4px 12px',
                       borderRadius: 6,
                       border: 'none',
                       background: '#991b1b',
                       color: '#fff',
-                      cursor: 'pointer',
+                      cursor: moderating === thread.id ? 'not-allowed' : 'pointer',
                       fontSize: '0.8rem',
+                      opacity: moderating === thread.id ? 0.6 : 1,
                     }}
                   >
-                    Reject
+                    {moderating === thread.id ? '…' : 'Reject'}
                   </button>
                 )}
                 <button
                   onClick={() => setDeleteTarget(thread)}
                   className="btn btn-delete"
+                  disabled={moderating === thread.id}
                   style={{
                     padding: '4px 12px',
                     borderRadius: 6,
                     border: '1px solid #ef4444',
                     background: 'transparent',
                     color: '#ef4444',
-                    cursor: 'pointer',
+                    cursor: moderating === thread.id ? 'not-allowed' : 'pointer',
                     fontSize: '0.8rem',
+                    opacity: moderating === thread.id ? 0.6 : 1,
                   }}
                 >
                   Delete
@@ -218,28 +234,32 @@ export function ForumManager() {
             <div className="modal-actions">
               <button
                 onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
                 style={{
                   padding: '8px 16px',
                   borderRadius: 6,
                   border: '1px solid #ddd',
                   background: '#fff',
-                  cursor: 'pointer',
+                  cursor: deleting ? 'not-allowed' : 'pointer',
+                  opacity: deleting ? 0.6 : 1,
                 }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
+                disabled={deleting}
                 style={{
                   padding: '8px 16px',
                   borderRadius: 6,
                   border: 'none',
                   background: '#ef4444',
                   color: '#fff',
-                  cursor: 'pointer',
+                  cursor: deleting ? 'not-allowed' : 'pointer',
+                  opacity: deleting ? 0.6 : 1,
                 }}
               >
-                Delete
+                {deleting ? 'Deleting…' : 'Delete'}
               </button>
             </div>
           </div>
