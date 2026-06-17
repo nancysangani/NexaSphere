@@ -45,11 +45,11 @@ function nextCronDate(expression, from = new Date()) {
     return values;
   };
 
-  const mins  = parse(minF,  0, 59);
+  const mins = parse(minF, 0, 59);
   const hours = parse(hourF, 0, 23);
-  const doms  = parse(domF,  1, 31);
-  const mons  = parse(monF,  1, 12);
-  const dows  = parse(dowF,  0,  6);
+  const doms = parse(domF, 1, 31);
+  const mons = parse(monF, 1, 12);
+  const dows = parse(dowF, 0, 6);
 
   const matches = (set, val) => set === null || set.has(val);
 
@@ -60,11 +60,11 @@ function nextCronDate(expression, from = new Date()) {
 
   while (d < limit) {
     if (
-      matches(mons,  d.getMonth() + 1) &&
-      matches(doms,  d.getDate())       &&
-      matches(dows,  d.getDay())        &&
-      matches(hours, d.getHours())      &&
-      matches(mins,  d.getMinutes())
+      matches(mons, d.getMonth() + 1) &&
+      matches(doms, d.getDate()) &&
+      matches(dows, d.getDay()) &&
+      matches(hours, d.getHours()) &&
+      matches(mins, d.getMinutes())
     ) {
       return d;
     }
@@ -80,7 +80,7 @@ const TASK_DEFINITIONS = [
     id: 'email-digest',
     name: 'Email Digest',
     description: 'Sends daily activity digest emails to subscribed users',
-    cron: '0 8 * * *',   // Daily at 08:00
+    cron: '0 8 * * *', // Daily at 08:00
     category: 'email',
     enabled: true,
   },
@@ -96,7 +96,7 @@ const TASK_DEFINITIONS = [
     id: 'cache-cleanup',
     name: 'Cache Cleanup',
     description: 'Evicts stale entries from the in-memory and Redis caches',
-    cron: '0 * * * *',   // Every hour
+    cron: '0 * * * *', // Every hour
     category: 'system',
     enabled: true,
   },
@@ -104,7 +104,7 @@ const TASK_DEFINITIONS = [
     id: 'database-backup',
     name: 'Database Backup',
     description: 'Creates and uploads a compressed database backup to S3',
-    cron: '0 2 * * *',   // Daily at 02:00
+    cron: '0 2 * * *', // Daily at 02:00
     category: 'system',
     enabled: true,
   },
@@ -112,7 +112,7 @@ const TASK_DEFINITIONS = [
     id: 'report-generation',
     name: 'Report Generation',
     description: 'Generates weekly activity and membership reports',
-    cron: '0 9 * * 1',   // Mondays at 09:00
+    cron: '0 9 * * 1', // Mondays at 09:00
     category: 'reports',
     enabled: true,
   },
@@ -120,7 +120,7 @@ const TASK_DEFINITIONS = [
     id: 'inactive-user-check',
     name: 'Inactive User Check',
     description: 'Flags accounts with no activity in the past 90 days',
-    cron: '0 0 * * *',   // Daily at midnight
+    cron: '0 0 * * *', // Daily at midnight
     category: 'users',
     enabled: true,
   },
@@ -128,7 +128,7 @@ const TASK_DEFINITIONS = [
     id: 'certificate-generation',
     name: 'Certificate Generation',
     description: 'Generates digital certificates for completed events',
-    cron: '30 * * * *',  // Every hour at :30
+    cron: '30 * * * *', // Every hour at :30
     category: 'certificates',
     enabled: true,
   },
@@ -136,8 +136,16 @@ const TASK_DEFINITIONS = [
     id: 'analytics-aggregation',
     name: 'Analytics Aggregation',
     description: 'Aggregates page-view and engagement analytics data',
-    cron: '0 * * * *',   // Every hour
+    cron: '0 * * * *', // Every hour
     category: 'analytics',
+    enabled: true,
+  },
+  {
+    id: 'overdue-task-reminder',
+    name: 'Overdue Task Reminder',
+    description: 'Scans Kanban boards for overdue tasks and notifies assignees',
+    cron: '0 10 * * *', // Every day at 10:00 AM
+    category: 'collaboration',
     enabled: true,
   },
 ];
@@ -264,6 +272,10 @@ class SchedulerService extends EventEmitter {
       case 'analytics-aggregation':
         // await analyticsService.aggregate();
         break;
+      case 'overdue-task-reminder':
+        console.log('[SchedulerService] Processing overdue task notifications...');
+        // logic to fetch tasks with dueDate < now and status != 'Done' and notify assignees
+        break;
       default:
         throw new Error(`No implementation for task "${task.id}"`);
     }
@@ -293,7 +305,10 @@ class SchedulerService extends EventEmitter {
     } else {
       task.nextRun = null;
       const h = this._timers.get(taskId);
-      if (h) { clearTimeout(h); this._timers.delete(taskId); }
+      if (h) {
+        clearTimeout(h);
+        this._timers.delete(taskId);
+      }
     }
     return this._snapshot(task);
   }
@@ -331,16 +346,17 @@ class SchedulerService extends EventEmitter {
   /** Aggregate stats across all tasks. */
   getStats() {
     const tasks = [...this._tasks.values()];
-    const totalRuns  = tasks.reduce((s, t) => s + t.history.length, 0);
+    const totalRuns = tasks.reduce((s, t) => s + t.history.length, 0);
     const totalFails = tasks.reduce(
-      (s, t) => s + t.history.filter((h) => h.status === 'failed').length, 0
+      (s, t) => s + t.history.filter((h) => h.status === 'failed').length,
+      0
     );
     const running = tasks.filter((t) => t.running).length;
     const enabled = tasks.filter((t) => t.enabled).length;
     const avgDuration = totalRuns
       ? Math.round(
-          tasks.reduce((s, t) => s + t.history.reduce((a, h) => a + (h.durationMs || 0), 0), 0)
-          / totalRuns
+          tasks.reduce((s, t) => s + t.history.reduce((a, h) => a + (h.durationMs || 0), 0), 0) /
+            totalRuns
         )
       : 0;
 
