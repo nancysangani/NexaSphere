@@ -199,6 +199,7 @@ router.get(
 router.post(
   '/api/admin/portfolios/:username/achievements',
   adminAuthMiddleware.requireScope('events:write'),
+  adminAuditMiddleware,
   async (req, res) => {
     try {
       const username = String(req.params.username || '')
@@ -222,6 +223,15 @@ router.post(
 router.delete(
   '/api/admin/portfolios/:username/achievements/:name',
   adminAuthMiddleware.requireScope('events:write'),
+  attachOldState(async (req) => {
+    const username = String(req.params.username || '')
+      .trim()
+      .toLowerCase();
+    const achievements = await achievementsRepository.getByUsername(username);
+    const targetName = String(req.params.name || '').trim();
+    return achievements.find((a) => a.name === targetName);
+  }),
+  adminAuditMiddleware,
   async (req, res) => {
     try {
       const username = String(req.params.username || '')
