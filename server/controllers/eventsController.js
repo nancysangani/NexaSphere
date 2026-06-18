@@ -1,5 +1,6 @@
 import { eventsService } from '../services/eventsService.js';
 import { paginationSchema } from '../validators/eventSchemas.js';
+import { emitToRole } from '../config/socket.js';
 
 function wrapAsync(fn) {
   return (req, res) =>
@@ -46,6 +47,10 @@ export const adminUpdateEvent = wrapAsync(async (req, res) => {
   const id = String(req.params.id || '').trim();
   const updated = await eventsService.updateEvent(id, req.body);
   if (!updated) return res.status(404).json({ error: 'Event not found' });
+
+  // Broadcast real-time update to all calendar views
+  emitToRole('user', 'calendar:event-updated', updated);
+
   return res.json({ ok: true, event: updated });
 });
 

@@ -4,7 +4,7 @@
   border-radius: 16px;
   padding: 24px;
   margin: 0 auto;
-  max-width: 900px;
+  max-width: 1100px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
 }
@@ -42,6 +42,46 @@
   background: var(--c1a);
   color: var(--c1);
   border-color: var(--c1);
+}
+
+.calendar-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.view-switcher {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid var(--bdr);
+}
+
+.view-btn {
+  background: transparent;
+  border: none;
+  color: var(--t3);
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.view-btn.active {
+  background: var(--c1);
+  color: white;
+}
+
+.calendar-search {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--t1);
+  font-size: 0.85rem;
 }
 
 .calendar-grid {
@@ -125,6 +165,77 @@
 .calendar-event-chip:hover {
   transform: translateY(-1px);
   opacity: 0.9;
+}
+
+/* Time Grid (Week/Day) Styles */
+.calendar-time-grid {
+  display: flex;
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  height: 500px;
+  overflow-y: auto;
+}
+
+.time-column {
+  width: 60px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--bdr);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.day-column {
+  flex: 1;
+  min-width: 120px;
+  border-right: 1px solid var(--bdr);
+}
+
+.time-slot-header {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--bdr);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--t2);
+}
+
+.time-label,
+.time-slot {
+  height: 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--t3);
+}
+
+.time-slot:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Timeline Styles */
+.calendar-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 10px;
+}
+
+.timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid var(--bdr);
+  padding-bottom: 12px;
+}
+
+.timeline-label {
+  width: 100px;
+  font-weight: 700;
+  color: var(--c1);
 }
 
 .event-chip-dot {

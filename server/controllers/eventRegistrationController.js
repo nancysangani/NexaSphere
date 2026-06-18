@@ -181,3 +181,22 @@ export const getEventCalendar = wrapAsync(async (req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="${event.name || 'event'}.ics"`);
   return res.send(ics);
 });
+
+export const getFullCalendarFeed = wrapAsync(async (req, res) => {
+  const events = await eventsRepository.list({ page: 1, limit: 100 });
+  const allEvents = events?.rows || [];
+
+  const calendarContent = allEvents.map(ev => calendarService.generateIcsEvent({
+    name: ev.name,
+    dateText: ev.date_text,
+    description: ev.description,
+    location: ev.location,
+    eventId: ev.id,
+  })).join('\n');
+
+  const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//NexaSphere//Events//EN\n${calendarContent}\nEND:VCALENDAR`;
+
+  res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="nexasphere-events.ics"');
+  return res.send(ics);
+});
