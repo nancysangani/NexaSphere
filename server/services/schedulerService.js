@@ -9,6 +9,7 @@
 
 import { EventEmitter } from 'events';
 import logger from '../utils/logger.js';
+import notificationsService from './notificationsService.js';
 import { withDb } from '../repositories/db.js';
 import { HAS_SUPABASE } from '../storage/supabaseClient.js';
 
@@ -151,6 +152,30 @@ const TASK_DEFINITIONS = [
     category: 'collaboration',
     enabled: true,
   },
+  {
+    id: 'hourly-digest-flush',
+    name: 'Hourly Notification Digest',
+    description: 'Batches and sends hourly notification summaries',
+    cron: '0 * * * *',
+    category: 'notifications',
+    enabled: true,
+  },
+  {
+    id: 'daily-digest-flush',
+    name: 'Daily Notification Digest',
+    description: 'Batches and sends daily notification summaries at 8 AM',
+    cron: '0 8 * * *',
+    category: 'notifications',
+    enabled: true,
+  },
+  {
+    id: 'quiet-hours-flush',
+    name: 'Quiet Hours Recovery',
+    description: 'Flushes notifications queued during quiet hours',
+    cron: '*/15 * * * *',
+    category: 'notifications',
+    enabled: true,
+  },
 ];
 
 // ─── In-memory state ──────────────────────────────────────────────────────────
@@ -270,6 +295,15 @@ class SchedulerService extends EventEmitter {
       case 'overdue-task-reminder':
         console.log('[SchedulerService] Processing overdue task notifications...');
         // logic to fetch tasks with dueDate < now and status != 'Done' and notify assignees
+        break;
+      case 'hourly-digest-flush':
+        await notificationsService.processDigests('hourly_digest');
+        break;
+      case 'daily-digest-flush':
+        await notificationsService.processDigests('daily_digest');
+        break;
+      case 'quiet-hours-flush':
+        await notificationsService.flushQueuedNotifications();
         break;
       default:
         throw new Error(`No implementation for task "${task.id}"`);

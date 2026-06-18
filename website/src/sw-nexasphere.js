@@ -230,6 +230,11 @@ self.addEventListener('push', (event) => {
     badge: '/pwa-192x192.png',
     tag: 'nexasphere-notification',
     requireInteraction: false,
+    actions: [
+      { action: 'register', title: 'Register Now' },
+      { action: 'snooze', title: 'Snooze 1h' },
+      { action: 'dismiss', title: 'Dismiss' },
+    ],
     data: {},
   };
 
@@ -256,6 +261,7 @@ self.addEventListener('push', (event) => {
       tag: notificationData.tag,
       requireInteraction: notificationData.requireInteraction,
       data: notificationData.data,
+      actions: notificationData.actions,
     })
   );
 });
@@ -265,6 +271,38 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const urlToOpen = event.notification.data?.link || '/';
+  const action = event.action;
+  const notificationId = event.notification.data?.id;
+
+  // Analytics: Track Interaction
+  event.waitUntil(
+    fetch('/api/notifications/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        notificationId,
+        eventType: action ? 'action_clicked' : 'opened',
+        action,
+      }),
+    }).catch(() => {})
+  );
+
+  if (action === 'snooze') {
+    // Logic to notify backend to re-send in 1 hour
+    console.log('[SW] Snoozing notification:', notificationId);
+    return;
+  }
+
+  if (action === 'register') {
+    // Specific deep link logic if needed
+    const registerUrl = event.notification.data?.registerUrl || urlToOpen;
+    event.waitUntil(clients.openWindow(registerUrl));
+    return;
+  }
+
+  if (action === 'dismiss') {
+    return;
+  }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

@@ -30,6 +30,7 @@ import { validateEnvironment } from './utils/envValidator.js';
 import { performanceMonitor } from './middleware/performanceMonitor.js';
 import { tracingMiddleware } from './middleware/tracingMiddleware.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { notificationAnalyticsRepository } from './repositories/notificationAnalyticsRepository.js';
 import { initializeSentry, addSentryErrorHandler } from './utils/sentry.js';
 import {
   apiRateLimiter,
@@ -282,6 +283,15 @@ if (!useStructuredHttpLog) {
 }
 app.use(performanceMonitor);
 app.use(cookieParser());
+
+// Track app activity for smart notification frequency adjustment
+app.use((req, res, next) => {
+  if (req.studentUser || req.adminSession) {
+    const userId = req.studentUser?.id || req.adminSession?.userId;
+    if (userId) notificationAnalyticsRepository.trackAppActivity(userId);
+  }
+  next();
+});
 
 // Global API rate limiter — protects all /api routes from request flooding
 app.use('/api', apiRateLimiter);
@@ -1314,6 +1324,25 @@ app.post(
     }
   }
 );
+
+/**
+ * Notification Analytics & Feedback Loop
+ */
+app.post('/api/notifications/track', notificationRateLimiter, async (req, res) => {
+  const { userId, notificationId, eventType, action } = req.body;
+  await notificationAnalyticsRepository.logEvent(
+    userId || 'anonymous',
+    notificationId,
+    eventType,
+    action
+  );
+  return res.json({ success: true });
+});
+
+app.get('/api/notifications/stats/:userId', adminAuth, async (req, res) => {
+  const stats = await notificationAnalyticsRepository.getUserStats(req.params.userId);
+  return res.json(stats);
+});
 
 function requireNotificationAuth(req, res, next) {
   adminAuthMiddleware.requireAdmin(req, res, (err) => {
