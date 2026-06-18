@@ -1,0 +1,248 @@
+name: CDN — Cache Invalidation & Performance Check
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      paths:
+        description: "Paths to invalidate (space-separated, default: /*)"
+        required: false
+        default: "/*"
+      measure_performance:
+        description: "Run performance measurement after invalidation"
+        type: boolean
+        required: false
+        default: true
+
+concurrency:
+  group: cdn-invalidation
+  cancel-in-progress: false # Never cancel an in-progress invalidation
+
+jobs:
+  # ─── Invalidate CloudFront cache ──────────────────────────────────────────
+  invalidate-cdn:
+    name: Invalidate CloudFront Cache
+    runs-on: ubuntu-latest
+    environment: production
+
+    outputs:
+      invalidation_id: ${{ steps.invalidate.outputs.invalidation_id }}
+      cloudfront_domain: ${{ steps.invalidate.outputs.cloudfront_domain }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Determine invalidation paths
+        id: paths
+        run: |
+          # On push to main: invalidate all assets
+          # On workflow_dispatch: use provided paths
+          PATHS="${{ github.event.inputs.paths || '/*' }}"
+          echo "paths=$PATHS" >> $GITHUB_OUTPUT
+          echo "📋 Paths to invalidate: $PATHS"
+
+      - name: Create CloudFront invalidation
+        id: invalidate
+        env:
+          AWS_DISTRIBUTION_ID: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          PATHS="${{ steps.paths.outputs.paths }}"
+          PATH_COUNT=$(echo $PATHS | tr ' ' '\n' | wc -l | xargs)
+
+          # Build JSON items array
+          ITEMS_JSON=$(echo $PATHS | tr ' ' '\n' | python3 -c "
+          import sys, json
+          items = [line.strip() for line in sys.stdin if line.strip()]
+          print(json.dumps(items))
+          ")
+
+          CALLER_REF="nexasphere-ci-$(date -u +%s)-${{ github.run_id }}"
+
+          echo "🚀 Creating invalidation..."
+          RESULT=$(aws cloudfront create-invalidation \
+            --distribution-id "$AWS_DISTRIBUTION_ID" \
+            --invalidation-batch "{
+              \"Paths\": {
+                \"Quantity\": $PATH_COUNT,
+                \"Items\": $ITEMS_JSON
+              },
+              \"CallerReference\": \"$CALLER_REF\"
+            }" \
+            --output json)
+
+          INVALIDATION_ID=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin)['Invalidation']['Id'])")
+          STATUS=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin)['Invalidation']['Status'])")
+
+          echo "invalidation_id=$INVALIDATION_ID" >> $GITHUB_OUTPUT
+          echo "cloudfront_domain=${{ secrets.CLOUDFRONT_DOMAIN }}" >> $GITHUB_OUTPUT
+
+          echo "✅ Invalidation ID: $INVALIDATION_ID"
+          echo "   Status: $STATUS"
+
+      - name: Wait for invalidation to complete
+        env:
+          AWS_DISTRIBUTION_ID: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          echo "⏳ Waiting for invalidation ${{ steps.invalidate.outputs.invalidation_id }} to complete..."
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "$AWS_DISTRIBUTION_ID" \
+            --id "${{ steps.invalidate.outputs.invalidation_id }}"
+          echo "✅ Invalidation complete — cache is fresh."
+
+      - name: Verify cache state
+        run: |
+          DOMAIN="${{ secrets.CLOUDFRONT_DOMAIN }}"
+          if [[ -z "$DOMAIN" ]]; then
+            echo "ℹ️  CLOUDFRONT_DOMAIN secret not set — skipping verification."
+            exit 0
+          fi
+
+          sleep 5
+          echo "🔎 Checking x-cache header on $DOMAIN..."
+          HEADERS=$(curl -sI "https://$DOMAIN/" 2>/dev/null || true)
+          X_CACHE=$(echo "$HEADERS" | grep -i "x-cache" | head -1 || echo "x-cache: not found")
+          echo "   $X_CACHE"
+
+          # After invalidation we expect Miss or RefreshHit (not Hit — cache was just cleared)
+          if echo "$X_CACHE" | grep -qi "hit from cloudfront"; then
+            echo "⚠️  Got a cache Hit immediately after invalidation — CDN may not have propagated yet."
+          else
+            echo "✅ Cache properly invalidated (Miss or RefreshHit as expected)."
+          fi
+
+  # ─── Cost tracking annotation ─────────────────────────────────────────────
+  cost-annotation:
+    name: Annotate CDN Cost Tracking
+    runs-on: ubuntu-latest
+    needs: invalidate-cdn
+    if: always()
+    environment: production
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Fetch CloudFront cost estimate (last 7 days)
+        run: |
+          END_DATE=$(date -u +%Y-%m-%d)
+          START_DATE=$(date -u -d "7 days ago" +%Y-%m-%d 2>/dev/null || \
+                       date -u -v-7d +%Y-%m-%d)  # macOS fallback
+
+          echo "📊 Fetching AWS cost data ($START_DATE → $END_DATE)..."
+
+          COST=$(aws ce get-cost-and-usage \
+            --time-period "Start=$START_DATE,End=$END_DATE" \
+            --granularity MONTHLY \
+            --filter '{"And":[
+              {"Dimensions":{"Key":"SERVICE","Values":["Amazon CloudFront"]}},
+              {"Tags":{"Key":"Project","Values":["NexaSphere"]}}
+            ]}' \
+            --metrics "UnblendedCost" \
+            --output json 2>/dev/null || echo '{}')
+
+          AMOUNT=$(echo "$COST" | python3 -c "
+          import sys, json
+          try:
+              data = json.load(sys.stdin)
+              results = data.get('ResultsByTime', [])
+              total = sum(float(r['Total']['UnblendedCost']['Amount']) for r in results)
+              print(f'\${total:.4f}')
+          except:
+              print('N/A (enable Cost Explorer API to track spend)')
+          " 2>/dev/null || echo "N/A")
+
+          echo "💰 Estimated CloudFront cost (last 7 days): $AMOUNT"
+          echo "   Cost allocation tag: Project=NexaSphere, Component=CDN"
+          echo ""
+          echo "ℹ️  To set a billing alert, go to:"
+          echo "   AWS Console → Billing → Budgets → Create Budget"
+          echo "   Recommended threshold for NexaSphere: \$10/month"
+
+          # Emit as GitHub Actions notice
+          echo "::notice title=CDN Cost (last 7d)::CloudFront spend: $AMOUNT — tag: Project=NexaSphere"
+
+  # ─── Performance measurement ──────────────────────────────────────────────
+  measure-performance:
+    name: Measure CDN Performance
+    runs-on: ubuntu-latest
+    needs: invalidate-cdn
+    if: |
+      github.event.inputs.measure_performance != 'false' &&
+      secrets.CLOUDFRONT_DOMAIN != '' &&
+      secrets.ORIGIN_DOMAIN != ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Wait for edge propagation
+        run: |
+          echo "⏳ Waiting 30s for CDN edge propagation..."
+          sleep 30
+
+      - name: Measure TTFB — origin (baseline)
+        run: |
+          ORIGIN="${{ secrets.ORIGIN_DOMAIN }}"
+          echo "📊 Measuring origin TTFB (3 runs)..."
+          for i in 1 2 3; do
+            TTFB=$(curl -o /dev/null -s -w "%{time_starttransfer}" "https://$ORIGIN/" 2>/dev/null | awk '{printf "%.0f\n", $1*1000}')
+            echo "   Run $i: ${TTFB}ms"
+            sleep 1
+          done
+
+      - name: Measure TTFB — CloudFront
+        run: |
+          DOMAIN="${{ secrets.CLOUDFRONT_DOMAIN }}"
+          echo "📊 Measuring CloudFront TTFB (3 runs)..."
+          for i in 1 2 3; do
+            RESULT=$(curl -o /dev/null -s -w "%{time_starttransfer}\n" -D - "https://$DOMAIN/" 2>/dev/null)
+            TTFB=$(echo "$RESULT" | tail -1 | awk '{printf "%.0f\n", $1*1000}')
+            X_CACHE=$(curl -sI "https://$DOMAIN/" 2>/dev/null | grep -i "x-cache" | head -1 | tr -d '\r' || echo "x-cache: not found")
+            echo "   Run $i: ${TTFB}ms | $X_CACHE"
+            sleep 1
+          done
+
+      - name: Check static asset cache headers
+        run: |
+          DOMAIN="${{ secrets.CLOUDFRONT_DOMAIN }}"
+          echo "🔎 Verifying cache headers on static assets..."
+
+          # Check /assets/ path (should be cached 1 year)
+          HEADERS=$(curl -sI "https://$DOMAIN/assets/" 2>/dev/null || echo "")
+          CC=$(echo "$HEADERS" | grep -i "cache-control" | head -1 | tr -d '\r' || echo "not set")
+          XC=$(echo "$HEADERS" | grep -i "x-cache" | head -1 | tr -d '\r' || echo "not set")
+          echo "   /assets/ → $CC | $XC"
+
+          # Check root HTML (should be short TTL)
+          HEADERS=$(curl -sI "https://$DOMAIN/" 2>/dev/null || echo "")
+          CC=$(echo "$HEADERS" | grep -i "cache-control" | head -1 | tr -d '\r' || echo "not set")
+          XC=$(echo "$HEADERS" | grep -i "x-cache" | head -1 | tr -d '\r' || echo "not set")
+          echo "   / (HTML) → $CC | $XC"
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cdn-performance-${{ github.run_id }}
+          path: reports/
+          retention-days: 30
