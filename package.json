@@ -18,6 +18,8 @@
     "dev:server": "cd server && node index.js",
     "dev:all": "concurrently \"npm run dev:website\" \"npm run dev:admin\" \"npm run dev:server\"",
     "build": "npm run build --workspace=website",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test accessibility.spec.js",
     "build:website": "npm run build --workspace=website",
     "build:admin": "npm run build --workspace=admin-dashboard",
     "build:all": "npm run build:website && npm run build:admin",
@@ -34,6 +36,8 @@
     "prepare": "node -e \"try { require('husky'); require('child_process').execSync('husky', {stdio:'inherit'}) } catch(e) { console.log('husky not available, skipping') }\""
   },
   "devDependencies": {
+    "@playwright/test": "^1.44.1",
+    "axe-playwright": "^2.0.1",
     "concurrently": "^10.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.6",
