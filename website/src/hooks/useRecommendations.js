@@ -1,95 +1,152 @@
-// src/hooks/useRecommendations.js
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { userInterestTracker } from '../services/recommendation/userInterestTracker';
-import axios from 'axios'; // Assuming axios is installed for API calls
+import React, { useState, useEffect, useCallback } from 'react';
 
-export function useRecommendations(events) {
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
+/**
+ * useRecommendations hook
+ *
+ * Returns personalised event recommendations for the given userId.
+ * Also exposes helpers for tracking interactions and saving preferences.
+ */
+export function useRecommendations(userId, { limit = 10, page = 1 } = {}) {
   const [recommendations, setRecommendations] = useState([]);
-  const [userInterests, setUserInterests] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [similarEvents, setSimilarEvents] = useState({});
+  const [source, setSource] = useState(null);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Keep a stable ref to events so callbacks below don't need events
-  // in their dependency arrays — prevents cascading re-renders when
-  // the events array reference changes on every render.
-  const eventsRef = useRef(events);
-  useEffect(() => {
-    eventsRef.current = events;
-  }, [events]);
-
-  const fetchRecommendationsFromBackend = useCallback(async () => {
+  const fetchRecommendations = useCallback(async () => {
+    if (!userId) return;
     setLoading(true);
+    setError(null);
     try {
-      // In a real application, the user_id would come from an authentication context.
-      // For now, using a placeholder.
-      const userId = '101'; // Example user ID
-
-      // The backend recommendation engine should ideally fetch all necessary user data
-      // (interests, history, followed users, etc.) from the database based on the user_id.
-      // However, if the backend needs client-side context for dynamic weighting or other reasons,
-      // it could be passed here. For this implementation, we assume the backend fetches its own data.
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE}/recommendations`, {
-        params: {
-          user_id: userId,
-          // Example: if backend needs client-side interests for cold start
-          // user_interests: JSON.stringify(userInterestTracker.getUserInterests()),
-        },
-      });
-      setRecommendations(response.data);
-    } catch (error) {
-      console.error('Failed to fetch recommendations from backend:', error);
-      setRecommendations([]); // Fallback to empty recommendations on error
+      const res = await fetch(
+        `${API_BASE}/api/recommendations?userId=${encodeURIComponent(userId)}&limit=${limit}&page=${page}`
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setRecommendations(data.recommendations ?? []);
+      setSource(data.source);
+      setTotal(data.total ?? 0);
+    } catch (err) {
+      console.error('[useRecommendations] fetch error:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, []); // Dependencies are empty as this function is a top-level fetcher
+  }, [userId, limit, page]);
 
   useEffect(() => {
-    fetchRecommendationsFromBackend();
-  }, [fetchRecommendationsFromBackend]);
+    fetchRecommendations();
+  }, [fetchRecommendations]);
 
-  const trackEvent = useCallback(
-    (eventId, action, metadata) => {
-      userInterestTracker.trackEventInteraction(eventId, action, metadata);
-      generateRecommendations();
-    },
-    [generateRecommendations]
-    // Ideally, this interaction should be sent to the backend for the ML model's feedback loop.
-    // Example: axios.post(`${import.meta.env.VITE_API_BASE}/user-interactions`, { userId: '101', eventId, action, metadata });
-  );
-
-  const getSimilarEvents = useCallback(
-    (event, limit = 3) => {
-      // This function for "similar events" could either remain client-side (if purely content-based)
-      // or be moved to a backend endpoint (e.g., /api/events/{id}/similar) for ML-driven similarity.
-      if (similarEvents[event.id]) {
-        return similarEvents[event.id];
+  const trackInteraction = useCallback(
+    async (eventId, type) => {
+      if (!userId) return;
+      try {
+        await fetch(`${API_BASE}/api/recommendations/interact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, eventId, type }),
+        });
+      } catch (err) {
+        console.error('[useRecommendations] track error:', err);
       }
-      // Dynamically import recommendationEngine if it's still needed for client-side similar events
-      const { recommendationEngine } = require('../services/recommendation/recommendationEngine');
-      const similar = recommendationEngine.getSimilarEvents(event, eventsRef.current, limit); // Still uses client-side engine for similarity
-      setSimilarEvents((prev) => ({ ...prev, [event.id]: similar }));
-      return similar;
     },
-    [similarEvents]
+    [userId]
   );
 
-  const setUserPreferences = useCallback(
-    (categories, tags) => {
-      userInterestTracker.setUserPreferences(categories, tags);
-      fetchRecommendationsFromBackend();
+  const savePreferences = useCallback(
+    async (interests, preferredDays = []) => {
+      if (!userId) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/recommendations/preferences/${userId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ interests, preferredDays }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await fetchRecommendations(); // refresh after saving
+      } catch (err) {
+        console.error('[useRecommendations] savePreferences error:', err);
+      }
     },
-    [fetchRecommendationsFromBackend]
-    // Ideally, these preferences should be sent to the backend to update the user's profile for ML.
-    // Example: axios.post(`${import.meta.env.VITE_API_BASE}/user-preferences`, { userId: '101', categories, tags });
+    [userId, fetchRecommendations]
   );
 
   return {
     recommendations,
-    userInterests,
+    source,
+    total,
     loading,
-    trackEvent,
-    getSimilarEvents,
-    setUserPreferences,
+    error,
+    refresh: fetchRecommendations,
+    trackInteraction,
+    savePreferences,
   };
+}
+
+/**
+ * useSimilarEvents hook
+ */
+export function useSimilarEvents(eventId, { limit = 6 } = {}) {
+  const [similar, setSimilar] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!eventId) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/recommendations/similar/${encodeURIComponent(eventId)}?limit=${limit}`
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) setSimilar(data.similar ?? []);
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId, limit]);
+
+  return { similar, loading, error };
+}
+
+/**
+ * useTrendingEvents hook
+ */
+export function useTrendingEvents({ limit = 10 } = {}) {
+  const [trending, setTrending] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/api/recommendations/trending?limit=${limit}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) setTrending(data.trending ?? []);
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [limit]);
+
+  return { trending, loading, error };
 }

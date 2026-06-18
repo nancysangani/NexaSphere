@@ -17,6 +17,8 @@ model User {
   workspaceMembers WorkspaceMember[]
   posts            Post[]
   logs             Log[]
+  preferences      UserPreference?
+  interactions     UserEventInteraction[]
 }
 
 model Workspace {
@@ -113,3 +115,27 @@ model AuditLog {
   timestamp DateTime    @default(now())
 }
 
+// ── Event Discovery Recommendation Engine ──
+
+model UserPreference {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  interests     String[] // e.g. ["web-dev", "ai", "design"]
+  preferredDays String[] // e.g. ["Saturday", "Sunday"]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserEventInteraction {
+  id        String   @id @default(uuid())
+  userId    String
+  eventId   String
+  type      String   // "viewed" | "registered" | "attended" | "liked"
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId, type])
+}
