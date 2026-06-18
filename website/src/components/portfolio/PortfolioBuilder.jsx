@@ -4,6 +4,7 @@ import { getApiBase } from '../../utils/runtimeConfig';
 import { projectsData } from '../../data/projectsData';
 import { roadmapData } from '../../data/roadmapData';
 import { RepoCardSkeleton } from '../ui/skeleton/RepoCardSkeleton';
+import AdvancedCustomizer from './AdvancedCustomizer';
 
 export default function PortfolioBuilder() {
   const [username, setUsername] = useState('');
@@ -11,6 +12,12 @@ export default function PortfolioBuilder() {
   const [title, setTitle] = useState('');
   const [bio, setBio] = useState('');
   const [theme, setTheme] = useState('glassmorphic');
+  const [customization, setCustomization] = useState({
+    colors: { accent: '#cc1111' },
+    typography: { header: 'Orbitron' },
+    spacing: { radius: 12, padding: 28 },
+    hero: 'centered',
+  });
   const [customDomain, setCustomDomain] = useState('');
 
   // Section Visibilities
@@ -89,6 +96,7 @@ export default function PortfolioBuilder() {
         setTitle(data.title || '');
         setBio(data.bio || '');
         setTheme(data.theme || 'glassmorphic');
+        setCustomization(data.customization || customization);
         setCustomDomain(data.customDomain || '');
         setVisibleSections(
           data.visibleSections
@@ -134,6 +142,7 @@ export default function PortfolioBuilder() {
         title,
         bio,
         theme,
+        customization,
         customDomain,
         visibleSections,
         socialLinks,
@@ -403,24 +412,25 @@ export default function PortfolioBuilder() {
               3. Visual Theme
             </h3>
 
-            <div className="theme-selector-grid">
-              {[
-                { id: 'glassmorphic', label: 'Glassmorphic' },
-                { id: 'cyberpunk', label: 'Cyberpunk' },
-                { id: 'minimalist-light', label: 'Light' },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={`theme-card ${theme === t.id ? 'active' : ''}`}
-                  onClick={() => setTheme(t.id)}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
+            <AdvancedCustomizer
+              currentConfig={{
+                themeId: theme,
+                colors: customization.colors,
+                typography: customization.typography,
+                spacing: customization.spacing,
+                hero: customization.hero,
+              }}
+              onUpdate={(cfg) => {
+                setTheme(cfg.themeId);
+                setCustomization({
+                  colors: cfg.colors,
+                  typography: cfg.typography,
+                  spacing: cfg.spacing,
+                  hero: cfg.hero,
+                });
+              }}
+            />
           </div>
-
           {/* Section Visibility Toggles */}
           <div className="builder-section-card">
             <h3 className="builder-section-title">
