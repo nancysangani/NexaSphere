@@ -42,8 +42,7 @@ router.delete(
 router.post('/account-recovery/request', async (req, res) => {
   const { email } = req.body;
 
-  const recovery =
-    await studentAuthService.createRecoveryRequest(email);
+  const recovery = await studentAuthService.createRecoveryRequest(email);
 
   return res.json({
     success: true,
@@ -54,11 +53,7 @@ router.post('/account-recovery/request', async (req, res) => {
 router.post('/account-recovery/verify', async (req, res) => {
   const { savedCode, enteredCode } = req.body;
 
-  const valid =
-    studentAuthService.verifyRecoveryCode(
-      savedCode,
-      enteredCode
-    );
+  const valid = studentAuthService.verifyRecoveryCode(savedCode, enteredCode);
 
   return res.json({
     success: valid,
@@ -268,6 +263,32 @@ router.delete(
       return res.status(500).json({ error: err.message });
     }
   }
+);
+
+// Sponsorship management APIs
+router.get('/api/content/sponsors', sponsorshipsController.listSponsors);
+router.get(
+  '/api/admin/sponsors',
+  adminAuthMiddleware.requireScope('events:read'),
+  sponsorshipsController.adminListSponsors
+);
+router.post(
+  '/api/admin/sponsors',
+  adminAuthMiddleware.requireScope('events:write'),
+  adminAuditMiddleware,
+  sponsorshipsController.adminCreateSponsor
+);
+router.put(
+  '/api/admin/sponsors/:id',
+  adminAuthMiddleware.requireScope('events:write'),
+  adminAuditMiddleware,
+  sponsorshipsController.adminUpdateSponsor
+);
+router.delete(
+  '/api/admin/sponsors/:id',
+  adminAuthMiddleware.requireScope('events:write'),
+  adminAuditMiddleware,
+  sponsorshipsController.adminDeleteSponsor
 );
 
 export default router;

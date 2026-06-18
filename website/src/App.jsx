@@ -1075,6 +1075,16 @@ function MainRouter({
               }
             />
 
+            {/* ── Sponsors ── */}
+            <Route
+              path="/sponsors"
+              element={
+                <PageIn k="sponsors">
+                  <SponsorsPage />
+                </PageIn>
+              }
+            />
+
             {/* ── Mentorship ── */}
             <Route
               path="/mentorship"
