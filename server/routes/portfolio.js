@@ -145,7 +145,7 @@ router.get('/api/portfolio/:username', async (req, res) => {
 router.put('/api/portfolio', protectedActionRateLimiter, async (req, res) => {
   try {
     const body = req.body || {};
-    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const ip = String(req.ip || 'unknown').trim();
 
     // 1. Validate credentials up front. Anything below this point
     //    trusts the username + passkey pair.

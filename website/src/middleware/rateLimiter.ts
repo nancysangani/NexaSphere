@@ -5,12 +5,12 @@ const WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS = 100;
 
 export const rateLimiter = (req: Request, res: Response, next: NextFunction) => {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const ip = String(req.ip || 'unknown').trim();
   const now = Date.now();
-  const record = ipRequestCounts.get(ip as string);
+  const record = ipRequestCounts.get(ip);
 
   if (!record || now > record.resetTime) {
-    ipRequestCounts.set(ip as string, { count: 1, resetTime: now + WINDOW_MS });
+    ipRequestCounts.set(ip, { count: 1, resetTime: now + WINDOW_MS });
     return next();
   }
 

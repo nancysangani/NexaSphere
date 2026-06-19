@@ -101,7 +101,9 @@ export default function AdminPage({ onBack }) {
           }
         }
       } catch (err) {
-        console.warn('Admin SSE metrics stream connection interrupted or reconnecting...', err);
+        if (import.meta.env.DEV) {
+          console.warn('[AdminPage] SSE metrics stream interrupted or reconnecting:', err.message);
+        }
       }
 
       // Re-check closed after await — if component unmounted while fetch
@@ -160,7 +162,9 @@ export default function AdminPage({ onBack }) {
           };
         });
       } catch (err) {
-        console.error('Failed to parse registration SSE message:', err);
+        if (import.meta.env.DEV) {
+          console.error('[AdminPage] Failed to parse registration SSE message:', err.message);
+        }
       }
     });
 
@@ -168,7 +172,9 @@ export default function AdminPage({ onBack }) {
       try {
         JSON.parse(event.data);
       } catch (err) {
-        console.error('Failed to parse login SSE message:', err);
+        if (import.meta.env.DEV) {
+          console.error('[AdminPage] Failed to parse login SSE message:', err.message);
+        }
       }
     });
 
@@ -208,7 +214,9 @@ export default function AdminPage({ onBack }) {
         credentials: 'include',
       });
     } catch (err) {
-      console.error(err);
+      if (import.meta.env.DEV) {
+        console.error('[AdminPage] Logout error:', err.message);
+      }
     }
     setIsLoggedIn(false);
     setData({ stats: null, growth: [], events: [] });

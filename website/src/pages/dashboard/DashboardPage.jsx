@@ -134,7 +134,9 @@ export default function DashboardPage({ onBack }) {
         setRecommendations(data.recommended_events || []);
       }
     } catch (e) {
-      console.error(e);
+      if (import.meta.env.DEV) {
+        console.error('[DashboardPage] Failed to fetch recommendations:', e.message);
+      }
     } finally {
       setLoadingRecs(false);
     }
