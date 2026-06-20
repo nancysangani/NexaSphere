@@ -45,8 +45,35 @@ function useBurst(ref) {
         setTimeout(() => p.remove(), 600);
       }
     };
-    el.addEventListener('click', burst);
-    return () => el.removeEventListener('click', burst);
+    const timers = [];
+    const trackingBurst = (e) => {
+      // Create a modified burst that collects its timeouts
+      for (let i = 0; i < 8; i++) {
+        const p = document.createElement('span');
+        const angle = (i / 8) * Math.PI * 2;
+        const dist = 40 + Math.random() * 30;
+        p.style.cssText = `
+          position:absolute;
+          left:${e.clientX - el.getBoundingClientRect().left}px;
+          top:${e.clientY - el.getBoundingClientRect().top}px;
+          width:5px; height:5px; border-radius:50%;
+          background:var(--c1);
+          pointer-events:none; z-index:10;
+          animation:contactBurst .55s ease forwards;
+          --tx:${Math.cos(angle) * dist}px;
+          --ty:${Math.sin(angle) * dist}px;
+        `;
+        el.appendChild(p);
+        const t = setTimeout(() => p.remove(), 600);
+        timers.push(t);
+      }
+    };
+
+    el.addEventListener('click', trackingBurst);
+    return () => {
+      el.removeEventListener('click', trackingBurst);
+      timers.forEach(clearTimeout);
+    };
   }, []);
 }
 
@@ -394,6 +421,7 @@ function MessageCTA() {
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!copied) return;
@@ -402,13 +430,21 @@ function MessageCTA() {
   }, [copied]);
 
   const handleCopy = () => {
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
     navigator.clipboard
       .writeText(EMAIL)
       .then(() => {
         setCopied(true);
+        copyTimeoutRef.current = setTimeout(() => setCopied(false), 2200);
       })
       .catch(() => {});
   };
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const subject = encodeURIComponent(`Hi NexaSphere${name ? ` — ${name}` : ''}`);
   const body = encodeURIComponent(
