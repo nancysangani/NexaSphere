@@ -54,6 +54,74 @@ class AuditLogRepository {
     }
   }
 
+  async searchAuditLogs({ search = '', action = '', adminId = '', limit = 50, offset = 0 } = {}) {
+    await this.init();
+    const filters = [];
+    const params = [];
+
+    if (search) {
+      params.push(`%${search}%`);
+      filters.push(
+        `(action ilike $${params.length} or admin_id ilike $${params.length} or new_state::text ilike $${params.length} or old_state::text ilike $${params.length})`
+      );
+    }
+    if (action) {
+      params.push(`%${action}%`);
+      filters.push(`action ilike $${params.length}`);
+    }
+    if (adminId) {
+      params.push(adminId);
+      filters.push(`admin_id = $${params.length}`);
+    }
+
+    const where = filters.length ? `where ${filters.join(' and ')}` : '';
+    params.push(Math.min(Math.max(Number(limit) || 50, 1), 500));
+    const limitParam = params.length;
+    params.push(Math.max(Number(offset) || 0, 0));
+    const offsetParam = params.length;
+
+    return withDb(async (client) => {
+      const { rows } = await client.query(
+        `select id, admin_id, action, ip_address, user_agent, old_state, new_state, timestamp
+         from audit_logs
+         ${where}
+         order by timestamp desc
+         limit $${limitParam} offset $${offsetParam}`,
+        params
+      );
+
+      return rows.map((row) => ({
+        id: row.id,
+        adminId: row.admin_id,
+        action: row.action,
+        ipAddress: row.ip_address,
+        userAgent: row.user_agent,
+        oldState: row.old_state,
+        newState: row.new_state,
+        timestamp: row.timestamp,
+      }));
+    });
+  }
+
+  async exportAuditLogsCsv(filters = {}) {
+    const rows = await this.searchAuditLogs({ ...filters, limit: 500 });
+    const header = ['timestamp', 'adminId', 'action', 'ipAddress', 'details'];
+    const escape = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const lines = rows.map((row) =>
+      [
+        row.timestamp,
+        row.adminId,
+        row.action,
+        row.ipAddress,
+        JSON.stringify({ oldState: row.oldState, newState: row.newState }),
+      ]
+        .map(escape)
+        .join(',')
+    );
+
+    return [header.join(','), ...lines].join('\n');
+  }
+
   async clearAll_TEST_ONLY() {
     if (process.env.NODE_ENV === 'test') {
       await withDb(async (client) => {

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { withDb } from './db.js';
 
 const DEFAULT_SESSION_TTL_MS = 8 * 60 * 60 * 1000;
+const DEFAULT_SESSION_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 const DEFAULT_CLEANUP_INTERVAL_MS = 15 * 60 * 1000;
 const DEFAULT_TOUCH_THROTTLE_MS = 60 * 1000; // 1 minute default
 
@@ -15,6 +16,11 @@ const lastSeenThrottleMap = new Map();
 function getSessionTtlMs() {
   const value = Number(process.env.ADMIN_SESSION_TTL_MS);
   return Number.isFinite(value) && value > 0 ? value : DEFAULT_SESSION_TTL_MS;
+}
+
+function getSessionIdleTimeoutMs() {
+  const value = Number(process.env.ADMIN_SESSION_IDLE_TIMEOUT_MS);
+  return Number.isFinite(value) && value > 0 ? value : DEFAULT_SESSION_IDLE_TIMEOUT_MS;
 }
 
 function getCleanupIntervalMs() {
@@ -137,8 +143,9 @@ export async function getAdminSession(token) {
        from admin_sessions
        where token_hash = $1
          and revoked_at is null
-         and expires_at > now()`,
-      [tokenHash]
+         and expires_at > now()
+         and last_seen_at > now() - ($2::text || ' milliseconds')::interval`,
+      [tokenHash, getSessionIdleTimeoutMs()]
     );
 
     if (!rows.length) {
@@ -203,6 +210,77 @@ export async function revokeAdminSession(token) {
       [tokenHash]
     );
     return rowCount > 0;
+  });
+}
+
+export async function listAdminSessions(username) {
+  if (!username) return [];
+  await ensureReady();
+  await triggerLazyCleanup(false);
+
+  return withDb(async (client) => {
+    const { rows } = await client.query(
+      `select token_hash, username, metadata, created_at, last_seen_at, expires_at
+       from admin_sessions
+       where username = $1
+         and revoked_at is null
+         and expires_at > now()
+         and last_seen_at > now() - ($2::text || ' milliseconds')::interval
+       order by last_seen_at desc
+       limit 50`,
+      [username, getSessionIdleTimeoutMs()]
+    );
+
+    return rows.map((row) => ({
+      id: row.token_hash.slice(0, 16),
+      username: row.username,
+      metadata: row.metadata || {},
+      createdAt: row.created_at,
+      lastSeenAt: row.last_seen_at,
+      expiresAt: row.expires_at,
+    }));
+  });
+}
+
+export async function revokeAdminSessionById(username, sessionId) {
+  if (!username || !sessionId) return null;
+  await ensureReady();
+
+  return withDb(async (client) => {
+    const { rows } = await client.query(
+      `update admin_sessions
+       set revoked_at = now()
+       where username = $1
+         and token_hash like $2
+         and revoked_at is null
+       returning token_hash`,
+      [username, `${sessionId}%`]
+    );
+    return rows[0]?.token_hash || null;
+  });
+}
+
+export async function revokeOtherAdminSessions(username, currentToken) {
+  if (!username || !currentToken) return { count: 0, tokenHashes: [] };
+  await ensureReady();
+
+  const currentHash = hashToken(currentToken);
+  lastSeenThrottleMap.clear();
+
+  return withDb(async (client) => {
+    const { rows, rowCount } = await client.query(
+      `update admin_sessions
+       set revoked_at = now()
+       where username = $1
+         and token_hash <> $2
+         and revoked_at is null
+       returning token_hash`,
+      [username, currentHash]
+    );
+    return {
+      count: rowCount,
+      tokenHashes: rows.map((row) => row.token_hash).filter(Boolean),
+    };
   });
 }
 

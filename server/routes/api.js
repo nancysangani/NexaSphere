@@ -16,6 +16,7 @@ import { achievementsRepository } from '../repositories/achievementsRepository.j
 import { portfolioService } from '../services/portfolioService.js';
 import * as sponsorshipsController from '../controllers/sponsorshipsController.js';
 import { achievementSchema } from '../validators/portfolioSchemas.js';
+import { auditLogRepository } from '../repositories/auditLogRepository.js';
 
 const router = Router();
 
@@ -92,7 +93,38 @@ router.delete(
   usersController.adminDeactivateUser
 );
 router.post('/api/admin/login', authRateLimiter, adminAuthMiddleware.login);
+router.post('/api/admin/2fa/verify', authRateLimiter, adminAuthMiddleware.verifyTwoFactor);
+router.post(
+  '/api/admin/2fa/setup/verify',
+  authRateLimiter,
+  adminAuthMiddleware.verifyTwoFactorSetup
+);
 router.post('/api/admin/logout', adminAuthMiddleware.requireAdmin, adminAuthMiddleware.logout);
+router.get(
+  '/api/admin/security',
+  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.getSecurityOverview
+);
+router.delete(
+  '/api/admin/security/sessions/:sessionId',
+  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.revokeSession
+);
+router.post(
+  '/api/admin/security/sessions/logout-others',
+  adminAuthMiddleware.requireAdmin,
+  adminAuthMiddleware.logoutOtherSessions
+);
+router.get('/api/admin/audit-logs', adminAuthMiddleware.requireAdmin, async (req, res) => {
+  const logs = await auditLogRepository.searchAuditLogs(req.query);
+  return res.json({ logs });
+});
+router.get('/api/admin/audit-logs/export', adminAuthMiddleware.requireAdmin, async (req, res) => {
+  const csv = await auditLogRepository.exportAuditLogsCsv(req.query);
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="admin-audit-logs.csv"');
+  return res.send(csv);
+});
 
 router.get(
   '/api/admin/events',

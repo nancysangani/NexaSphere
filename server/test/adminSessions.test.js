@@ -29,6 +29,9 @@ pg.Pool = class MockPool {
           return { rows: mockQueriesResult.select, rowCount: mockQueriesResult.select.length };
         }
         if (sqlLower.includes('update admin_sessions')) {
+          if (sqlLower.includes('returning token_hash')) {
+            return { rows: mockQueriesResult.select, rowCount: mockQueriesResult.select.length };
+          }
           return { rows: [], rowCount: mockQueriesResult.rowCount };
         }
         if (sqlLower.includes('delete from admin_sessions')) {
@@ -178,6 +181,14 @@ test('Revoking a session deletes the throttled entry and updates DB', async () =
   );
   assert.ok(revokeQuery, 'Should execute DB revocation query');
   assert.equal(revokeQuery.params[0], insertQueryParamHash('mock_token'));
+});
+
+test('Revoking a session by id returns the revoked token hash when found', async () => {
+  const { revokeAdminSessionById } = await import('../repositories/adminSessionsRepository.js');
+  mockQueriesResult.select = [{ token_hash: 'abc123' }];
+
+  const result = await revokeAdminSessionById('admin_user', 'abc');
+  assert.equal(result, 'abc123');
 });
 
 test('Periodic cleanup clears the throttled sessions and purges database', async () => {

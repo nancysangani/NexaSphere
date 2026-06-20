@@ -66,6 +66,12 @@ const links = [
     icon: 'Clock',
     requiredScope: 'settings:admin',
   },
+  {
+    to: '/dashboard/security',
+    label: 'Security',
+    icon: 'Globe',
+    requiredScope: 'settings:admin',
+  },
 ];
 
 export function Sidebar() {

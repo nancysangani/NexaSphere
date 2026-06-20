@@ -25,11 +25,23 @@ export const auth = {
 
     const data = await res.json();
 
+    if (data.requiresTwoFactor || data.requiresTwoFactorSetup) {
+      return data;
+    }
+
     _email = cleanEmail;
     _role = data.role || null;
     _scopes = data.scopes || [];
 
     return data;
+  },
+
+  async verifyTwoFactor(challengeToken, code) {
+    return finishTwoFactorRequest('/api/admin/2fa/verify', { challengeToken, code });
+  },
+
+  async verifyTwoFactorSetup(setupToken, code) {
+    return finishTwoFactorRequest('/api/admin/2fa/setup/verify', { setupToken, code });
   },
 
   async logout() {
@@ -121,5 +133,69 @@ export const auth = {
 
   isOfflineMode() {
     return this.isOffline();
+  },
+};
+
+async function finishTwoFactorRequest(path, body) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || err.message || 'Verification failed');
+  }
+
+  const data = await res.json();
+  _email = data.email || data.username || null;
+  _role = data.role || null;
+  _scopes = data.scopes || [];
+  return data;
+}
+
+export const adminSecurity = {
+  async getOverview() {
+    const res = await fetch(`${API_BASE}/api/admin/security`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Unable to load security overview');
+    return res.json();
+  },
+
+  async revokeSession(sessionId) {
+    const res = await fetch(`${API_BASE}/api/admin/security/sessions/${sessionId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Unable to revoke session');
+    }
+    return res.json();
+  },
+
+  async logoutOtherSessions() {
+    const res = await fetch(`${API_BASE}/api/admin/security/sessions/logout-others`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Unable to logout other sessions');
+    return res.json();
+  },
+
+  async searchAuditLogs(query = '') {
+    const res = await fetch(
+      `${API_BASE}/api/admin/audit-logs?search=${encodeURIComponent(query)}`,
+      {
+        credentials: 'include',
+      }
+    );
+    if (!res.ok) throw new Error('Unable to load audit trail');
+    return res.json();
+  },
+
+  getAuditExportUrl(query = '') {
+    return `${API_BASE}/api/admin/audit-logs/export?search=${encodeURIComponent(query)}`;
   },
 };
