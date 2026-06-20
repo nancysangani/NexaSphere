@@ -56,7 +56,7 @@ function StatCard({ label, value, color }) {
       ([e]) => {
         if (e.isIntersecting && !started.current) {
           started.current = true;
-          const num = parseInt(value);
+          const num = parseInt(value, 10);
           if (isNaN(num)) {
             setCount(value);
             return;
