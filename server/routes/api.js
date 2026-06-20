@@ -14,16 +14,7 @@ import { authRateLimiter, protectedActionRateLimiter } from '../middleware/authR
 import { portfolioRepository } from '../repositories/portfolioRepository.js';
 import { achievementsRepository } from '../repositories/achievementsRepository.js';
 import { portfolioService } from '../services/portfolioService.js';
-import * as sponsorshipsController from '../controllers/sponsorshipsController.js';
-import { achievementSchema } from '../validators/portfolioSchemas.js';
-import { auditLogRepository } from '../repositories/auditLogRepository.js';
-
-import * as recommendationsController from '../controllers/recommendationsController.js';
-import multer from 'multer';
-
-const upload = multer({
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-});
+import { sponsorshipMarketplaceService } from '../services/sponsorshipMarketplaceService.js';
 
 const router = Router();
 
@@ -299,105 +290,44 @@ router.delete(
   }
 );
 
-// Admin Alerts
-const alerts = [];
-const alertRules = [
-  {
-    id: 'sec-1',
-    category: 'Security',
-    label: 'Failed login attempts',
-    condition: '>',
-    threshold: 10,
-    severity: 'Warning',
-    channels: ['Email'],
-    enabled: true,
-  },
-  {
-    id: 'sec-2',
-    category: 'Security',
-    label: 'Suspicious activity detected',
-    condition: '>',
-    threshold: 0,
-    severity: 'Critical',
-    channels: ['Email', 'Slack'],
-    enabled: true,
-  },
-  {
-    id: 'perf-1',
-    category: 'Performance',
-    label: 'High response time',
-    condition: '>',
-    threshold: 2000,
-    severity: 'Warning',
-    channels: ['Email'],
-    enabled: true,
-  },
-  {
-    id: 'perf-2',
-    category: 'Performance',
-    label: 'Error rate spike',
-    condition: '>',
-    threshold: 5,
-    severity: 'Critical',
-    channels: ['Email', 'Slack'],
-    enabled: true,
-  },
-  {
-    id: 'sys-1',
-    category: 'System',
-    label: 'Service down',
-    condition: '==',
-    threshold: 0,
-    severity: 'Critical',
-    channels: ['Email', 'Slack', 'SMS'],
-    enabled: true,
-  },
-  {
-    id: 'usr-1',
-    category: 'User Activity',
-    label: 'Registration spike',
-    condition: '>',
-    threshold: 100,
-    severity: 'Info',
-    channels: ['Email'],
-    enabled: true,
-  },
-  {
-    id: 'fin-1',
-    category: 'Financial',
-    label: 'Payment failure',
-    condition: '>',
-    threshold: 5,
-    severity: 'Critical',
-    channels: ['Email', 'Slack'],
-    enabled: true,
-  },
-  {
-    id: 'cnt-1',
-    category: 'Content',
-    label: 'Content flagged for moderation',
-    condition: '>',
-    threshold: 3,
-    severity: 'Warning',
-    channels: ['Email'],
-    enabled: true,
-  },
-];
-
-router.get('/api/admin/alerts/rules', (req, res) => res.json({ rules: alertRules }));
-router.put('/api/admin/alerts/rules/:id', (req, res) => {
-  const rule = alertRules.find((r) => r.id === req.params.id);
-  if (!rule) return res.status(404).json({ error: 'Rule not found' });
-  Object.assign(rule, req.body);
-  res.json(rule);
+// Sponsorship Marketplace
+router.get('/api/content/sponsorship/companies', (req, res) =>
+  res.json({ companies: sponsorshipMarketplaceService.listCompanies(req.query) })
+);
+router.post('/api/content/sponsorship/companies', (req, res) =>
+  res.status(201).json(sponsorshipMarketplaceService.createCompany(req.body))
+);
+router.get('/api/content/sponsorship/companies/:id', (req, res) =>
+  res.json(sponsorshipMarketplaceService.getCompany(req.params.id))
+);
+router.get('/api/content/sponsorship/packages', (req, res) =>
+  res.json({ packages: sponsorshipMarketplaceService.getPackages() })
+);
+router.get('/api/content/sponsorship/proposals', (req, res) =>
+  res.json({ proposals: sponsorshipMarketplaceService.getProposals(req.query) })
+);
+router.post('/api/content/sponsorship/proposals', (req, res) =>
+  res.status(201).json(sponsorshipMarketplaceService.createProposal(req.body))
+);
+router.put('/api/content/sponsorship/proposals/:id/status', (req, res) => {
+  const result = sponsorshipMarketplaceService.updateProposalStatus(req.params.id, req.body.status);
+  if (!result) return res.status(404).json({ error: 'Proposal not found' });
+  res.json(result);
 });
-router.get('/api/admin/alerts/events', (req, res) => res.json({ events: alerts }));
-router.put('/api/admin/alerts/events/:id/status', (req, res) => {
-  const event = alerts.find((e) => e.id === req.params.id);
-  if (!event) return res.status(404).json({ error: 'Event not found' });
-  event.status = req.body.status;
-  event.resolvedAt = req.body.status === 'resolved' ? new Date().toISOString() : null;
-  res.json(event);
+router.get('/api/content/sponsorship/agreements', (req, res) =>
+  res.json({ agreements: sponsorshipMarketplaceService.getAgreements(req.query) })
+);
+router.put('/api/content/sponsorship/agreements/:id/deliverables', (req, res) => {
+  const result = sponsorshipMarketplaceService.updateDeliverable(
+    req.params.id,
+    req.body.item,
+    req.body.done
+  );
+  if (!result) return res.status(404).json({ error: 'Agreement not found' });
+  res.json(result);
 });
+router.get('/api/content/sponsorship/roi/:companyId', (req, res) =>
+  res.json(sponsorshipMarketplaceService.getROI(req.params.companyId))
+);
 
 export default router;

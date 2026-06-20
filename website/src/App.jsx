@@ -114,10 +114,9 @@ const MentorsPage = lazy(() => import('./pages/mentorship/MentorsPage'));
 const MentorshipDashboard = lazy(() => import('./pages/mentorship/MentorshipDashboard'));
 const StatusPage = lazy(() => import('./pages/StatusPage'));
 const LiveStreamPage = lazy(() => import('./pages/streaming/LiveStreamPage'));
-const ResourcesPage = lazy(() => import('./pages/resources/ResourcesPage'));
-const NotificationHistoryPage = lazy(() => import('./pages/notifications/NotificationHistoryPage'));
-const SponsorsPage = lazy(() => import('./pages/sponsors/SponsorsPage'));
-const ResourcesPage = lazy(() => import('./pages/resources/ResourcesPage'));
+const SponsorshipMarketplacePage = lazy(
+  () => import('./pages/monetization/SponsorshipMarketplacePage')
+);
 
 const MNH = 88,
   DNH = 64;
@@ -626,8 +625,7 @@ function MainRouter({
       '/mentorship': 'Mentorship',
       '/mentorship/mentors': 'Mentorship',
       '/mentorship/dashboard': 'Mentorship',
-      '/sponsors': 'Sponsors',
-      '/recommendations': 'Recommendations',
+      '/sponsorship': 'Sponsorship',
     };
     const tab = pathMap[location.pathname] || 'Home';
     setActiveTab(tab);
@@ -1195,7 +1193,17 @@ function MainRouter({
               }
             />
 
-            {/* â”€â”€ 404 â”€â”€ */}
+            {/* ── Sponsorship Marketplace ── */}
+            <Route
+              path="/sponsorship"
+              element={
+                <PageIn k="sponsorship">
+                  <SponsorshipMarketplacePage />
+                </PageIn>
+              }
+            />
+
+            {/* ── 404 ── */}
             <Route path="*" element={<NotFoundPage onGoHome={onBackHome} />} />
           </Routes>
         </Suspense>
