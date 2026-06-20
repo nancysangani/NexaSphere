@@ -124,8 +124,8 @@ jobs:
           NODE_ENV: test
           # Provide stub env vars so server startup helpers don't crash
           ADMIN_USERNAME: test-admin
-          ADMIN_PASSWORD: TestPass123!ABC
-          ADMIN_EVENT_PASSWORD: EventPass123!XYZ
+          ADMIN_PASSWORD: ${{ secrets.CI_ADMIN_PASSWORD || 'ci_test_password_stub' }}
+          ADMIN_EVENT_PASSWORD: ${{ secrets.CI_ADMIN_EVENT_PASSWORD || 'ci_test_event_password_stub' }}
           PORT: 8787
   report:
     name: CI Summary Report
