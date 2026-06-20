@@ -53,6 +53,18 @@ export const studentUsersRepository = {
         CREATE INDEX IF NOT EXISTS idx_student_users_email ON student_users(email)
       `);
       await client.query(`
+        CREATE TABLE IF NOT EXISTS backup_restore_logs (
+          id SERIAL PRIMARY KEY,
+          backup_key VARCHAR(255),
+          restore_type VARCHAR(50) NOT NULL,
+          target_time TIMESTAMPTZ,
+          status VARCHAR(20) NOT NULL,
+          duration_ms INTEGER,
+          verified_at TIMESTAMPTZ DEFAULT NOW(),
+          error_message TEXT
+        )
+      `);
+      await client.query(`
         ALTER TABLE student_users ADD COLUMN IF NOT EXISTS slack_user_id VARCHAR(255) DEFAULT NULL;
       `);
       await client.query(`

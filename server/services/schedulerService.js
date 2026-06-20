@@ -12,6 +12,7 @@ import logger from '../utils/logger.js';
 import notificationsService from './notificationsService.js';
 import { withDb } from '../repositories/db.js';
 import { HAS_SUPABASE } from '../storage/supabaseClient.js';
+import { backupService } from './backupService.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -106,9 +107,42 @@ const TASK_DEFINITIONS = [
   },
   {
     id: 'database-backup',
-    name: 'Database Backup',
-    description: 'Creates and uploads a compressed database backup to S3',
+    name: 'Database Backup (Full)',
+    description: 'Creates and uploads a full compressed database backup to S3',
     cron: '0 2 * * *', // Daily at 02:00
+    category: 'system',
+    enabled: true,
+  },
+  {
+    id: 'database-backup-incremental',
+    name: 'Database Backup (Incremental)',
+    description:
+      'Creates and uploads an incremental database backup (changes since last backup) to S3',
+    cron: '0 */6 * * *', // Every 6 hours
+    category: 'system',
+    enabled: true,
+  },
+  {
+    id: 'database-backup-trlog',
+    name: 'Database Backup (Transaction Log)',
+    description: 'Creates and uploads a transaction log backup to S3',
+    cron: '*/15 * * * *', // Every 15 minutes
+    category: 'system',
+    enabled: true,
+  },
+  {
+    id: 'file-storage-backup',
+    name: 'File Storage Backup',
+    description: 'Syncs /uploads directory to S3 storage bucket',
+    cron: '0 3 * * *', // Daily at 3 AM UTC
+    category: 'system',
+    enabled: true,
+  },
+  {
+    id: 'automated-recovery-testing',
+    name: 'Automated Recovery Testing',
+    description: 'Performs monthly automated restore test to verify backup integrity',
+    cron: '0 4 1 * *', // Monthly on the 1st at 4 AM UTC
     category: 'system',
     enabled: true,
   },
@@ -280,6 +314,18 @@ class SchedulerService extends EventEmitter {
       case 'database-backup':
         await this._backupDatabase();
         break;
+      case 'database-backup-incremental':
+        await backupService.runIncrementalBackup();
+        break;
+      case 'database-backup-trlog':
+        await backupService.runTransactionLogBackup();
+        break;
+      case 'file-storage-backup':
+        await backupService.runFileStorageBackup();
+        break;
+      case 'automated-recovery-testing':
+        await backupService.runAutomatedRecoveryTest();
+        break;
       case 'report-generation':
         await this._generateReports();
         break;
@@ -370,30 +416,8 @@ class SchedulerService extends EventEmitter {
   }
 
   async _backupDatabase() {
-    logger.info('[Scheduler] Starting database backup');
-    if (!HAS_SUPABASE) {
-      logger.info('[Scheduler] No database configured, skipping backup');
-      return;
-    }
-    const tables = [
-      'events',
-      'student_users',
-      'core_team_members',
-      'resources',
-      'push_subscriptions',
-    ];
-    let totalRows = 0;
-    await withDb(async (client) => {
-      for (const table of tables) {
-        try {
-          const { rows } = await client.query(`SELECT COUNT(*) as count FROM ${table}`);
-          totalRows += parseInt(rows[0]?.count || '0', 10);
-        } catch {
-          logger.warn(`[Scheduler] Backup: table ${table} not found, skipping`);
-        }
-      }
-    });
-    logger.info(`[Scheduler] Backup summary: ${tables.length} tables, ${totalRows} total rows`);
+    logger.info('[Scheduler] Starting database full backup');
+    await backupService.runDailyBackup();
   }
 
   async _generateReports() {

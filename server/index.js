@@ -80,7 +80,7 @@ import compression from 'compression';
 import syncRouter from './routes/sync.js';
 import multer from 'multer';
 import * as resourcesController from './controllers/resourcesController.js';
-import complianceRouter from './routes/compliance.js';
+import * as backupController from './controllers/backupController.js';
 import scheduledTasksRouter from './routes/scheduledTasks.js';
 import { schedulerService } from './services/schedulerService.js';
 import dynamicPricingRouter from './routes/dynamicPricing.js';
@@ -345,6 +345,16 @@ app.use('/', syncRouter);
 app.use('/api/pricing', dynamicPricingRouter);
 
 const adminAuth = [apiRateLimiter, adminAuthMiddleware.requireAdmin];
+
+// Scheduled Tasks Management
+app.use('/api/admin/scheduled-tasks', adminAuth, scheduledTasksRouter);
+
+// Database Backup & Recovery Endpoints
+app.get('/api/admin/backups', adminAuth, backupController.getBackups);
+app.post('/api/admin/backups/manual', adminAuth, backupController.runManualBackup);
+app.post('/api/admin/backups/restore', adminAuth, backupController.runRestore);
+app.get('/api/admin/backups/restore-test-history', adminAuth, backupController.getRestoreHistory);
+app.delete('/api/admin/backups', adminAuth, backupController.deleteBackup);
 
 const defaultContent = {
   events: [

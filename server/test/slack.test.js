@@ -8,6 +8,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SLACK_CONFIG_FILE = path.join(__dirname, '..', 'data', 'slack_config.json');
 
+import pg from 'pg';
+pg.Pool = class MockPool {
+  on() {}
+  async connect() {
+    return {
+      query: async () => ({ rows: [], rowCount: 1 }),
+      release: () => {},
+    };
+  }
+};
+
 const mockFetchCalls = [];
 globalThis.fetch = async (url, options) => {
   mockFetchCalls.push({ url, options });
