@@ -99,6 +99,16 @@ router.get(
   adminAuthMiddleware.requireScope('events:read'),
   eventsController.adminListEvents
 );
+router.get(
+  '/api/admin/events/recommendations',
+  adminAuthMiddleware.requireScope('events:read'),
+  eventAnalyticsController.getEventRecommendations
+);
+router.get(
+  '/api/admin/events/:eventId/analytics',
+  adminAuthMiddleware.requireScope('events:read'),
+  eventAnalyticsController.getEventStats
+);
 router.post(
   '/api/admin/events',
   adminAuthMiddleware.requireScope('events:write'),

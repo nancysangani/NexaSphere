@@ -470,6 +470,58 @@ async function fetchWithAuth(url, options = {}) {
         return;
       }
 
+      // /api/admin/events/recommendations
+      if (url === '/api/admin/events/recommendations') {
+        const events = getDb('events', []);
+        const completedEvents = events.filter((event) => event.status === 'completed');
+        const eventCount = completedEvents.length || events.length;
+        const topEvent = events[0];
+
+        resolve({
+          generatedAt: new Date().toISOString(),
+          dataWindow: {
+            totalEvents: events.length,
+            historicalEvents: eventCount,
+            note: 'Offline recommendations use local admin event data only.',
+          },
+          recommendations: topEvent
+            ? [
+                {
+                  title: `${topEvent.category || 'general'} events need early planning`,
+                  priority: 'medium',
+                  action: `Use ${topEvent.name} as the reference event and plan capacity around ${
+                    topEvent.capacity || 30
+                  }.`,
+                  explanation:
+                    'Offline mode cannot access live registration history, so this uses saved event metadata.',
+                },
+              ]
+            : [],
+          historicalPatterns: {
+            sampleSize: eventCount,
+            eventTypes: [],
+            bestDay: null,
+            seasonal: [],
+            demographics: [],
+          },
+          planningRecommendations: [],
+          attendancePredictions: [],
+          schedulingRecommendations: {
+            conflicts: [],
+            recommendations: [
+              'Connect to the server to analyze registration timing and conflicts.',
+            ],
+          },
+          resourceRecommendations: [],
+          topicRecommendations: {
+            trending: [],
+            gaps: [],
+            partnerPreferences: [],
+          },
+        });
+        return;
+      }
+
       // /api/admin/events (base CRUD — must come after sub-path handlers)
       if (url.startsWith('/api/admin/events')) {
         let events = getDb('events', []);
@@ -831,6 +883,7 @@ export const api = {
   },
   events: {
     getAll: () => fetchWithAuth('/api/admin/events'),
+    recommendations: () => fetchWithAuth('/api/admin/events/recommendations'),
     create: async (event) => {
       if (auth.isOfflineMode()) {
         eventEmitter.emit(EVENTS.NOTIFY, {

@@ -1,5 +1,6 @@
 import { registrationsRepository } from '../repositories/registrationsRepository.js';
 import { eventsRepository } from '../repositories/eventsRepository.js';
+import { getAdminEventRecommendations } from '../services/eventRecommendationService.js';
 
 function wrapAsync(fn) {
   return (req, res) =>
@@ -52,4 +53,9 @@ export const getEventStats = wrapAsync(async (req, res) => {
     yearBreakdown,
     waitlist,
   });
+});
+
+export const getEventRecommendations = wrapAsync(async (req, res) => {
+  const recommendations = await getAdminEventRecommendations();
+  return res.json(recommendations);
 });
