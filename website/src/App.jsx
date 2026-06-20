@@ -396,7 +396,7 @@ function AppShell() {
     if (location.pathname !== '/') {
       setCinDone(true);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   // Socket + cross-origin localStorage sync
   useEffect(() => {
