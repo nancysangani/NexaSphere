@@ -87,6 +87,32 @@ async function replayRequest(entry) {
     fetchOptions.body = body; // already JSON-serialized string
   }
 
+  // Validate URL to prevent Client-Side SSRF / Malicious redirect injections
+  try {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      const parsedUrl = new URL(url);
+      const allowedHost = window.location.host;
+      // Restrict targeting to identical hosts / loopback protections
+      if (
+        parsedUrl.host !== allowedHost &&
+        !parsedUrl.hostname.endsWith('.api.nexasphere.internal')
+      ) {
+        const isLocalIp =
+          /(^127\.)|(^192\.168\.)|(^10\.)|(^172\.(1[6-9]|2[0-9]|3[0-1])\.)|(^::1$)|(^169\.254\.)/.test(
+            parsedUrl.hostname
+          );
+        if (isLocalIp || parsedUrl.hostname === 'localhost') {
+          console.error('Blocked potential SSRF target payload:', parsedUrl.hostname);
+          return { success: false, shouldRetry: false };
+        }
+      }
+    } else if (url.startsWith('//')) {
+      return { success: false, shouldRetry: false };
+    }
+  } catch (e) {
+    return { success: false, shouldRetry: false };
+  }
+
   const response = await fetch(url, fetchOptions);
 
   if (!response.ok) {
