@@ -1,6 +1,10 @@
 import passport from 'passport';
+<<<<<<< HEAD
 import { studentUsersRepository } from '../repositories/studentUsersRepository.js';
 
+=======
+import { studentAuthService } from '../services/studentAuthService.js';
+>>>>>>> pr-resolve-1970
 
 export const googleAuth = passport.authenticate('google', {
   session: false,
@@ -116,7 +120,16 @@ export const updateSlackSettings = async (req, res) => {
   }
 };
 
-export const logout = (req, res) => {
-  res.clearCookie('ns_student_token');
-  return res.json({ ok: true });
+export const logout = async (req, res) => {
+  try {
+    const token = req.cookies?.ns_student_token || req.headers.authorization?.split(' ')[1];
+    if (token) {
+      await studentAuthService.logout(token);
+    }
+    res.clearCookie('ns_student_token');
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('Logout error:', err);
+    return res.status(500).json({ error: 'Logout failed' });
+  }
 };

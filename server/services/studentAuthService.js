@@ -11,6 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 >>>>>>> pr-resolve-1976
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '7d';
 
+<<<<<<< HEAD
 function getJwtSecret() {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
@@ -22,6 +23,9 @@ function getJwtSecret() {
   }
   return secret;
 }
+=======
+const tokenBlacklist = new Map();
+>>>>>>> pr-resolve-1970
 
 const STUDENT_ROLES = {
   student: { scopes: ['profile:read', 'profile:write', 'events:read', 'events:register'] },
@@ -102,9 +106,26 @@ export const studentAuthService = {
 
   verifyToken(token) {
     try {
+<<<<<<< HEAD
       return jwt.verify(token, getJwtSecret());
+=======
+      if (tokenBlacklist.has(token)) return null;
+      return jwt.verify(token, JWT_SECRET);
+>>>>>>> pr-resolve-1970
     } catch {
       return null;
+    }
+  },
+
+  async logout(token) {
+    if (!token) return;
+    const decoded = jwt.decode(token);
+    if (decoded && decoded.exp) {
+      const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+      if (ttl > 0) {
+        tokenBlacklist.set(token, true);
+        setTimeout(() => tokenBlacklist.delete(token), ttl * 1000);
+      }
     }
   },
 
