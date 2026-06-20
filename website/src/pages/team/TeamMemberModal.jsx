@@ -5,13 +5,18 @@ import { createPortal } from 'react-dom';
 function CopyPopup({ value, onClose }) {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef(null);
+  const copiedTimeoutRef = useRef(null);
 
   const handleCopy = () => {
     navigator.clipboard
       .writeText(value)
       .then(() => {
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+        copiedTimeoutRef.current = setTimeout(() => {
+          setCopied(false);
+          copiedTimeoutRef.current = null;
+        }, 2000);
       })
       .catch(() => {});
   };
@@ -27,6 +32,9 @@ function CopyPopup({ value, onClose }) {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
       }
       document.removeEventListener('click', handler);
     };
