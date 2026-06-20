@@ -80,6 +80,7 @@ import compression from 'compression';
 import syncRouter from './routes/sync.js';
 import multer from 'multer';
 import * as resourcesController from './controllers/resourcesController.js';
+import complianceRouter from './routes/compliance.js';
 import scheduledTasksRouter from './routes/scheduledTasks.js';
 import { schedulerService } from './services/schedulerService.js';
 import dynamicPricingRouter from './routes/dynamicPricing.js';
@@ -1096,6 +1097,9 @@ function recordFailedActivityAuth(ip) {
 function clearActivityAuthAttempts(ip) {
   failedActivityAuthAttempts.delete(ip);
 }
+
+// Compliance & Legal Documents (handles both public and admin routes internally)
+app.use('/api/compliance', complianceRouter);
 
 // Admin Analytics & Metrics (mounted with admin auth)
 app.use('/api/admin/analytics', adminAuth, analyticsRouter);

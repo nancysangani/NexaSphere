@@ -61,6 +61,12 @@ const links = [
     requiredScope: 'events:read',
   },
   {
+    to: '/dashboard/compliance',
+    label: 'Compliance',
+    icon: 'Shield',
+    requiredScope: 'settings:admin',
+  },
+  {
     to: '/dashboard/scheduled-tasks',
     label: 'Scheduled Tasks',
     icon: 'Clock',
