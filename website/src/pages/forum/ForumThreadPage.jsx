@@ -7,7 +7,7 @@ import { EmptyState } from '../../components/EmptyState';
 
 export default function ForumThreadPage({ onBack }) {
   const { id } = useParams();
-  const threadIdNum = threadIdNum;
+  const threadIdNum = parseInt(id, 10);
   const navigate = useNavigate();
   const [thread, setThread] = useState(null);
   const [replies, setReplies] = useState([]);
