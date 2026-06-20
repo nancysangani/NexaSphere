@@ -28,7 +28,7 @@ import portfolioRouter from './routes/portfolio.js';
 import portfolioExportRouter from './routes/portfolioExport.js';
 import notificationsRouter from './routes/notifications.js';
 import adminRouter from './routes/admin.js';
-import featureFlagsRouter from './routes/featureFlags.js';
+import auditRouter from './routes/audit.js';
 import { validateEnvironment } from './utils/envValidator.js';
 import { performanceMonitor } from './middleware/performanceMonitor.js';
 import { enhancedTracingMiddleware } from './middleware/enhancedTracingMiddleware.js';
@@ -342,7 +342,7 @@ app.use('/api', portfolioRouter);
 app.use('/api/portfolio-export', portfolioExportRouter);
 app.use('/api', notificationsRouter);
 app.use('/api/admin', adminRouter);
-app.use('/api', financialsRouter);
+app.use('/api/admin', auditRouter);
 app.use('/', syncRouter);
 app.use('/', featureFlagsRouter);
 
