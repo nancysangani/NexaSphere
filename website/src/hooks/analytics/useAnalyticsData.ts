@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getApiBase } from '../../utils/runtimeConfig';
+import apiClient from '../../utils/apiClient';
 import { useAnalyticsFilters } from '../../context/AnalyticsFilterContext';
 import {
   generateTrendData,
@@ -51,15 +52,13 @@ export const useAnalyticsData = () => {
     }
 
     const base = getApiBase();
+    const token = localStorage.getItem('ns_student_token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-    const safeJson = (r: Response) => {
-      if (!r.ok) throw new Error(`Analytics API error: ${r.status} ${r.statusText}`);
-      return r.json();
-    };
     Promise.all([
-      fetch(`${base}/api/admin/analytics/stats`).then(safeJson),
-      fetch(`${base}/api/admin/analytics/growth`).then(safeJson),
-      fetch(`${base}/api/admin/analytics/events`).then(safeJson),
+      apiClient(`${base}/api/admin/analytics/stats`, { headers }),
+      apiClient(`${base}/api/admin/analytics/growth`, { headers }),
+      apiClient(`${base}/api/admin/analytics/events`, { headers }),
     ])
       .then(([stats, growth, events]) => {
         if (!isMounted) return;
