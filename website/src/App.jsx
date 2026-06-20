@@ -115,14 +115,10 @@ const MentorsPage = lazy(() => import('./pages/mentorship/MentorsPage'));
 const MentorshipDashboard = lazy(() => import('./pages/mentorship/MentorshipDashboard'));
 const StatusPage = lazy(() => import('./pages/StatusPage'));
 const LiveStreamPage = lazy(() => import('./pages/streaming/LiveStreamPage'));
-<<<<<<< HEAD
 const LiveQa = lazy(() => import('./pages/events/LiveQa'));
-=======
-const ResourcesPage = lazy(() => import('./pages/resources/ResourcesPage'));
 const NotificationHistoryPage = lazy(() => import('./pages/notifications/NotificationHistoryPage'));
 const SponsorsPage = lazy(() => import('./pages/sponsors/SponsorsPage'));
 const RecommendationsPage = lazy(() => import('./pages/resume/RecommendationsPage'));
->>>>>>> pr-last-2492
 
 const MNH = 88,
   DNH = 64;
@@ -1179,21 +1175,7 @@ function MainRouter({
               }
             />
 
-<<<<<<< HEAD
-            {/* ── Recommendations ── */}
-            <Route
-              path="/recommendations"
-              element={
-                <PageIn k="recommendations">
-                  <RecommendationsPage onBack={onBackHome} />
-                </PageIn>
-              }
-            />
-
             {/* ── Login / SSO ── */}
-=======
-            {/* â”€â”€ Login / SSO â”€â”€ */}
->>>>>>> upstream/main
             <Route
               path="/login"
               element={

@@ -145,4 +145,13 @@ class NotificationsService {
   }
 }
 
-export default new NotificationsService();
+const notificationsService = new NotificationsService();
+export default notificationsService;
+
+export const addNotification = notificationsService.addNotification.bind(notificationsService);
+export const getNotifications = notificationsService.getNotifications.bind(notificationsService);
+export const markAsRead = notificationsService.markAsRead.bind(notificationsService);
+export const markAllAsRead = notificationsService.markAllAsRead.bind(notificationsService);
+export const clearAll = notificationsService.clearAll.bind(notificationsService);
+export const removeNotification = notificationsService.removeNotification.bind(notificationsService);
+

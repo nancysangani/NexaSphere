@@ -199,4 +199,18 @@ const membershipSubmissionSchema = CommonIdentitySchema.passthrough()
   // Strip any leftover fallback/unknown keys at the final output boundary
   .pipe(z.object({}).passthrough().strip());
 
-export { coreTeamApplicationSchema, membershipSubmissionSchema, recruitmentSubmissionSchema };
+function normalizeFormSubmission(formType, body) {
+  if (formType === 'recruitment') {
+    return recruitmentSubmissionSchema.parse(body);
+  }
+  if (formType === 'core_team') {
+    return coreTeamApplicationSchema.parse(body);
+  }
+  if (formType === 'membership') {
+    return membershipSubmissionSchema.parse(body);
+  }
+  throw new Error(`Invalid form type: ${formType}`);
+}
+
+export { coreTeamApplicationSchema, membershipSubmissionSchema, recruitmentSubmissionSchema, normalizeFormSubmission };
+

@@ -2,16 +2,6 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { studentUsersRepository } from '../repositories/studentUsersRepository.js';
 
-<<<<<<< HEAD
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable must be set');
-}
-const JWT_SECRET = process.env.JWT_SECRET;
-=======
->>>>>>> pr-resolve-1976
-const JWT_EXPIRY = process.env.JWT_EXPIRY || '7d';
-
-<<<<<<< HEAD
 function getJwtSecret() {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
@@ -23,9 +13,8 @@ function getJwtSecret() {
   }
   return secret;
 }
-=======
 const tokenBlacklist = new Map();
->>>>>>> pr-resolve-1970
+const JWT_EXPIRY = process.env.JWT_EXPIRY || '7d';
 
 const STUDENT_ROLES = {
   student: { scopes: ['profile:read', 'profile:write', 'events:read', 'events:register'] },
@@ -106,12 +95,8 @@ export const studentAuthService = {
 
   verifyToken(token) {
     try {
-<<<<<<< HEAD
-      return jwt.verify(token, getJwtSecret());
-=======
       if (tokenBlacklist.has(token)) return null;
-      return jwt.verify(token, JWT_SECRET);
->>>>>>> pr-resolve-1970
+      return jwt.verify(token, getJwtSecret());
     } catch {
       return null;
     }

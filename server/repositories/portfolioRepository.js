@@ -277,6 +277,10 @@ export const portfolioRepository = {
     const isDbAvailable = await ensureReady();
     const sanitizedUsername = canonicalizeUsername(username);
 
+    if (typeof passkey !== 'string' || passkey.length > 128) {
+      return false;
+    }
+
     let isValid;
 
     if (isDbAvailable) {
@@ -330,8 +334,13 @@ export const portfolioRepository = {
     // jobs, seeders, tests).
     const clean = sanitizePortfolioRecord(data);
 
+    const passkeyVal = clean.passkey || data.passkey;
+    if (typeof passkeyVal !== 'string' || passkeyVal.length > 128) {
+      throw new Error('Passkey must be between 1 and 128 characters.');
+    }
+
     const sanitizedUsername = clean.username || canonicalizeUsername(data.username);
-    const passkeyHash = await hashPasskey(clean.passkey || data.passkey);
+    const passkeyHash = await hashPasskey(passkeyVal);
 
     const customization = clean.customization || {};
     const theme = clean.theme || 'glassmorphic';

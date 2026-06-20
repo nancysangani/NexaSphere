@@ -48,6 +48,9 @@ const emailBreaker = circuitBreakerRegistry.register(
 );
 
 async function renderTemplate(templateName, data) {
+  if (typeof templateName !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(templateName)) {
+    throw new Error('Invalid email template name');
+  }
   const templatePath = path.join(__dirname, 'templates', `${templateName}.ejs`);
   const templateStr = await fs.readFile(templatePath, 'utf-8');
   return ejs.render(templateStr, data);

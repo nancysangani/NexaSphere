@@ -7,15 +7,8 @@ export const searchController = {
     try {
       const q = (req.query.q || '').trim();
       const type = (req.query.type || 'all').trim();
-<<<<<<< HEAD
-
-      // Pagination Setup: Enforce hard limits and calculate skip
-      const page = Math.max(1, parseInt(req.query.page) || 1);
-      const limit = Math.min(parseInt(req.query.limit) || 20, 50);
-=======
       const page = Math.max(1, parseInt(req.query.page) || 1);
       const limit = Math.min(Math.max(1, parseInt(req.query.limit) || 20), 50);
->>>>>>> pr-resolve-1968
       const skip = (page - 1) * limit;
 
       if (!q || q.length < 2) {
@@ -95,23 +88,9 @@ export const searchController = {
       }
 
       const trueTotal = results.length;
-<<<<<<< HEAD
-
-      // Apply pagination here
-      results = results.slice(skip, skip + limit);
-
-      return res.json({
-        results,
-        total: trueTotal,
-        query: q,
-        page,
-        limit,
-      });
-=======
       results = results.slice(skip, skip + limit);
 
       return res.json({ results, total: trueTotal, page, limit, query: q });
->>>>>>> pr-resolve-1968
     } catch (err) {
       console.error('Search error:', err);
       return res.status(500).json({ error: 'Search failed', results: [], total: 0 });

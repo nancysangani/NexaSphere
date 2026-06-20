@@ -159,10 +159,6 @@ export const activityAuthRateLimiter = rateLimit({
   },
 });
 
-<<<<<<< HEAD
-// Portfolio update rate limiter — 10 requests per IP per 15 minutes
-// Portfolio update rate limiter — 10 requests per IP per 15 minutes
-=======
 // Sync batch rate limiter — 10 requests per IP per minute.
 // Applied to the write-heavy POST /api/sync/batch which previously had no
 // rate limiting or authentication at all.
@@ -184,9 +180,7 @@ export const syncRateLimiter = rateLimit({
   },
 });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> pr-resolve-1977
+// Portfolio update rate limiter — 10 requests per IP per 15 minutes
 export const portfolioRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -196,7 +190,9 @@ export const portfolioRateLimiter = rateLimit({
     "Portfolio update rate limit exceeded",
     "Too many portfolio update attempts from this IP, please try again after 15 minutes."
   ),
-=======
+});
+
+// Event registration rate limiter — 10 requests per IP per hour
 export const eventRegistrationLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 10,
@@ -205,38 +201,16 @@ export const eventRegistrationLimiter = rateLimit({
   store: createRateLimitStore('rate-limit:event-reg:'),
   handler: (req, res, _next, options) => {
     logger.warn('Event registration rate limit exceeded', {
-=======
-export const searchRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  store: createRateLimitStore('rate-limit:search:'),
-  handler: (req, res, _next, options) => {
-    logger.warn('Search rate limit exceeded', {
->>>>>>> pr-resolve-1968
       ip: req.ip,
       path: req.originalUrl || req.path,
       method: req.method,
     });
     res.status(options.statusCode).json({
-<<<<<<< HEAD
       error: 'Too many registration attempts. Please try again later.',
     });
   },
->>>>>>> pr-resolve-1971
-=======
-      error: 'Too many search requests. Please slow down.',
-    });
-  },
->>>>>>> pr-resolve-1968
 });
 
-// ---------------------------------------------------------------------------
-// Startup guard — call once during server boot to catch missing exports early.
-// Throws immediately if any limiter failed to initialise, preventing the silent
-// "undefined middleware" failure mode that this issue was created to fix.
-// ---------------------------------------------------------------------------
 // Search rate limiter: 30 requests per minute per IP.
 export const searchRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -255,6 +229,11 @@ export const searchRateLimiter = rateLimit({
   },
 });
 
+// ---------------------------------------------------------------------------
+// Startup guard — call once during server boot to catch missing exports early.
+// Throws immediately if any limiter failed to initialise, preventing the silent
+// "undefined middleware" failure mode that this issue was created to fix.
+// ---------------------------------------------------------------------------
 export function validateLimiters() {
   const limiters = {
     apiRateLimiter,
@@ -264,15 +243,8 @@ export function validateLimiters() {
     activityAuthRateLimiter,
     syncRateLimiter,
     portfolioRateLimiter,
-<<<<<<< HEAD
-<<<<<<< HEAD
-    searchRateLimiter,
-=======
     eventRegistrationLimiter,
->>>>>>> pr-resolve-1971
-=======
     searchRateLimiter,
->>>>>>> pr-resolve-1968
   };
 
   for (const [name, limiter] of Object.entries(limiters)) {

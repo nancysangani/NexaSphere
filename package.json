@@ -36,10 +36,8 @@
     "prepare": "node -e \"try { require('husky'); require('child_process').execSync('husky', {stdio:'inherit'}) } catch(e) { console.log('husky not available, skipping') }\""
   },
   "devDependencies": {
-    "@rolldown/binding-win32-x64-msvc": "^1.1.1",
     "concurrently": "^10.0.0",
     "husky": "^9.1.7",
-    "lightningcss-win32-x64-msvc": "^1.32.0",
     "lint-staged": "^17.0.6",
     "prettier": "^3.8.3",
     "prisma": "^7.8.0"
@@ -59,7 +57,9 @@
     "@rollup/rollup-linux-x64-musl": "4.60.0",
     "lightningcss-linux-arm64-gnu": "1.32.0",
     "lightningcss-linux-x64-gnu": "1.32.0",
-    "lightningcss-linux-x64-musl": "1.32.0"
+    "lightningcss-linux-x64-musl": "1.32.0",
+    "@rolldown/binding-win32-x64-msvc": "^1.1.1",
+    "lightningcss-win32-x64-msvc": "^1.32.0"
   },
   "dependencies": {
     "@prisma/client": "^5.12.1",

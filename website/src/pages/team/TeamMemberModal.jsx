@@ -8,8 +8,9 @@ function CopyPopup({ value, onClose }) {
   const copiedTimeoutRef = useRef(null);
 
   const handleCopy = () => {
+    const sanitized = String(value || '').replace(/[\x00-\x08\x0B\x0C\x0D\x0E-\x1F\x7F-\x9F]/g, '');
     navigator.clipboard
-      .writeText(value)
+      .writeText(sanitized)
       .then(() => {
         setCopied(true);
         if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);

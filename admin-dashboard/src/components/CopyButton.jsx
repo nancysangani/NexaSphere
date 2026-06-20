@@ -6,7 +6,8 @@ export function CopyButton({ text, label = 'Copy' }) {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(text);
+      const sanitizedText = String(text || '').replace(/[\x00-\x08\x0B\x0C\x0D\x0E-\x1F\x7F-\x9F]/g, '');
+      await navigator.clipboard.writeText(sanitizedText);
 
       setCopied(true);
 

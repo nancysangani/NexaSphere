@@ -60,12 +60,14 @@ export function getQRUrl(text) {
 }
 
 export async function copyToClipboard(text) {
+  // Prevent pastejacking/clipboard attacks by removing dangerous control characters (including carriage returns \r)
+  const sanitizedText = String(text || '').replace(/[\x00-\x08\x0B\x0C\x0D\x0E-\x1F\x7F-\x9F]/g, '');
   if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(sanitizedText);
     return true;
   }
   const el = document.createElement('textarea');
-  el.value = text;
+  el.value = sanitizedText;
   el.style.cssText = 'position:fixed;opacity:0';
   document.body.appendChild(el);
   el.select();

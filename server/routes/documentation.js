@@ -9,16 +9,25 @@ import redoc from 'redoc-express';
 import specs from '../config/swagger.js';
 import logger from '../utils/logger.js';
 import yaml from 'yaml';
+import { adminAuthMiddleware } from '../middleware/adminAuthMiddleware.js';
 
 const router = express.Router();
+
+const requireAdminInProd = (req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    return adminAuthMiddleware.requireAdmin(req, res, next);
+  }
+  next();
+};
 
 /**
  * Swagger UI - Interactive API documentation
  * GET /api/docs
  */
-router.use('/docs', swaggerUi.serve);
+router.use('/docs', requireAdminInProd, swaggerUi.serve);
 router.get(
   '/docs',
+  requireAdminInProd,
   swaggerUi.setup(specs, {
     swaggerOptions: {
       url: '/api/swagger.json',
@@ -38,6 +47,7 @@ router.get(
  */
 router.get(
   '/redoc',
+  requireAdminInProd,
   redoc({
     title: 'NexaSphere API Documentation',
     specUrl: '/api/swagger.json',
@@ -48,7 +58,7 @@ router.get(
  * OpenAPI Spec JSON
  * GET /api/swagger.json
  */
-router.get('/swagger.json', (req, res) => {
+router.get('/swagger.json', requireAdminInProd, (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(specs);
   logger.info('OpenAPI spec requested', { ip: req.ip });
@@ -58,7 +68,7 @@ router.get('/swagger.json', (req, res) => {
  * OpenAPI Spec YAML
  * GET /api/swagger.yaml
  */
-router.get('/swagger.yaml', (req, res) => {
+router.get('/swagger.yaml', requireAdminInProd, (req, res) => {
   res.setHeader('Content-Type', 'application/yaml');
   res.send(yaml.stringify(specs));
   logger.info('OpenAPI YAML spec requested', { ip: req.ip });
@@ -68,7 +78,7 @@ router.get('/swagger.yaml', (req, res) => {
  * API Documentation Index
  * GET /api/docs-info
  */
-router.get('/docs-info', (req, res) => {
+router.get('/docs-info', requireAdminInProd, (req, res) => {
   try {
     res.json({
       success: true,

@@ -37,10 +37,6 @@ import { enhancedTracingMiddleware } from './middleware/enhancedTracingMiddlewar
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { notificationAnalyticsRepository } from './repositories/notificationAnalyticsRepository.js';
 import { initializeSentry, addSentryErrorHandler } from './utils/sentry.js';
-<<<<<<< HEAD
-import { apiRateLimiter, validateLimiters } from './middleware/rateLimiter.js';
-
-=======
 import {
   apiRateLimiter,
   formRateLimiter,
@@ -57,7 +53,6 @@ import {
 } from './middleware/authRateLimiter.js';
 import { portfolioRepository } from './repositories/portfolioRepository.js';
 import { portfolioContentSchema, portfolioPutSchema } from './validators/portfolioSchemas.js';
->>>>>>> pr-resolve-1968
 import { searchController } from './controllers/searchController.js';
 import { Mutex } from 'async-mutex';
 import { CircuitBreaker, circuitBreakerRegistry } from './utils/circuitBreaker.js';
@@ -86,6 +81,7 @@ import compression from 'compression';
 import syncRouter from './routes/sync.js';
 import multer from 'multer';
 import learningPathRouter from './routes/learningPaths.js';
+import { learningPathService } from './services/learningPathService.js';
 import * as resourcesController from './controllers/resourcesController.js';
 import * as backupController from './controllers/backupController.js';
 import scheduledTasksRouter from './routes/scheduledTasks.js';
@@ -98,16 +94,6 @@ validateLimiters();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CONTENT_FILE = path.join(__dirname, 'data', 'content.json');
-
-const REQUIRED_ENV_VARS = ['CORS_ORIGIN', 'ADMIN_EVENT_PASSWORD'];
-
-function validateEnvironment() {
-  const missing = REQUIRED_ENV_VARS.filter((env) => !process.env[env]);
-
-  if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
-  }
-
 
 validateEnvironment();
 
@@ -325,7 +311,6 @@ if (!useStructuredHttpLog) {
 app.use(performanceMonitor);
 app.use(cookieParser());
 
-<<<<<<< HEAD
 // Track app activity for smart notification frequency adjustment
 app.use((req, res, next) => {
   if (req.studentUser || req.adminSession) {
@@ -334,10 +319,9 @@ app.use((req, res, next) => {
   }
   next();
 });
-=======
+
 // CSRF protection — double-submit cookie pattern for all state-changing endpoints
 app.use(csrfProtection);
->>>>>>> pr-resolve-1966
 
 // Global API rate limiter — protects all /api routes from request flooding
 app.use('/api', apiRateLimiter);
@@ -1609,10 +1593,9 @@ app.get('/api/admin/mentorships', adminAuth, mentorshipController.adminListAll);
 app.get('/api/admin/mentors', adminAuth, mentorshipController.adminListMentors);
 
 // ── Search, Discovery & Recommendation Engine ──
-<<<<<<< HEAD
-app.get('/api/search', searchController.search);
-app.get('/api/search/trending', searchController.trending);
-app.get('/api/recommendations', searchController.recommendations);
+app.get('/api/search', searchRateLimiter, searchController.search);
+app.get('/api/search/trending', searchRateLimiter, searchController.trending);
+app.get('/api/recommendations', searchRateLimiter, searchController.recommendations);
 // ── Resource Library Routes ──
 // Public resource endpoints
 app.get('/api/resources', resourcesController.listResources);
@@ -1636,11 +1619,6 @@ app.post('/api/admin/resources', adminAuth, resourcesController.createResource);
 app.put('/api/admin/resources/:id', adminAuth, resourcesController.updateResource);
 app.delete('/api/admin/resources/:id', adminAuth, resourcesController.deleteResource);
 app.patch('/api/admin/resources/:id/moderate', adminAuth, resourcesController.moderateResource);
-=======
-app.get('/api/search', searchRateLimiter, searchController.search);
-app.get('/api/search/trending', searchRateLimiter, searchController.trending);
-app.get('/api/recommendations', searchRateLimiter, searchController.recommendations);
->>>>>>> pr-resolve-1968
 // Must be registered after all routes.
 app.use(notFoundHandler);
 addSentryErrorHandler(app);

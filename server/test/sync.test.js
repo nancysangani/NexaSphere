@@ -34,13 +34,6 @@ setWithDbOverride(async (fn) => {
 });
 
 test('Offline-First Sync and Compression Verification', async (t) => {
-  const { studentAuthService } = await import('../services/studentAuthService.js');
-  const token = studentAuthService.generateToken({
-    id: 'student-123',
-    role: 'student',
-    email: 'student@example.com',
-  });
-
   const { default: app } = await import('../index.js');
   const server = http.createServer(app);
   await new Promise((resolve) => server.listen(0, resolve));

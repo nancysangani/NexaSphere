@@ -1,10 +1,6 @@
 import passport from 'passport';
-<<<<<<< HEAD
 import { studentUsersRepository } from '../repositories/studentUsersRepository.js';
-
-=======
 import { studentAuthService } from '../services/studentAuthService.js';
->>>>>>> pr-resolve-1970
 
 export const googleAuth = passport.authenticate('google', {
   session: false,

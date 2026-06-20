@@ -199,6 +199,27 @@ function prunePendingTokens(store) {
   }
 }
 
+const usedTotpCodes = new Map();
+
+async function markTotpUsed(username, code) {
+  const cleanCode = String(code || '').replace(/\s+/g, '');
+  const redis = getRedisClient();
+  const redisKey = `totp:used:${username}:${cleanCode}`;
+  if (redis) {
+    const isSet = await redis.set(redisKey, '1', 'EX', 90, 'NX');
+    return isSet === null;
+  }
+  
+  const key = `${username}:${cleanCode}`;
+  const now = Date.now();
+  for (const [k, exp] of usedTotpCodes.entries()) {
+    if (exp <= now) usedTotpCodes.delete(k);
+  }
+  if (usedTotpCodes.has(key)) return true;
+  usedTotpCodes.set(key, now + 90 * 1000);
+  return false;
+}
+
 /**
  * Compute the SHA-256 hash of a token string.
  * This MUST match the Java TokenService.hashToken() algorithm exactly
@@ -342,6 +363,10 @@ async function login(req, res) {
     const p = String(req.body?.password || '');
     const ip = getClientIp(req);
     const userAgent = req.get('user-agent') || '';
+
+    if (u.length > 128 || p.length > 128) {
+      return res.status(400).json({ error: 'Username or password too long' });
+    }
 
     const state = getLoginAttemptState(ip);
     if (state && state.attempts > LOGIN_MAX_ATTEMPTS) {
@@ -493,13 +518,21 @@ async function verifyTwoFactor(req, res) {
       return res.status(400).json({ error: 'Two-factor challenge expired. Please sign in again.' });
     }
 
-    const validTotp = verifyTotpCode(pending.secret, code);
+    const cleanCode = String(code || '').replace(/\s+/g, '');
+    const validTotp = verifyTotpCode(pending.secret, cleanCode);
     const validBackup = validTotp
       ? false
       : await verifyAndConsumeBackupCode(pending.username, code).catch(() => false);
 
     if (!validTotp && !validBackup) {
       return res.status(401).json({ error: 'Invalid verification code' });
+    }
+
+    if (validTotp) {
+      const replayed = await markTotpUsed(pending.username, cleanCode);
+      if (replayed) {
+        return res.status(401).json({ error: 'Verification code already used' });
+      }
     }
 
     return completeAdminLogin({ res, ...pending });
@@ -516,8 +549,14 @@ async function verifyTwoFactorSetup(req, res) {
       return res.status(400).json({ error: 'Two-factor setup expired. Please sign in again.' });
     }
 
-    if (!verifyTotpCode(pending.secret, code)) {
+    const cleanCode = String(code || '').replace(/\s+/g, '');
+    if (!verifyTotpCode(pending.secret, cleanCode)) {
       return res.status(401).json({ error: 'Invalid authenticator code' });
+    }
+
+    const replayed = await markTotpUsed(pending.username, cleanCode);
+    if (replayed) {
+      return res.status(401).json({ error: 'Authenticator code already used' });
     }
 
     await enableAdminTwoFactor({
