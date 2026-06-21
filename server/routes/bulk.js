@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { adminAuthMiddleware } from '../middleware/adminAuthMiddleware.js';
 import { apiRateLimiter } from '../middleware/rateLimiter.js';
 import { bulkOperationsService } from '../services/bulkOperationsService.js';
@@ -8,6 +9,18 @@ const adminAuth = [apiRateLimiter, adminAuthMiddleware.requireAdmin];
 
 // Helper to support both mounted and unmounted path prefix styles
 const paths = (subPath) => [`${subPath}`, `/api/admin${subPath}`];
+
+const bulkUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are allowed'), false);
+    }
+  },
+});
 
 // ---------------------------------------------------------------------------
 // Job Management
@@ -37,6 +50,16 @@ router.post(paths('/bulk/users/import'), adminAuth, async (req, res) => {
   if (!csv) {
     return res.status(400).json({ error: 'CSV data is required' });
   }
+  const adminId = req.adminSession.username;
+  const job = await bulkOperationsService.importUsers(csv, adminId);
+  return res.status(202).json(job);
+});
+
+router.post(paths('/bulk/users/upload'), adminAuth, bulkUpload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'CSV file is required' });
+  }
+  const csv = req.file.buffer.toString('utf-8');
   const adminId = req.adminSession.username;
   const job = await bulkOperationsService.importUsers(csv, adminId);
   return res.status(202).json(job);
@@ -114,6 +137,16 @@ router.post(paths('/bulk/events/import'), adminAuth, async (req, res) => {
   if (!csv) {
     return res.status(400).json({ error: 'CSV data is required' });
   }
+  const adminId = req.adminSession.username;
+  const job = await bulkOperationsService.importEvents(csv, adminId);
+  return res.status(202).json(job);
+});
+
+router.post(paths('/bulk/events/upload'), adminAuth, bulkUpload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'CSV file is required' });
+  }
+  const csv = req.file.buffer.toString('utf-8');
   const adminId = req.adminSession.username;
   const job = await bulkOperationsService.importEvents(csv, adminId);
   return res.status(202).json(job);
