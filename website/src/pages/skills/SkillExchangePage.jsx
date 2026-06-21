@@ -38,7 +38,11 @@ export default function SkillExchangePage({ onBack }) {
       try {
         const d = await apiClient(url);
         setListings(d.listings || []);
-      } catch {}
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.error('[SkillExchangePage] Failed to fetch listings:', err.message);
+        }
+      }
   }, [api]);
 
   const fetchLeaderboard = useCallback(async () => {
@@ -47,7 +51,11 @@ export default function SkillExchangePage({ onBack }) {
       try {
         const d = await apiClient(url);
         setLeaderboard(d.leaderboard || []);
-      } catch {}
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.error('[SkillExchangePage] Failed to fetch leaderboard:', err.message);
+        }
+      }
   }, [api]);
 
   const fetchUserStats = useCallback(async () => {
@@ -57,7 +65,11 @@ export default function SkillExchangePage({ onBack }) {
         const d = await apiClient(url);
         setUserStats(d);
         setSessions(d.sessions || []);
-      } catch {}
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.error('[SkillExchangePage] Failed to fetch user stats:', err.message);
+        }
+      }
   }, [api]);
 
   useEffect(() => {
