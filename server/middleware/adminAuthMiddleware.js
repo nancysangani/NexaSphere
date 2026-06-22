@@ -373,11 +373,17 @@ async function login(req, res) {
       return res.status(429).json({ error: 'Too many login attempts. Please wait and try again.' });
     }
 
-    const matchedUser = adminUsers.find(
-      (user) => safeEqual(u, user.username) && safeEqual(p, user.password)
-    );
+    // RECTIFIED: Use constant-time comparison to protect against timing attacks
+    const usernameHash = crypto.createHash('sha256').update(u).digest();
+    const adminUsernameHash = crypto.createHash('sha256').update(ADMIN_USERNAME).digest();
 
-    if (!matchedUser) {
+    const passwordHash = crypto.createHash('sha256').update(p).digest();
+    const adminPasswordHash = crypto.createHash('sha256').update(ADMIN_PASSWORD).digest();
+
+    const isUsernameValid = crypto.timingSafeEqual(usernameHash, adminUsernameHash);
+    const isPasswordValid = crypto.timingSafeEqual(passwordHash, adminPasswordHash);
+
+    if (!isUsernameValid || !isPasswordValid) {
       recordLoginAttempt(ip);
       await recordAdminLoginAttempt({
         username: u || 'unknown',
