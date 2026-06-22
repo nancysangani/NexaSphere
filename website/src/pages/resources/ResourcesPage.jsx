@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import ResourceCard from '../../components/resources/ResourceCard';
 import ResourceUploadModal from '../../components/resources/ResourceUploadModal';
 import {
@@ -57,6 +57,18 @@ function StatBadge({ icon, label, value }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function ResourcesPage({ onBack }) {
   const [resources, setResources] = useState(fallbackResources);
+  const [toast, setToast] = useState(null);
+  const toastTimeoutRef = useRef(null);
+  const showToast = useCallback((message, type) => {
+    setToast({ message, type });
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => setToast(null), 4000);
+  }, []);
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('');
@@ -167,16 +179,27 @@ export default function ResourcesPage({ onBack }) {
           saveSet('ns_resource_voted_ids', next);
           return next;
         });
+        showToast('Could not register your vote. Please try again.', 'error');
       });
     }
   };
 
   const handleDownload = (id) => {
     const base = getApiBase();
-    if (base) apiClient(`${base}/api/resources/${id}/download`, { method: 'POST' }).catch(() => {});
     setResources((prev) =>
       prev.map((r) => (r.id === id ? { ...r, downloads: (r.downloads || 0) + 1 } : r))
     );
+    if (base) {
+      apiClient(`${base}/api/resources/${id}/download`, { method: 'POST' }).catch(() => {
+        // revert the optimistic download count bump on failure
+        setResources((prev) =>
+          prev.map((r) =>
+            r.id === id ? { ...r, downloads: Math.max((r.downloads || 1) - 1, 0) } : r
+          )
+        );
+        showToast('Could not register your download. Please try again.', 'error');
+      });
+    }
   };
 
   const handleBookmark = (id) => {
@@ -225,6 +248,27 @@ export default function ResourcesPage({ onBack }) {
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px 60px' }}>
+      {toast && (
+        <div
+          role="alert"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: toast.type === 'error' ? '#ef4444' : '#22c55e',
+            color: '#fff',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            zIndex: 1000,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+          }}
+        >
+          {toast.message}
+        </div>
+      )}
       {/* Back button */}
       <button
         onClick={onBack}
