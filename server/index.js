@@ -98,6 +98,7 @@ import scheduledTasksRouter from './routes/scheduledTasks.js';
 import financialsRouter from './routes/financials.js';
 import { schedulerService } from './services/schedulerService.js';
 import feedbackRouter from './routes/feedbackRoutes.js';
+import * as slackController from './controllers/slackController.js';
 
 validateLimiters();
 
