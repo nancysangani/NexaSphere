@@ -69,6 +69,7 @@ import RedisStore from 'connect-redis';
 import Redis from 'ioredis';
 import passport from './config/studentOAuth.js';
 import { studentUsersRepository } from './repositories/studentUsersRepository.js';
+import { slackRepository } from './repositories/slackRepository.js';
 import * as studentAuthController from './controllers/studentAuthController.js';
 import * as forumController from './controllers/forumController.js';
 import { requireStudentAuth } from './middleware/studentAuthMiddleware.js';
