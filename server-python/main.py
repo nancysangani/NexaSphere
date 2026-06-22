@@ -18,7 +18,7 @@ from slowapi.errors import RateLimitExceeded
 from observability.metrics import collect_celery_queue_depth
 from observability.tracing import init_tracing
 from prompts.system_prompt import SYSTEM_PROMPT
-from routers import certificates, forms, health, notifications, portfolio, recommend
+from routers import certificates, forms, health, notifications, portfolio, recommend, review
 from services.sync_worker import periodic_sync_worker
 from utils.security import limiter
 
@@ -148,6 +148,7 @@ app.include_router(certificates.router)
 app.include_router(notifications.router)
 app.include_router(health.router)
 app.include_router(portfolio.router)
+app.include_router(review.router)
 
 
 class ChatRequest(BaseModel):
