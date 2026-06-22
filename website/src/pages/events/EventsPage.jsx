@@ -8,8 +8,10 @@ import EventCountdown from '../../components/events/EventCountdown.jsx';
 import { useRecommendations } from '../../hooks/useRecommendations';
 import { getEventCountdownStatus,parseDate } from '../../hooks/useCountdown.js';
 import EventCalendarView from '../../components/calendar/EventCalendarView';
+import { useStudentAuth } from '../../context/StudentAuthContext';
 
 export default function EventsPage({ onBack, onEventClick, events = fallbackEvents }) {
+  const { user } = useStudentAuth();
   const [view, setView] = useState('timeline');
   const [recommendationView, setRecommendationView] = useState(false);
   const [now] = useState(() => Date.now());
@@ -34,7 +36,7 @@ export default function EventsPage({ onBack, onEventClick, events = fallbackEven
       });
   }, [events, now]);
 
-  const { recommendations, loading: recsLoading } = useRecommendations(sortedEvents);
+  const { recommendations, loading: recsLoading } = useRecommendations(user?.sub || user?.id || '');
 
   const buildGradient = (ev) => {
     if (ev.gradientColors?.length > 1) {
