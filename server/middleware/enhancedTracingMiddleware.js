@@ -6,8 +6,26 @@ import { trackError } from '../utils/errorTracker.js';
 import { maskSensitiveData } from '../utils/sensitiveDataMasking.js';
 
 export const activeTraces = new Map();
+export const traceSummaries = [];
 const tracer = trace.getTracer('nexasphere-api');
 const queryTracker = createQueryPerformanceTracker();
+
+function generateTraceId() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+function generateSpanId() {
+  return crypto.randomBytes(8).toString('hex');
+}
+
+function parseTraceparent(header) {
+  if (!header) return null;
+  const parts = header.split('-');
+  if (parts.length === 4 && parts[0] === '00' && parts[1].length === 32 && parts[2].length === 16) {
+    return { version: parts[0], traceId: parts[1], spanId: parts[2], flags: parts[3] };
+  }
+  return null;
+}
 
 export function enhancedTracingMiddleware(req, res, next) {
   const reqId = req.headers['x-request-id'] || crypto.randomUUID();
@@ -16,8 +34,39 @@ export function enhancedTracingMiddleware(req, res, next) {
   req.reqId = reqId;
   res.setHeader('X-Request-ID', reqId);
 
+  // Extract or generate W3C trace context
+  const incomingTraceparent = req.headers['traceparent'];
+  let traceId;
+  let spanId;
+
+  if (incomingTraceparent) {
+    const parsed = parseTraceparent(incomingTraceparent);
+    if (parsed) {
+      traceId = parsed.traceId;
+      spanId = generateSpanId();
+      // Propagate trace context to downstream services
+      const tracestate = req.headers['tracestate'] || '';
+      const outgoingTraceparent = `00-${traceId}-${spanId}-01`;
+      res.setHeader('traceparent', outgoingTraceparent);
+      if (tracestate) {
+        res.setHeader('tracestate', tracestate);
+      }
+    }
+  }
+
+  if (!traceId) {
+    traceId = generateTraceId();
+    spanId = generateSpanId();
+    const outgoingTraceparent = `00-${traceId}-${spanId}-01`;
+    res.setHeader('traceparent', outgoingTraceparent);
+  }
+
+  const baggage = req.headers['baggage'] || '';
+
   const traceEntry = {
     reqId,
+    traceId,
+    spanId,
     method: req.method,
     url: req.originalUrl || req.url,
     startTime,
@@ -25,6 +74,7 @@ export function enhancedTracingMiddleware(req, res, next) {
     duration: 0,
     userAgent: req.headers['user-agent'],
     ip: req.ip || req.connection?.remoteAddress,
+    baggage,
   };
 
   activeTraces.set(reqId, traceEntry);
@@ -35,6 +85,7 @@ export function enhancedTracingMiddleware(req, res, next) {
       'http.url': req.originalUrl || req.url,
       'http.route': req.path,
       'nexasphere.request_id': reqId,
+      'nexasphere.trace_id': traceId,
       'http.user_agent': req.headers['user-agent'] || '',
     },
   });
@@ -42,7 +93,7 @@ export function enhancedTracingMiddleware(req, res, next) {
   const spanContext = trace.setSpan(context.active(), span);
 
   context.with(spanContext, () => {
-    const store = { reqId, traceEntry };
+    const store = { reqId, traceId, spanId, traceEntry };
     const activeSpan = trace.getSpan(context.active());
     if (activeSpan) {
       const sc = activeSpan.spanContext();
@@ -69,6 +120,18 @@ export function enhancedTracingMiddleware(req, res, next) {
             statusCode: res.statusCode,
           });
         }
+
+        // Keep trace summaries for the last 1000 requests
+        traceSummaries.push({
+          traceId: store.traceId,
+          spanId,
+          method: req.method,
+          path: req.originalUrl || req.url,
+          status: res.statusCode,
+          duration,
+          timestamp: new Date().toISOString(),
+        });
+        if (traceSummaries.length > 1000) traceSummaries.shift();
 
         if (activeTraces.size > 500) {
           const oldestKey = activeTraces.keys().next().value;
