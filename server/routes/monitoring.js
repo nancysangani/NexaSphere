@@ -16,11 +16,10 @@ import logger from '../utils/logger.js';
 import { validateDataIntegrity } from '../utils/dataIntegrityValidator.js';
 import { getMigrationStatus } from '../utils/migrationSafety.js';
 import { recordPageLoad } from '../observability/metrics.js';
-import { getServiceHealth, getFailoverStatus } from '../utils/failoverManager.js';
-import securityPatchManager from "../utils/securityPatchManager.js";
-import encryptionManager from "../utils/encryptionManager.js";
-import { databaseFailoverManager } from "../utils/databaseFailoverManager.js";
-import { apiSecurityManager } from "../utils/apiSecurityManager.js";
+import securityPatchManager from '../utils/securityPatchManager.js';
+import encryptionManager from '../utils/encryptionManager.js';
+import { databaseFailoverManager } from '../utils/databaseFailoverManager.js';
+import { apiSecurityManager } from '../utils/apiSecurityManager.js';
 
 function requireMonitoringAuth(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -333,36 +332,6 @@ router.get('/backup-status', requireMonitoringAuth, (req, res) => {
 });
 
 /**
- * GET /api/monitoring/failover-status
- * Monitor critical service health and failover readiness
- */
-router.get('/failover-status', requireMonitoringAuth, (req, res) => {
-  try {
-    res.status(200).json({
-      success: true,
-      data: {
-        primaryService: 'online',
-        failoverReady: true,
-        serviceHealth: 'healthy',
-        activeInstance: 'primary',
-        uptimeSeconds: Math.floor(process.uptime()),
-        recoveryStatus: 'ready',
-      },
-      timestamp: new Date(),
-    });
-  } catch (error) {
-    logger.error('Error fetching failover status', {
-      error: error.message,
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch failover status',
-    });
-  }
-});
-
-/**
  * GET /api/monitoring/traces
  * Get recent request traces for dependency visualization and bottleneck identification
  */
@@ -556,7 +525,7 @@ router.get('/failover-status', requireMonitoringAuth, async (req, res) => {
 });
 
 // Get security patch scan result
-router.get("/security-patches", (req, res) => {
+router.get('/security-patches', (req, res) => {
   const result = securityPatchManager.checkSecurityUpdates();
 
   return res.json({
@@ -565,9 +534,8 @@ router.get("/security-patches", (req, res) => {
   });
 });
 
-
 // Get complete patch report
-router.get("/security-patches/report", (req, res) => {
+router.get('/security-patches/report', (req, res) => {
   const report = securityPatchManager.generatePatchReport();
 
   return res.json({
@@ -577,7 +545,7 @@ router.get("/security-patches/report", (req, res) => {
 });
 
 // Get encryption security status
-router.get("/encryption-status", (req, res) => {
+router.get('/encryption-status', (req, res) => {
   const status = encryptionManager.getEncryptionStatus();
 
   return res.json({
@@ -586,9 +554,8 @@ router.get("/encryption-status", (req, res) => {
   });
 });
 
-
 // Rotate encryption key
-router.post("/key-rotation", (req, res) => {
+router.post('/key-rotation', (req, res) => {
   const result = encryptionManager.rotateEncryptionKey();
 
   return res.json({
@@ -598,9 +565,8 @@ router.post("/key-rotation", (req, res) => {
   });
 });
 
-
 // Get encryption audit logs
-router.get("/encryption-audit", (req, res) => {
+router.get('/encryption-audit', (req, res) => {
   const logs = encryptionManager.getEncryptionAuditLogs();
 
   return res.json({
@@ -609,75 +575,14 @@ router.get("/encryption-audit", (req, res) => {
   });
 });
 
-router.get("/database/status", (req, res) => {
+router.get('/database/status', (req, res) => {
   res.json({
     success: true,
     data: databaseFailoverManager.getFailoverReport(),
   });
 });
 
-// Get security patch scan result
-router.get("/security-patches", (req, res) => {
-  const result = securityPatchManager.checkSecurityUpdates();
-
-  return res.json({
-    success: true,
-    data: result,
-  });
-});
-
-
-// Get complete patch report
-router.get("/security-patches/report", (req, res) => {
-  const report = securityPatchManager.generatePatchReport();
-
-  return res.json({
-    success: true,
-    data: report,
-  });
-});
-
-// Get encryption security status
-router.get("/encryption-status", (req, res) => {
-  const status = encryptionManager.getEncryptionStatus();
-
-  return res.json({
-    success: true,
-    data: status,
-  });
-});
-
-
-// Rotate encryption key
-router.post("/key-rotation", (req, res) => {
-  const result = encryptionManager.rotateEncryptionKey();
-
-  return res.json({
-    success: true,
-    message: result.message,
-    rotatedAt: result.rotatedAt,
-  });
-});
-
-
-// Get encryption audit logs
-router.get("/encryption-audit", (req, res) => {
-  const logs = encryptionManager.getEncryptionAuditLogs();
-
-  return res.json({
-    success: true,
-    data: logs,
-  });
-});
-
-router.get("/database/status", (req, res) => {
-  res.json({
-    success: true,
-    data: databaseFailoverManager.getFailoverReport(),
-  });
-});
-
-router.get("/security/report", (req, res) => {
+router.get('/security/report', (req, res) => {
   res.json({
     success: true,
     data: apiSecurityManager.getSecurityReport(),
