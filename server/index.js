@@ -154,8 +154,8 @@ app.use(
     // Hide X-Powered-By
     hidePoweredBy: true,
 
-    // Disable old IE XSS filter
-    xssFilter: false,
+    // Enable XSS filter (legacy IE/Edge protection)
+    xssFilter: true,
 
     // Restrict referrer leakage
     referrerPolicy: {
@@ -177,33 +177,24 @@ app.use(
       useDefaults: false,
 
       directives: {
-        // Default restriction
         defaultSrc: ["'self'"],
 
-        // Prevent inline scripts + third-party execution
         scriptSrc: ["'self'", 'https://challenges.cloudflare.com'],
 
-        // Allow styles from self only
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
 
-        // Images
         imgSrc: [
           "'self'",
           'data:',
           'blob:',
-          'https:',
           'https://api.dicebear.com',
           'https://images.unsplash.com',
         ],
 
-        // Fonts
-        fontSrc: ["'self'", 'https:', 'data:', 'https://fonts.gstatic.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
 
-        // API/WebSocket connections
         connectSrc: [
           "'self'",
-          'https:',
-          'wss:',
           'https://challenges.cloudflare.com',
           'https://*.ingest.sentry.io',
           'https://*.ingest.us.sentry.io',
@@ -211,35 +202,27 @@ app.use(
           `wss://${process.env.DOMAIN || 'localhost'}`,
         ],
 
-        // Block Flash/object/embed
         objectSrc: ["'none'"],
 
-        // Prevent <base> hijacking
         baseUri: ["'self'"],
 
-        // Prevent iframe embedding
         frameAncestors: ["'none'"],
 
-        // Restrict forms
         formAction: ["'self'"],
 
-        // Prevent mixed content
         upgradeInsecureRequests: [],
 
-        // Restrict workers
         workerSrc: ["'self'", 'blob:'],
 
-        // Restrict manifests
         manifestSrc: ["'self'"],
 
-        // Restrict media
         mediaSrc: ["'self'"],
 
-        // Restrict frames
         frameSrc: ["'self'", 'https://challenges.cloudflare.com', 'https://maps.google.com'],
 
-        // Restrict child browsing contexts
         childSrc: ["'none'"],
+
+        reportUri: '/api/v1/csp-violation',
       },
     },
 
