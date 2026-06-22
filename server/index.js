@@ -25,6 +25,11 @@ import healthRouter from './routes/health.js';
 import coreTeamRouter from './routes/coreTeam.js';
 import formsRouter from './routes/forms.js';
 import portfolioRouter from './routes/portfolio.js';
+import { createBullBoard } from '@bull-board/api';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter.js';
+import { ExpressAdapter } from '@bull-board/express';
+import { eventRemindersQueue } from './services/queueService.js';
+import './workers/reminderWorker.js';
 import portfolioExportRouter from './routes/portfolioExport.js';
 import notificationsRouter from './routes/notifications.js';
 import adminRouter from './routes/admin.js';
@@ -1115,6 +1120,15 @@ app.use('/api/compliance', complianceRouter);
 app.use('/api/admin/analytics', adminAuth, analyticsRouter);
 app.use('/api/admin/metrics', adminAuth, adminStreamRouter);
 app.use('/api/admin/scheduled-tasks', adminAuth, scheduledTasksRouter);
+
+// Setup Bull Board for background job monitoring
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath('/api/admin/queues');
+createBullBoard({
+  queues: eventRemindersQueue ? [new BullMQAdapter(eventRemindersQueue)] : [],
+  serverAdapter,
+});
+app.use('/api/admin/queues', adminAuth, serverAdapter.getRouter());
 
 // OAuth / SSO Student Auth Endpoints
 app.get('/api/auth/google', studentAuthController.googleAuth);
