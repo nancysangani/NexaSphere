@@ -62,7 +62,7 @@ import * as activityEventsController from './controllers/activityEventsControlle
 import * as streamController from './controllers/streamController.js';
 import * as coreTeamController from './controllers/coreTeamController.js';
 import { coreTeamService } from './services/coreTeamService.js';
-import { HAS_SUPABASE } from './storage/supabaseClient.js';
+import { HAS_SUPABASE, SUPABASE_URL, SUPABASE_SERVICE_KEY } from './storage/supabaseClient.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import RedisStore from 'connect-redis';
