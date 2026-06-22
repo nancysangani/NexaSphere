@@ -139,7 +139,6 @@ export default function SubscriptionPage({ onBack }) {
       width: '100%',
       padding: '12px',
       borderRadius: '8px',
-      border: 'none',
       cursor: 'pointer',
       fontWeight: 600,
       fontSize: '1rem',

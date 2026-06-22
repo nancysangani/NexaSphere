@@ -61,7 +61,11 @@ export function getQRUrl(text) {
 
 export async function copyToClipboard(text) {
   // Prevent pastejacking/clipboard attacks by removing dangerous control characters (including carriage returns \r)
-  const sanitizedText = String(text || '').replace(/[\x00-\x08\x0B\x0C\x0D\x0E-\x1F\x7F-\x9F]/g, '');
+  // eslint-disable-next-line no-control-regex
+  const sanitizedText = String(text || '').replace(
+    /[\x00-\x08\x0B\x0C\x0D\x0E-\x1F\x7F-\x9F]/g,
+    ''
+  );
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(sanitizedText);
     return true;

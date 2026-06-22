@@ -8,6 +8,7 @@ function CopyPopup({ value, onClose }) {
   const copiedTimeoutRef = useRef(null);
 
   const handleCopy = () => {
+    // eslint-disable-next-line no-control-regex
     const sanitized = String(value || '').replace(/[\x00-\x08\x0B\x0C\x0D\x0E-\x1F\x7F-\x9F]/g, '');
     navigator.clipboard
       .writeText(sanitized)

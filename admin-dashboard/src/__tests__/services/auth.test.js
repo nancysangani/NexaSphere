@@ -29,7 +29,7 @@ describe('auth.login', () => {
     expect(fetch).toHaveBeenCalledWith(`${API_BASE}/api/admin/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'test@example.com', password: 'secret123' }),
+      body: JSON.stringify({ username: 'test@example.com', password: 'secret123' }),
       credentials: 'include',
     });
     expect(result.username).toBe('test@example.com');

@@ -20,11 +20,14 @@ export default function LiveQa({ eventId: propEventId, onBack }) {
   const [votedPolls, setVotedPolls] = useState({});
   const [answeredIds, setAnsweredIds] = useState(new Set());
   const [submitting, setSubmitting] = useState(false);
+  const [socketId, setSocketId] = useState(null);
 
   useEffect(() => {
     const socket = initializeSocket();
     socketRef.current = socket;
     if (socket && eventId) {
+      if (socket.id) setSocketId(socket.id);
+      socket.on('connect', () => setSocketId(socket.id));
       socket.emit('qa:join', { eventId });
       return () => {
         socket.emit('qa:leave', { eventId });
@@ -385,8 +388,7 @@ export default function LiveQa({ eventId: propEventId, onBack }) {
           {polls.map((poll) => {
             const total = poll.totalVotes || poll.options.reduce((s, o) => s + o.votes, 0);
             const hasVoted =
-              votedPolls[poll.id] ||
-              poll.options.some((o) => o.voters?.includes(socketRef.current?.id));
+              votedPolls[poll.id] || poll.options.some((o) => o.voters?.includes(socketId));
             return (
               <div key={poll.id} style={styles.card}>
                 <div
@@ -409,7 +411,7 @@ export default function LiveQa({ eventId: propEventId, onBack }) {
                 </div>
                 {poll.options.map((opt) => {
                   const pct = total > 0 ? Math.round((opt.votes / total) * 100) : 0;
-                  const isSelected = hasVoted && opt.voters?.includes(socketRef.current?.id);
+                  const isSelected = hasVoted && opt.voters?.includes(socketId);
                   return (
                     <div key={opt.id} style={{ marginBottom: '8px' }}>
                       <button

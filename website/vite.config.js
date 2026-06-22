@@ -69,8 +69,6 @@ export default defineConfig({
       injectManifest: {
         // 4 MB limit to handle large vendor chunks (TensorFlow.js, FullCalendar)
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        swSrc: 'src/sw-nexasphere.js',
-        swDest: 'sw-nexasphere.js',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,webp,woff2}'],
         // Exclude source maps and large ML models from precache manifest
         globIgnores: ['**/*.map', '**/tensorflow*', '**/tfjs*'],

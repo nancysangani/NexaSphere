@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import debounce from 'lodash/debounce';
 
 /**
@@ -23,39 +23,40 @@ export const useAdvancedSearch = () => {
     }
   });
 
-  const fetchResults = useCallback(
-    debounce(async (searchQuery, filters) => {
-      if (searchQuery.length < 2) {
-        setResults([]);
-        setSuggestions([]);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        // Build query string with facets
-        const filterParams = new URLSearchParams({
-          q: searchQuery,
-          ...filters,
-        }).toString();
-
-        const response = await fetch(`/api/search?${filterParams}`);
-        const data = await response.json();
-
-        setResults(data.results);
-        setFacets(data.facets);
-        if (data.suggestions) setSuggestions([data.suggestions]);
-
-        // Update recent searches if results found
-        if (data.results.length > 0) {
-          updateRecentSearches(searchQuery);
+  const fetchResults = useMemo(
+    () =>
+      debounce(async (searchQuery, filters) => {
+        if (searchQuery.length < 2) {
+          setResults([]);
+          setSuggestions([]);
+          return;
         }
-      } catch (error) {
-        console.error('Search API Error:', error);
-      } finally {
-        setLoading(false);
-      }
-    }, 300),
+
+        setLoading(true);
+        try {
+          // Build query string with facets
+          const filterParams = new URLSearchParams({
+            q: searchQuery,
+            ...filters,
+          }).toString();
+
+          const response = await fetch(`/api/search?${filterParams}`);
+          const data = await response.json();
+
+          setResults(data.results);
+          setFacets(data.facets);
+          if (data.suggestions) setSuggestions([data.suggestions]);
+
+          // Update recent searches if results found
+          if (data.results.length > 0) {
+            updateRecentSearches(searchQuery);
+          }
+        } catch (error) {
+          console.error('Search API Error:', error);
+        } finally {
+          setLoading(false);
+        }
+      }, 300),
     []
   );
 
