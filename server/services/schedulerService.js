@@ -417,30 +417,8 @@ class SchedulerService extends EventEmitter {
   }
 
   async _backupDatabase() {
-    logger.info('[Scheduler] Starting database backup');
-    if (!HAS_SUPABASE) {
-      logger.info('[Scheduler] No database configured, skipping backup');
-      return;
-    }
-    const tables = [
-      'events',
-      'student_users',
-      'core_team_members',
-      'resources',
-      'push_subscriptions',
-    ];
-    let totalRows = 0;
-    await withDb(async (client) => {
-      for (const table of tables) {
-        try {
-          const { rows } = await client.query(`SELECT COUNT(*) as count FROM ${table}`);
-          totalRows += parseInt(rows[0]?.count || '0', 10);
-        } catch {
-          logger.warn(`[Scheduler] Backup: table ${table} not found, skipping`);
-        }
-      }
-    });
-    logger.info(`[Scheduler] Backup summary: ${tables.length} tables, ${totalRows} total rows`);
+    logger.info('[Scheduler] Starting database full backup');
+    await backupService.runDailyBackup();
   }
 
   async _generateDailyAttendanceReport() {
