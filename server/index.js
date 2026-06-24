@@ -27,6 +27,8 @@ import formsRouter from './routes/forms.js';
 import portfolioRouter from './routes/portfolio.js';
 import healthDashboardRouter from './routes/healthDashboard.js';
 import complianceRouter from './routes/compliance.js';
+import auditToolsRouter from './routes/auditTools.js';
+
 import { logEvent } from './controllers/analyticsController.js';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
@@ -1131,6 +1133,9 @@ function clearActivityAuthAttempts(ip) {
 
 // Compliance & Legal Documents (handles both public and admin routes internally)
 app.use('/api/compliance', complianceRouter);
+
+// Compliance & Accessibility Audit Tools (#1801)
+app.use('/api', auditToolsRouter);
 
 // Admin Analytics & Metrics (mounted with admin auth)
 app.use('/api/admin/analytics', adminAuth, analyticsRouter);

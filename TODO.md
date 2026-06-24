@@ -1,63 +1,62 @@
-# NexaSphere Rate Limiting — Implementation TODO
+# TODO - Compliance & Accessibility Audit Tools (#1801)
 
-## Phase 1-2: Discovery & Endpoint Inventory
+## Step 0: Confirm scope
 
-- [ ] Read all route mounts in `server/index.js` and `server/routes/*.js`.
-- [ ] Identify auth/admin/user/form/search/upload/webhook endpoints.
-- [ ] Produce Tier 1-4 endpoint classification matrix.
+- [x] Identified existing compliance/GDPR doc+request system (not audit tools)
+- [x] Agreed to implement new audit-tools subsystem (no changes to existing doc/GDPR request flow)
 
-## Phase 3-4: Strategy + Tech Selection
+## Step 1: Add data model + persistence
 
-- [ ] Decide concrete algorithms/keys for: IP, user, route, role (admin).
-- [ ] Decide how to use Redis vs Upstash Redis (when `UPSTASH_REDIS_REST_URL` is set).
-- [ ] Document configurable limits per tier.
+- [x] Add DB schema for:
+  - Audit runs
+  - Issues (severity, evidence, recommended fixes)
+  - Remediation assignments + statuses + deadlines
+  - Trends metrics
+  - Auditor export records (run snapshots)
 
-## Phase 5-10: Centralized Global Rate Limiting Implementation
+## Step 2: Implement audit engines
 
-- [ ] Implement unified rate limit middleware module in `server/middleware/`.
-- [ ] Implement Redis-backed atomic counters using existing `rate-limit-redis` + `ioredis`.
-- [ ] Standardize 429 payload and required headers (`Retry-After`, `X-RateLimit-*`).
-- [ ] Preserve existing functionality by carefully integrating middleware into current routes.
+- [x] WCAG 2.1 AA automated scanning (axe-core via Playwright)
+- [x] GDPR compliance checklist engine
+- [x] PCI compliance checker (guidance + SSL/TLS + security placeholders)
 
-## Phase 6: Middleware Integration
+## Step 3: Report generation
 
-- [ ] Ensure composite keys: IP + route + (user/admin role when available).
-- [ ] Ensure proxy/IP handling correctness with `trust proxy`.
+- [ ] Replace placeholder PDF implementation with real PDF output (or rename endpoint to text if PDF not added)
 
-## Phase 7-9: Authentication & Bot/Abuse Hardening
+## Step 4: Auditor export
 
-- [ ] Tighten login/admin login and password reset endpoints with progressive restrictions.
-- [ ] Add anti-credential-stuffing protections via targeted identity keys.
-- [ ] Add per-route quotas for abusive endpoints.
+- [ ] Add auditor export endpoints to provide a complete audit snapshot (JSON) and a downloadable artifact (CSV where applicable)
 
-## Phase 11-14: UX, Accessibility, Performance
+## Step 5: API endpoints
 
-- [ ] Ensure 429 responses are consistent and safe for UI consumption.
-- [ ] Ensure no SSR/CSR regressions in `website/` and `admin-dashboard/` (if client retries exist).
-- [ ] Keep middleware overhead minimal.
+- [x] Admin endpoints to:
+  - trigger scans / get scan status
+  - list issues
+  - assign remediations
+  - update remediation status + deadlines
+  - download run PDF report
+  - view trends
+- [ ] Add endpoints to:
+  - export full audit snapshot for auditors (run-level)
+  - fetch audit run status asynchronously if scan becomes queued
 
-## Phase 15-16: Testing
+## Step 6: Weekly automated scans + alerts
 
-- [ ] Add unit tests for standardized 429 payload/headers.
-- [ ] Add tests for Redis-backed counters and composite key behavior.
-- [ ] Add abuse simulation tests (brute force / credential stuffing / bot scraping).
-- [ ] Run existing test suites; add new tests as needed.
+- [ ] Scheduler job to run weekly scans
+- [ ] Store trend deltas (new vs resolved issues) per run_type
+- [ ] Alert admins on new Critical/Serious issues
 
-## Phase 17-18: Security, Logging & Monitoring
+## Step 7: Re-audit after fixes
 
-- [ ] Add structured logging on blocked requests.
-- [ ] Ensure no sensitive data leakage.
+- [ ] Implement “re-audit after remediation” workflow (auto trigger when remediation marked done)
 
-## Phase 19-20: Vercel + CI/CD Validation
+## Step 8: Testing
 
-- [ ] Validate `vercel.json` mapping and env vars expectations.
-- [ ] Ensure serverless compatibility (no long-running loops; memory fallback bounded).
-- [ ] Run lint/typecheck/build/test; ensure GitHub actions pass.
-
-## Phase 21: Documentation
-
-- [ ] Add `docs/guides/RATE_LIMITING.md` with architecture, policies, env vars, troubleshooting, rollback.
-
-## Phase 22: Code Quality Review
-
-- [ ] Ensure zero runtime crashes and no TypeScript/ESLint/build errors.
+- [ ] Full audit cycle tests:
+  - run scan
+  - validate issues/evidence shape
+  - validate report generation endpoint returns correct Content-Type
+  - validate assignment updates
+  - validate export payload completeness
+- [ ] Weekly scan scheduler smoke test
