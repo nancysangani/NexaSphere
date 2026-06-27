@@ -108,6 +108,7 @@ import financialsRouter from './routes/financials.js';
 import { schedulerService } from './services/schedulerService.js';
 import feedbackRouter from './routes/feedbackRoutes.js';
 import * as slackController from './controllers/slackController.js';
+import { startStreamingWorkers } from './streaming/startStreamingWorkers.js';
 
 validateLimiters();
 
@@ -1696,8 +1697,15 @@ if (process.env.NODE_ENV !== 'test') {
     const boot = HAS_SUPABASE
       ? Promise.all([studentUsersRepository.ensureSchema(), slackRepository.ensureSchema()])
       : ensureContentFile();
-    boot.then(() => {
+    boot.then(async () => {
       loadPersistedPushSubscriptions();
+
+      // Start background streaming workers (outbox dispatcher)
+      try {
+        await startStreamingWorkers();
+      } catch (err) {
+        console.error('[streamingWorkers] failed to start', err?.message || err);
+      }
       slackIntegrationService.init();
       server = app.listen(port, () => {
         console.log(`NexaSphere server listening on http://localhost:${port}`);
