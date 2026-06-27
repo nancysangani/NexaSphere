@@ -14,9 +14,24 @@ function parsePaginationAndFilters(query) {
 export async function getPublicUsers(req, res) {
   try {
     const { page, limit, role } = parsePaginationAndFilters(req.query);
-    const rawUsers = await usersRepository.getAllPublicUsers({ page, limit, role });
-    const safeUsers = rawUsers.map(toPublicUserDTO);
-    return res.json({ users: safeUsers, page, limit });
+
+    const { getOrSet, hashKeyParts } = await import('../utils/endpointCache.js');
+    const cacheKey = `cache:endpoint:users:public:${hashKeyParts(role || '', page, limit)}`;
+
+    const { data, hit } = await getOrSet({
+      key: cacheKey,
+      ttlSeconds: 60 * 30,
+      getValue: async () => {
+        // Repository currently ignores page/limit/role, but we still scope the cache key
+        // to prevent future behavior changes from serving incorrect payloads.
+        const rawUsers = await usersRepository.getAllPublicUsers({ page, limit, role });
+        const safeUsers = rawUsers.map(toPublicUserDTO);
+        return { users: safeUsers, page, limit };
+      },
+    });
+
+    res.setHeader('X-Cache', hit ? 'HIT' : 'MISS');
+    return res.json(data);
   } catch (error) {
     console.error('[Security] Error in public users endpoint serialization:', error.message);
     return res.status(500).json({ error: 'Internal server error' });
