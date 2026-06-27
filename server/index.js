@@ -28,6 +28,7 @@ import portfolioRouter from './routes/portfolio.js';
 import healthDashboardRouter from './routes/healthDashboard.js';
 import complianceRouter from './routes/compliance.js';
 import auditToolsRouter from './routes/auditTools.js';
+import certificatesRouter from './routes/certificates.js';
 
 import { logEvent } from './controllers/analyticsController.js';
 import { createBullBoard } from '@bull-board/api';
@@ -1136,6 +1137,9 @@ app.use('/api/compliance', complianceRouter);
 
 // Compliance & Accessibility Audit Tools (#1801)
 app.use('/api', auditToolsRouter);
+
+// Event Certification & Digital Badges (#1787)
+app.use('/api', certificatesRouter);
 
 // Admin Analytics & Metrics (mounted with admin auth)
 app.use('/api/admin/analytics', adminAuth, analyticsRouter);
