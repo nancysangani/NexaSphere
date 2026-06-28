@@ -147,21 +147,24 @@ function ActivityCard({ a, idx, onNav }) {
 }
 
 export default function ActivitiesSection({ onNavigate }) {
+  const pendingAnimationListenersRef = useRef([]);
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting && !e.target.classList.contains('fired')) {
             e.target.classList.add('fired');
-            e.target.addEventListener(
-              'animationend',
-              () => {
-                e.target.style.opacity = '1';
-                e.target.style.transform = 'none';
-              },
-              { once: true }
-            );
-            obs.unobserve(e.target);
+            const target = e.target;
+            const handler = () => {
+              target.style.opacity = '1';
+              target.style.transform = 'none';
+              pendingAnimationListenersRef.current = pendingAnimationListenersRef.current.filter(
+                (entry) => entry.target !== target
+              );
+            };
+            target.addEventListener('animationend', handler, { once: true });
+            pendingAnimationListenersRef.current.push({ target, handler });
+            obs.unobserve(target);
           }
         });
       },
@@ -170,7 +173,13 @@ export default function ActivitiesSection({ onNavigate }) {
     document
       .querySelectorAll('#section-activities .pop-word, #section-activities .pop-in')
       .forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
+    return () => {
+      obs.disconnect();
+      pendingAnimationListenersRef.current.forEach(({ target, handler }) => {
+        target.removeEventListener('animationend', handler);
+      });
+      pendingAnimationListenersRef.current = [];
+    };
   }, []);
 
   return (
