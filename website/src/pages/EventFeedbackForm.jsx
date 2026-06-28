@@ -61,7 +61,9 @@ const EventFeedbackForm = () => {
             min="1"
             max="5"
             value={formData.ratingOverall}
-            onChange={(e) => setFormData({ ...formData, ratingOverall: parseInt(e.target.value) })}
+            onChange={(e) =>
+              setFormData({ ...formData, ratingOverall: parseInt(e.target.value, 10) })
+            }
             className="w-full border-gray-300 rounded-md shadow-sm p-2 border"
             required
           />
