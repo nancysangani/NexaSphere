@@ -450,6 +450,7 @@ async function login(req, res) {
     return res.status(200).json({
       requiresTwoFactor: true,
       challengeToken,
+      expiresAt: Date.now() + PENDING_2FA_TTL_MS,
     });
   } catch (error) {
     console.error('[Admin Login] Failed before 2FA challenge:', error);
