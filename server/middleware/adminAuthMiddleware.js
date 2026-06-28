@@ -37,6 +37,9 @@ function safeEqual(a, b) {
   return crypto.timingSafeEqual(hashA, hashB);
 }
 
+const ADMIN_USERNAME = requiredEnv('ADMIN_USERNAME');
+const ADMIN_PASSWORD = requiredStrongPassword('ADMIN_PASSWORD');
+
 let adminUsers = [];
 try {
   if (process.env.ADMIN_USERS_JSON) {
