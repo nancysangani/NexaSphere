@@ -180,11 +180,21 @@ export default function SystemHealthPage() {
   }, [fetchData]);
 
   useEffect(() => {
+    // Clear any existing interval before setting a new one — prevents
+    // duplicate concurrent intervals if the effect re-runs (e.g. when
+    // refreshInterval or fetchData changes) before the previous cleanup fires.
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     if (autoRefresh) {
       intervalRef.current = setInterval(fetchData, refreshInterval);
     }
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
   }, [autoRefresh, refreshInterval, fetchData]);
 
