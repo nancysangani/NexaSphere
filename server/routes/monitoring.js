@@ -16,10 +16,12 @@ import logger from '../utils/logger.js';
 import { validateDataIntegrity } from '../utils/dataIntegrityValidator.js';
 import { getMigrationStatus } from '../utils/migrationSafety.js';
 import { recordPageLoad } from '../observability/metrics.js';
+import { getServiceHealth, getFailoverStatus } from '../utils/failoverManager.js';
 import securityPatchManager from '../utils/securityPatchManager.js';
 import encryptionManager from '../utils/encryptionManager.js';
 import { databaseFailoverManager } from '../utils/databaseFailoverManager.js';
 import { apiSecurityManager } from '../utils/apiSecurityManager.js';
+import { deploymentStatus } from '../utils/serviceStatus.js';
 
 function requireMonitoringAuth(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -582,11 +584,73 @@ router.get('/database/status', (req, res) => {
   });
 });
 
+// Get security patch scan result
+router.get('/security-patches', (req, res) => {
+  const result = securityPatchManager.checkSecurityUpdates();
+
+  return res.json({
+    success: true,
+    data: result,
+  });
+});
+
+// Get complete patch report
+router.get('/security-patches/report', (req, res) => {
+  const report = securityPatchManager.generatePatchReport();
+
+  return res.json({
+    success: true,
+    data: report,
+  });
+});
+
+// Get encryption security status
+router.get('/encryption-status', (req, res) => {
+  const status = encryptionManager.getEncryptionStatus();
+
+  return res.json({
+    success: true,
+    data: status,
+  });
+});
+
+// Rotate encryption key
+router.post('/key-rotation', (req, res) => {
+  const result = encryptionManager.rotateEncryptionKey();
+
+  return res.json({
+    success: true,
+    message: result.message,
+    rotatedAt: result.rotatedAt,
+  });
+});
+
+// Get encryption audit logs
+router.get('/encryption-audit', (req, res) => {
+  const logs = encryptionManager.getEncryptionAuditLogs();
+
+  return res.json({
+    success: true,
+    data: logs,
+  });
+});
+
+router.get('/database/status', (req, res) => {
+  res.json({
+    success: true,
+    data: databaseFailoverManager.getFailoverReport(),
+  });
+});
+
 router.get('/security/report', (req, res) => {
   res.json({
     success: true,
     data: apiSecurityManager.getSecurityReport(),
   });
+});
+
+router.get('/deployment-status', (req, res) => {
+  res.json(deploymentStatus);
 });
 
 export default router;

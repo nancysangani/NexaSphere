@@ -400,6 +400,7 @@ function MessageCTA() {
           value={name}
           onChange={(e) => setName(sanitizeInput(e.target.value))}
           placeholder="Your name (optional)"
+          aria-label="Your name"
           style={{
             width: '100%',
             padding: '12px 16px',
@@ -429,6 +430,7 @@ function MessageCTA() {
           value={message}
           onChange={(e) => setMessage(sanitizeInput(e.target.value))}
           placeholder="Your message — what would you like to tell us?"
+          aria-label="Your message"
           rows={5}
           style={{
             width: '100%',

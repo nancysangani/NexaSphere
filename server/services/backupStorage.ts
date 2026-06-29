@@ -2,6 +2,7 @@
 import {
   S3Client,
   PutObjectCommand,
+  GetObjectCommand,
   ListObjectsV2Command,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
@@ -52,6 +53,44 @@ export class BackupStorageService {
     await this.client.send(command);
     console.log(`Upload complete: s3://${this.bucket}/${objectKey}`);
     return objectKey;
+  }
+
+  /**
+   * Lists available backups in the bucket.
+   */
+  async listBackups(): Promise<{ key: string; createdAt: Date }[]> {
+    const command = new ListObjectsV2Command({
+      Bucket: this.bucket,
+      Prefix: 'backups/',
+    });
+
+    const response = await this.client.send(command);
+    if (!response.Contents) return [];
+
+    return response.Contents
+      .filter((obj) => obj.Key && obj.LastModified)
+      .map((obj) => ({
+        key: obj.Key as string,
+        createdAt: obj.LastModified as Date,
+      }));
+  }
+
+  /**
+   * Downloads a backup file from the bucket to a local path.
+   */
+  async downloadBackup(objectKey: string, downloadPath: string): Promise<void> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: objectKey,
+    });
+    
+    const response = await this.client.send(command);
+    if (!response.Body) {
+      throw new Error('No body returned from S3');
+    }
+    
+    const arrayBuffer = await response.Body.transformToByteArray();
+    await fs.writeFile(downloadPath, Buffer.from(arrayBuffer));
   }
 
   /**

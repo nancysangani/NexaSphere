@@ -7,6 +7,12 @@ export default function UserManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [awardBadgeUser, setAwardBadgeUser] = useState(null);
+  const [badgeForm, setBadgeForm] = useState({
+    name: '',
+    description: '',
+    icon: 'Award',
+  });
   const [editUser, setEditUser] = useState(null);
   const [form, setForm] = useState({
     username: '',
@@ -79,6 +85,27 @@ export default function UserManager() {
     }
   }
 
+  async function handleAwardBadge() {
+    const res = await fetch(`/api/admin/users/${awardBadgeUser.id}/badges`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        ...badgeForm,
+        isCustom: true,
+        earnedAt: new Date(),
+      }),
+    });
+    if (res.ok) {
+      setAwardBadgeUser(null);
+      setBadgeForm({ name: '', description: '', icon: 'Award' });
+      fetchUsers();
+    } else {
+      const d = await res.json();
+      alert(d.error || 'Failed to award badge');
+    }
+  }
+
   function openEdit(user) {
     setEditUser(user);
     setForm({
@@ -138,11 +165,15 @@ export default function UserManager() {
                 >
                   Edit
                 </button>
+                <button onClick={() => handleDeactivate(user.id)} disabled={submitting}>
+                  Deactivate
+                </button>
                 <button
-                  onClick={() => handleDeactivate(user.id)}
-                  disabled={deleting === user.id || submitting}
+                  onClick={() => setAwardBadgeUser(user)}
+                  disabled={submitting}
+                  style={{ background: '#8B5CF6', color: 'white' }}
                 >
-                  {deleting === user.id ? 'Deactivating…' : 'Deactivate'}
+                  Award Badge
                 </button>
               </td>
             </tr>
@@ -208,6 +239,66 @@ export default function UserManager() {
                 onClick={() => {
                   setShowAddModal(false);
                   setEditUser(null);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {awardBadgeUser && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              padding: '24px',
+              borderRadius: '8px',
+              minWidth: '320px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            <h3>Award Badge to {awardBadgeUser.username}</h3>
+            <input
+              placeholder="Badge Name (e.g., Top Contributor)"
+              value={badgeForm.name}
+              onChange={(e) => setBadgeForm((f) => ({ ...f, name: e.target.value }))}
+            />
+            <input
+              placeholder="Description"
+              value={badgeForm.description}
+              onChange={(e) => setBadgeForm((f) => ({ ...f, description: e.target.value }))}
+            />
+            <select
+              value={badgeForm.icon}
+              onChange={(e) => setBadgeForm((f) => ({ ...f, icon: e.target.value }))}
+            >
+              <option value="Award">Award</option>
+              <option value="Star">Star</option>
+              <option value="Shield">Shield</option>
+              <option value="Zap">Zap</option>
+              <option value="Target">Target</option>
+            </select>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={handleAwardBadge} style={{ background: '#8B5CF6', color: 'white' }}>
+                Award
+              </button>
+              <button
+                onClick={() => {
+                  setAwardBadgeUser(null);
+                  setBadgeForm({ name: '', description: '', icon: 'Award' });
                 }}
               >
                 Cancel

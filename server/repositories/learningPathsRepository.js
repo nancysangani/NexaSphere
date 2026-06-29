@@ -1,4 +1,4 @@
-import { supabaseRequest } from '../index.js';
+import { supabaseRequest } from '../storage/supabaseClient.js';
 
 /**
  * Repository for Learning Path management.

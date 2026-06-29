@@ -239,7 +239,7 @@ export default function CalendarView({ events: initialEvents, onEventClick, isAd
         {daysToRender.map((date, idx) => {
           const keyPrefix = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
           return (
-            <div key={idx} className="day-column">
+            <div key={keyPrefix} className="day-column">
               <div className="time-slot-header">
                 {isDayView ? '' : daysOfWeek[idx]} {date.getDate()}
               </div>

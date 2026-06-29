@@ -5,8 +5,9 @@ import {
   mergeEvents,
   subscribePublicContent,
   initStorageSyncBridge,
+  destroyStorageSyncBridge,
 } from '../utils/publicContentStore.js';
-import { initializeSocket, on, off, joinRoom } from '../utils/socketClient.js';
+import { initializeSocket, on, off, joinRoom, leaveRoom } from '../utils/socketClient.js';
 import { events as fallbackEvents } from '../data/eventsData';
 
 /**
@@ -24,9 +25,9 @@ export function useAppBootstrap(cinDone) {
   // Socket + cross-origin localStorage sync
   useEffect(() => {
     const socket = initializeSocket();
+    const rooms = ['events-room', 'notifications-room'];
     if (socket) {
-      joinRoom('events-room');
-      joinRoom('notifications-room');
+      rooms.forEach((room) => joinRoom(room));
     }
     initStorageSyncBridge();
     const onPostMessage = (e) => {
@@ -35,7 +36,16 @@ export function useAppBootstrap(cinDone) {
       }
     };
     window.addEventListener('message', onPostMessage);
-    return () => window.removeEventListener('message', onPostMessage);
+    return () => {
+      // Leave all rooms and disconnect socket on unmount to prevent connection leaks.
+      if (socket) {
+        rooms.forEach((room) => leaveRoom(room));
+        socket.disconnect();
+      }
+      window.removeEventListener('message', onPostMessage);
+      // Remove the storage sync bridge iframe to prevent orphaned iframes.
+      destroyStorageSyncBridge();
+    };
   }, []);
 
   // Events data fetching

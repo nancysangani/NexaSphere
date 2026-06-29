@@ -1,0 +1,6 @@
+{
+  "student@test.com": {
+    "slackUserId": "U-MOCK-USER-ID",
+    "slackDmReminders": true
+  }
+}

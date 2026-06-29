@@ -119,6 +119,7 @@ export default function AdminPage({ onBack }) {
             <input
               type="text"
               placeholder="Username"
+              aria-label="Username"
               className="input-field"
               value={loginData.username}
               onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
@@ -127,6 +128,7 @@ export default function AdminPage({ onBack }) {
             <input
               type="password"
               placeholder="Password"
+              aria-label="Password"
               className="input-field"
               value={loginData.password}
               onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}

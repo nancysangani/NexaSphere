@@ -349,9 +349,9 @@ Add JSDoc comments to all route files. swagger-jsdoc will automatically parse th
 
 ### 4. Access Documentation
 
-- **Swagger UI:** http://localhost:3000/api/docs
-- **ReDoc:** http://localhost:3000/api/redoc
-- **OpenAPI JSON:** http://localhost:3000/api/swagger.json
+- **Swagger UI:** <http://localhost:3000/api/docs>
+- **ReDoc:** <http://localhost:3000/api/redoc>
+- **OpenAPI JSON:** <http://localhost:3000/api/swagger.json>
 
 ## Response Format
 
@@ -409,7 +409,7 @@ curl -H "X-API-Key: your-api-key" \
 
 ## Testing Endpoints in Swagger UI
 
-1. **Open Swagger UI:** http://localhost:3000/api/docs
+1. **Open Swagger UI:** <http://localhost:3000/api/docs>
 2. **Authorize:** Click "Authorize" button, enter JWT token
 3. **Try Endpoint:** Expand endpoint, click "Try it out"
 4. **Enter Parameters:** Fill in required fields

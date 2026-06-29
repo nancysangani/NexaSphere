@@ -239,4 +239,18 @@ export const registrationsRepository = {
       return rows[0] || null;
     });
   },
+  async countByEmail(email) {
+    if (!HAS_SUPABASE) return 0;
+
+    return withDb(async (client) => {
+      const { rows } = await client.query(
+        `SELECT COUNT(*)::int AS count
+       FROM event_registrations
+       WHERE email = $1`,
+        [email]
+      );
+
+      return rows[0]?.count || 0;
+    });
+  },
 };

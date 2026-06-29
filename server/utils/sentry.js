@@ -4,6 +4,7 @@
  */
 
 import * as Sentry from '@sentry/node';
+import { getLogContext } from './logContext.js';
 
 let nodeProfilingIntegration = null;
 
@@ -61,6 +62,15 @@ async function initializeSentry(app) {
   } catch (err) {
     // Graceful fallback if os import fails
   }
+
+  Sentry.addGlobalEventProcessor((event) => {
+    const ctx = getLogContext();
+    event.tags = event.tags || {};
+    if (ctx.reqId) event.tags.reqId = ctx.reqId;
+    if (ctx.traceId) event.tags.traceId = ctx.traceId;
+    if (ctx.service) event.tags.service = ctx.service;
+    return event;
+  });
 
   return Sentry;
 }

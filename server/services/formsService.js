@@ -150,10 +150,12 @@ export const formsService = {
     try {
       const payload = normalizeFormSubmission(formType, body || {});
       const savedToSupabase = await this.appendToSupabaseForms(formType, payload);
+      let sheetsWriteFailed = false;
       try {
         await this.appendFormToSheet(formType, payload);
       } catch (sheetErr) {
         console.error('[Forms Service] Failed to append to Google Sheet:', sheetErr);
+        sheetsWriteFailed = true;
         if (!savedToSupabase) throw sheetErr;
       }
 
@@ -179,7 +181,12 @@ export const formsService = {
         console.error('[Forms Service] Failed to broadcast real-time updates:', realtimeErr);
       }
 
-      return { ok: true };
+      // Return success with optional warning if Sheets write failed
+      const result = { ok: true };
+      if (sheetsWriteFailed && savedToSupabase) {
+        result.warning = 'Submission saved but secondary sync failed. Data is safe.';
+      }
+      return result;
     } catch (e) {
       if (e instanceof ZodError) {
         const issues = e.issues.map((issue) => ({

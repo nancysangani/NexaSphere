@@ -49,10 +49,17 @@ async function run() {
       throw new Error(`Unexpected output from backup script: ${backupFilePath}`);
     }
 
-    // 2. Upload to S3
+    // 2. Verify local integrity before uploading
+    console.log('Verifying local backup integrity...');
+    const isIntegrityValid = await verifierService.verifyIntegrity(backupFilePath);
+    if (!isIntegrityValid) {
+      throw new Error('Local backup integrity check failed. Aborting upload.');
+    }
+
+    // 3. Upload to S3
     const objectKey = await storageService.uploadBackup(backupFilePath);
 
-    // 3. Verify upload
+    // 4. Verify upload (size/checksum)
     const isValid = await verifierService.verifyUpload(objectKey, backupFilePath);
     if (!isValid) {
       throw new Error('Upload verification failed. Checksums or sizes do not match.');

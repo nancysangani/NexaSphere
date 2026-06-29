@@ -393,4 +393,16 @@ export const mentorshipRepository = {
       return { rows: rows.map(mapMentorRow), total: countResult.rows[0]?.total ?? 0 };
     });
   },
+  async countMentorshipsByEmail(email) {
+    return withDb(async (client) => {
+      const { rows } = await client.query(
+        `SELECT COUNT(*)::int AS count
+       FROM mentorships
+       WHERE mentee_email = $1`,
+        [email]
+      );
+
+      return rows[0]?.count || 0;
+    });
+  },
 };

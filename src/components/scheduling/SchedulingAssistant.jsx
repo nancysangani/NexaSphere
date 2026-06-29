@@ -90,6 +90,7 @@ export default function SchedulingAssistant({ events, onEventClick }) {
             </label>
             <input
               type="text"
+              aria-label="Event Title"
               value={proposedEvent.title}
               onChange={(e) => setProposedEvent({ ...proposedEvent, title: e.target.value })}
               style={{
@@ -147,6 +148,7 @@ export default function SchedulingAssistant({ events, onEventClick }) {
               </label>
               <input
                 type="datetime-local"
+                aria-label="Start Date and Time"
                 value={proposedEvent.startDate}
                 onChange={(e) => setProposedEvent({ ...proposedEvent, startDate: e.target.value })}
                 style={{
@@ -172,6 +174,7 @@ export default function SchedulingAssistant({ events, onEventClick }) {
               </label>
               <input
                 type="datetime-local"
+                aria-label="End Date and Time"
                 value={proposedEvent.endDate}
                 onChange={(e) => setProposedEvent({ ...proposedEvent, endDate: e.target.value })}
                 style={{
@@ -220,6 +223,7 @@ export default function SchedulingAssistant({ events, onEventClick }) {
             </label>
             <input
               type="text"
+              aria-label="Speaker"
               value={proposedEvent.speaker}
               onChange={(e) => setProposedEvent({ ...proposedEvent, speaker: e.target.value })}
               style={{

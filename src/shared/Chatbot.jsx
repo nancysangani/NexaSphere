@@ -89,6 +89,7 @@ const Chatbot = () => {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Query system..."
+              aria-label="Query system"
             />
             <button onClick={handleSend} className="send-btn" aria-label="Send message">
               <Send size={18} aria-hidden="true" />

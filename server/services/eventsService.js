@@ -5,8 +5,28 @@ import { scheduleReminderJob } from './queueService.js';
 import logger from '../utils/logger.js';
 
 export const eventsService = {
-  async listEvents({ page = 1, limit = 20, status, studentGroups } = {}) {
-    return eventsRepository.list({ page, limit, studentGroups });
+  async listEvents({
+    page = 1,
+    limit = 20,
+    status,
+    studentGroups,
+    startDate,
+    endDate,
+    category,
+    location,
+    search,
+  } = {}) {
+    return eventsRepository.list({
+      page,
+      limit,
+      status,
+      studentGroups,
+      startDate,
+      endDate,
+      category,
+      location,
+      search,
+    });
   },
 
   async createEvent(input) {
@@ -59,7 +79,25 @@ export const eventsService = {
   async deleteEvent(id) {
     return eventsRepository.delete(id);
   },
-  async adminListEvents({ page = 1, limit = 20 } = {}) {
-    return eventsRepository.listAll({ page, limit });
+  async adminListEvents({
+    page = 1,
+    limit = 20,
+    status,
+    startDate,
+    endDate,
+    category,
+    location,
+    search,
+  } = {}) {
+    return eventsRepository.listAll({
+      page,
+      limit,
+      status,
+      startDate,
+      endDate,
+      category,
+      location,
+      search,
+    });
   },
 };

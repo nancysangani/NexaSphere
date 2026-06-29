@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { webhookService, WEBHOOK_EVENTS } from '../services/webhookService.js';
-import { auth } from '../middleware/auth.js';
+import { adminAuthMiddleware } from '../middleware/adminAuthMiddleware.js';
+import { protectedActionRateLimiter } from '../middleware/authRateLimiter.js';
 import logger from '../utils/logger.js';
 
 const router = Router();
 
-router.get('/events', auth('admin'), async (req, res) => {
+router.get('/events', protectedActionRateLimiter, adminAuthMiddleware.requireAdmin, async (req, res) => {
   try {
     res.json({ success: true, data: WEBHOOK_EVENTS });
   } catch (error) {
@@ -14,7 +15,7 @@ router.get('/events', auth('admin'), async (req, res) => {
   }
 });
 
-router.post('/', auth('admin'), async (req, res) => {
+router.post('/', protectedActionRateLimiter, adminAuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const webhook = await webhookService.createWebhook(req.body, req.user);
     res.status(201).json({ success: true, data: webhook });
@@ -24,7 +25,7 @@ router.post('/', auth('admin'), async (req, res) => {
   }
 });
 
-router.get('/', auth('admin'), async (req, res) => {
+router.get('/', protectedActionRateLimiter, adminAuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const webhooks = await webhookService.listWebhooks();
     res.json({ success: true, data: webhooks });
@@ -34,7 +35,7 @@ router.get('/', auth('admin'), async (req, res) => {
   }
 });
 
-router.get('/:webhookId', auth('admin'), async (req, res) => {
+router.get('/:webhookId', protectedActionRateLimiter, adminAuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const webhook = await webhookService.getWebhookById(req.params.webhookId);
     res.json({ success: true, data: webhook });
@@ -44,7 +45,7 @@ router.get('/:webhookId', auth('admin'), async (req, res) => {
   }
 });
 
-router.put('/:webhookId', auth('admin'), async (req, res) => {
+router.put('/:webhookId', protectedActionRateLimiter, adminAuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const webhook = await webhookService.updateWebhook(req.params.webhookId, req.body, req.user);
     res.json({ success: true, data: webhook });
@@ -58,7 +59,7 @@ router.put('/:webhookId', auth('admin'), async (req, res) => {
   }
 });
 
-router.delete('/:webhookId', auth('admin'), async (req, res) => {
+router.delete('/:webhookId', protectedActionRateLimiter, adminAuthMiddleware.requireAdmin, async (req, res) => {
   try {
     await webhookService.deleteWebhook(req.params.webhookId);
     res.json({ success: true, message: 'Webhook deleted successfully' });
@@ -68,7 +69,7 @@ router.delete('/:webhookId', auth('admin'), async (req, res) => {
   }
 });
 
-router.post('/:webhookId/test', auth('admin'), async (req, res) => {
+router.post('/:webhookId/test', protectedActionRateLimiter, adminAuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const result = await webhookService.testWebhook(req.params.webhookId);
     res.json({ success: true, data: result });
@@ -78,7 +79,7 @@ router.post('/:webhookId/test', auth('admin'), async (req, res) => {
   }
 });
 
-router.get('/:webhookId/deliveries', auth('admin'), async (req, res) => {
+router.get('/:webhookId/deliveries', protectedActionRateLimiter, adminAuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit, 10) || 50;
     const offset = parseInt(req.query.offset, 10) || 0;
@@ -93,7 +94,7 @@ router.get('/:webhookId/deliveries', auth('admin'), async (req, res) => {
   }
 });
 
-router.get('/:webhookId/stats', auth('admin'), async (req, res) => {
+router.get('/:webhookId/stats', protectedActionRateLimiter, adminAuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const stats = await webhookService.getDeliveryStats(req.params.webhookId);
     res.json({ success: true, data: stats });
@@ -102,7 +103,7 @@ router.get('/:webhookId/stats', auth('admin'), async (req, res) => {
   }
 });
 
-router.post('/deliveries/:deliveryId/replay', auth('admin'), async (req, res) => {
+router.post('/deliveries/:deliveryId/replay', protectedActionRateLimiter, adminAuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const result = await webhookService.replayDelivery(req.params.deliveryId);
     res.json({ success: true, data: result });

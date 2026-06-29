@@ -80,10 +80,10 @@ NexaSphere is built using a **Modular Micro-Architecture** to ensure scalability
 
 ## 🔄 Operational Principles
 
-1.  **Stateless API**: All backend services communicate via JSON and rely on JWT for authenticated requests.
-2.  **Environment Driven**: No secrets are hardcoded; use `.env` files for both development and production.
-3.  **Cross-Origin Ready**: CORS is strictly managed in both backends to permit only authorized frontend domains.
-4.  **Component Driven**: Frontends follow an atomic design pattern to minimize code duplication.
+1. **Stateless API**: All backend services communicate via JSON and rely on JWT for authenticated requests.
+2. **Environment Driven**: No secrets are hardcoded; use `.env` files for both development and production.
+3. **Cross-Origin Ready**: CORS is strictly managed in both backends to permit only authorized frontend domains.
+4. **Component Driven**: Frontends follow an atomic design pattern to minimize code duplication.
 
 ---
 

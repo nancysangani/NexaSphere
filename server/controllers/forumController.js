@@ -9,11 +9,7 @@ import {
 } from '../schemas/forumSchema.js';
 
 function wrapAsync(fn) {
-  return (req, res) =>
-    Promise.resolve(fn(req, res)).catch((e) => {
-      console.error('[forumController]', e);
-      return res.status(500).json({ error: e.message || 'Internal server error' });
-    });
+  return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 }
 
 export const listCategories = wrapAsync(async (req, res) => {

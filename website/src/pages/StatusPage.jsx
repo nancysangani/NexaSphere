@@ -1,4 +1,19 @@
 import React, { useEffect, useState } from 'react';
+
+// Validates a date value before formatting — avoids rendering literal
+// "Invalid Date" text when the API returns a null or malformed timestamp.
+function formatStatusDate(value) {
+  if (!value) return 'Unknown';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return 'Unknown';
+  return d.toLocaleString();
+}
+function formatStatusTime(value) {
+  if (!value) return 'Unknown';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return 'Unknown';
+  return d.toLocaleTimeString();
+}
 import { getApiBase } from '../utils/runtimeConfig';
 import { motion } from 'framer-motion';
 import { Activity, ShieldAlert, CheckCircle, Clock, ArrowLeft } from 'lucide-react';
@@ -163,9 +178,8 @@ export default function StatusPage() {
                     </span>
                   </div>
                   <div className="text-xs text-gray-500 mb-3">
-                    Start: {new Date(incident.startedAt).toLocaleString()}
-                    {incident.resolvedAt &&
-                      ` | End: ${new Date(incident.resolvedAt).toLocaleString()}`}
+                    Start: {formatStatusDate(incident.startedAt)}
+                    {incident.resolvedAt && ` | End: ${formatStatusDate(incident.resolvedAt)}`}
                   </div>
                   <div className="space-y-2 mt-2">
                     {incident.updates.map((update, idx) => (
@@ -174,7 +188,7 @@ export default function StatusPage() {
                         className="text-sm text-gray-400"
                       >
                         <span className="text-xs text-gray-600 block">
-                          {new Date(update.timestamp).toLocaleTimeString()}
+                          {formatStatusTime(update.timestamp)}
                         </span>
                         {update.message}
                       </div>

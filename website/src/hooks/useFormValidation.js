@@ -199,8 +199,14 @@ export default function useFormValidation(initialValues = {}, validationRules = 
    * Form-wide validation state check.
    */
   const isValid = useMemo(() => {
-    return Object.keys(errors).length === 0 && Object.keys(touched).length > 0;
-  }, [errors, touched]);
+    // All fields that have validation rules must be touched AND error-free.
+    // Previously only checked "at least one field touched", which allowed
+    // submitting with most required fields empty (no error = not yet validated).
+    const ruleFields = Object.keys(validationRules);
+    const allTouched = ruleFields.length === 0 || ruleFields.every((field) => touched[field]);
+    const noErrors = Object.keys(errors).length === 0;
+    return noErrors && allTouched;
+  }, [errors, touched, validationRules]);
 
   return {
     values,

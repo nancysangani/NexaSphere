@@ -16,6 +16,8 @@ const FOOTER_LINKS = [
   { label: 'About', path: '/about' },
   { label: 'Team', path: '/team' },
   { label: 'Analytics', path: '/analytics' },
+  { label: 'Admin', path: '/admin' },
+  { label: 'GitHub', path: 'https://github.com/Ayushh-Sharmaa/NexaSphere' },
 ];
 
 const LEGAL_LINKS = [
@@ -36,8 +38,14 @@ export default function Footer({ onAdmin }) {
   };
 
   const go = (path) => {
-    navigate(path);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (path === '/admin') {
+      openAdmin();
+    } else if (path.startsWith('http')) {
+      window.open(path, '_blank', 'noopener,noreferrer');
+    } else {
+      navigate(path);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const openAdmin = () => {

@@ -9,6 +9,7 @@ import { Helmet } from 'react-helmet-async';
 import { generatePortfolioMeta } from '../../utils/seoUtils';
 import { safeHref } from '../../utils/safeHref';
 import '../../styles/print.css';
+import ProfileBadges from '../../components/profile/ProfileBadges';
 
 export default function PublicPortfolio({ username, onBack }) {
   const [portfolio, setPortfolio] = useState(null);
@@ -324,6 +325,12 @@ export default function PublicPortfolio({ username, onBack }) {
             </div>
           </div>
         </header>
+
+        {portfolio.badges && portfolio.badges.length > 0 && (
+          <div style={{ padding: '0 24px', marginBottom: '24px' }}>
+            <ProfileBadges badges={portfolio.badges} />
+          </div>
+        )}
 
         {/* Dynamic section grid layouts */}
         <main className="portfolio-grid">

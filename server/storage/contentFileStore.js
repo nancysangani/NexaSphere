@@ -1,6 +1,8 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Mutex } from 'async-mutex';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,4 +46,10 @@ export async function readContent() {
 export async function writeContent(content) {
   await ensureContentFile();
   await fs.writeFile(CONTENT_FILE, JSON.stringify(content, null, 2), 'utf8');
+}
+
+const fileMutex = new Mutex();
+
+export async function runWithFileLock(callback) {
+  return await fileMutex.runExclusive(callback);
 }

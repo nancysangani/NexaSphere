@@ -10,7 +10,11 @@ function toSafeString(value, max = 4000) {
 
 function validateWhatsApp(str) {
   const v = String(str || '').trim();
-  if (!/^\d{10}$/.test(v)) throw new Error('WhatsApp must be exactly 10 digits');
+  if (!/^\d{10}$/.test(v)) {
+    const err = new Error('WhatsApp must be exactly 10 digits');
+    err.status = 400;
+    throw err;
+  }
   return v;
 }
 
@@ -29,6 +33,26 @@ function isEmail(s) {
 export const adminListCoreTeamMembers = wrapAsync(async (req, res) => {
   const members = await coreTeamService.listMembers();
   return res.json({ members });
+});
+
+export const publicListMembers = wrapAsync(async (req, res) => {
+  try {
+    const rawMembers = await coreTeamService.listMembers();
+    const members = (rawMembers || []).map((m) => {
+      let email = m.email || null;
+      if (email && !email.toLowerCase().endsWith('@glbajajgroup.org')) {
+        email = null;
+      }
+      return {
+        ...m,
+        email,
+        whatsapp: 'https://chat.whatsapp.com/FhpJEaod2g419jFMfqrhGZ',
+      };
+    });
+    return res.json({ members });
+  } catch (e) {
+    return res.status(500).json({ error: e?.message || 'Failed to load core team' });
+  }
 });
 
 export const adminAddCoreTeamMember = wrapAsync(async (req, res) => {

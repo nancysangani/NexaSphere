@@ -1,15 +1,7 @@
-import rateLimit from 'express-rate-limit';
-import logger from '../utils/logger.js';
-import { createRateLimitStore } from '../services/rateLimitService.js';
-import { apiSecurityManager } from '../utils/apiSecurityManager.js';
-import { calculateRiskScore } from '../utils/threatDetection.js';
-
-const suspiciousIPs = new Map();
-
-function parsePositiveInt(value, fallback) {
-  const n = parseInt(value, 10);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
-}
+import rateLimit from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
+import redisClient from "../utils/redis.js"; // Adjust path if your redis utility is elsewhere
+import logger from "../utils/logger.js";
 // ---------------------------------------------------------------------------
 // SECURITY WARNING: Upstream Proxy Dependency
 // These rate limiters rely entirely on `req.ip` mapping to individual clients.
@@ -154,29 +146,11 @@ export const activityAuthRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   standardHeaders: true,
-  legacyHeaders: true,
-  store: createRateLimitStore('rate-limit:activity-auth:'),
-  handler: (req, res, next, options) => {
-    logger.warn('Activity-event auth rate limit exceeded', {
-      ip: req.ip,
-      path: req.originalUrl || req.path,
-      method: req.method,
-    });
-    res.status(options.statusCode).json({
-      error: 'Too many attempts from this IP, please try again later.',
-    });
-  },
-});
-
-// Sync batch rate limiter — 10 requests per IP per minute.
-// Applied to the write-heavy POST /api/sync/batch which previously had no
-// rate limiting or authentication at all.
-export const syncRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: true,
-  store: createRateLimitStore('rate-limit:sync:'),
+  legacyHeaders: false,
+  store: new RedisStore({
+    sendCommand: (...args) => redisClient.call(args[0], ...args.slice(1)),
+    prefix: "rl:activity:",
+  }),
   handler: (req, res, next, options) => {
     logger.warn('Sync batch rate limit exceeded', {
       ip: req.ip,

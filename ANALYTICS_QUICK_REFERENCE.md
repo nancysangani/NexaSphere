@@ -26,7 +26,7 @@ npm run dev
 
 ### Step 4: Access Dashboard
 
-Visit: http://localhost:5173/analytics
+Visit: <http://localhost:5173/analytics>
 
 ---
 

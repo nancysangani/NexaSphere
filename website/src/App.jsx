@@ -28,7 +28,6 @@ import Navbar from './shared/Navbar';
 import MoveToTop from './shared/MoveToTop';
 import Chatbot from './shared/Chatbot';
 import ScrollProgress from './shared/ScrollProgress';
-import FloatingDock from './components/common/FloatingDock';
 import SearchBar from './components/SearchBar';
 import Terminal from './components/developer/Terminal';
 import BookmarksDrawer from './components/bookmarks/BookmarksDrawer';
@@ -411,8 +410,6 @@ function MainRouter({
           else if (type === 'Roadmap') onTab('Roadmaps');
         }}
       />
-
-      {cinDone && <FloatingDock />}
     </>
   );
 }

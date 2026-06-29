@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Search,
   Filter,
@@ -45,10 +45,18 @@ function MentorsPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
+  const toastTimeoutRef = useRef(null);
 
   const showToast = useCallback((message, type) => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => setToast(null), 4000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
   }, []);
 
   const fetchMentors = useCallback(async () => {

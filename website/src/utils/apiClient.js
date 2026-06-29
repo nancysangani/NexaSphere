@@ -146,10 +146,19 @@ export const apiClient = async (url, options = {}) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
 
+  // Combine the timeout controller's signal with any caller-provided signal.
+  // AbortSignal.any() (available in modern browsers/Node ≥20) fires whichever
+  // signal aborts first, so component unmount AND timeout both work correctly.
+  const callerSignal = fetchOptions.signal;
+  const combinedSignal =
+    callerSignal && typeof AbortSignal.any === 'function'
+      ? AbortSignal.any([controller.signal, callerSignal])
+      : controller.signal;
+
   try {
     const response = await fetch(url, {
       ...fetchOptions,
-      signal: controller.signal,
+      signal: combinedSignal,
     });
 
     clearTimeout(id);

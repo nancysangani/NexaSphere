@@ -118,7 +118,9 @@ export default function ProjectRecommendations({ onBack }) {
           <div className="recommendations-grid">
             {recommendations.map((match, idx) => {
               const matchedProject = projectsData.find((p) => p.id === match.projectId);
-              return <RecommendationCard key={idx} project={matchedProject} match={match} />;
+              return (
+                <RecommendationCard key={match.projectId} project={matchedProject} match={match} />
+              );
             })}
           </div>
         </div>

@@ -125,7 +125,7 @@ export function mergeTeamMembers(fallbackMembers = [], liveMembers = []) {
   });
 }
 
-export function subscribePublicContent(callback, intervalMs = 2000) {
+export function subscribePublicContent(callback, intervalMs = 30000) {
   if (typeof window === 'undefined') return () => {};
 
   const onStorage = (event) => {
@@ -152,6 +152,8 @@ export function subscribePublicContent(callback, intervalMs = 2000) {
  * Only active in offline/local development mode.
  */
 let bridgeInitialized = false;
+let bridgeIframe = null;
+let bridgeMessageHandler = null;
 export function initStorageSyncBridge() {
   if (bridgeInitialized || typeof window === 'undefined') return;
   bridgeInitialized = true;
@@ -189,9 +191,10 @@ export function initStorageSyncBridge() {
   };
 
   document.documentElement.appendChild(iframe);
+  bridgeIframe = iframe;
 
   // Listen for messages relayed through the bridge
-  window.addEventListener('message', (event) => {
+  bridgeMessageHandler = (event) => {
     if (event.origin !== adminOrigin || event.source !== iframe.contentWindow) return;
 
     if (
@@ -208,5 +211,22 @@ export function initStorageSyncBridge() {
       // Fire the custom event so subscribers pick it up
       window.dispatchEvent(new Event('ns-content-updated'));
     }
-  });
+  };
+  window.addEventListener('message', bridgeMessageHandler);
+}
+
+/**
+ * Tear down the storage sync bridge, removing the iframe and message listener.
+ * Call this from a useEffect cleanup to prevent orphaned iframes.
+ */
+export function destroyStorageSyncBridge() {
+  if (bridgeMessageHandler) {
+    window.removeEventListener('message', bridgeMessageHandler);
+    bridgeMessageHandler = null;
+  }
+  if (bridgeIframe) {
+    bridgeIframe.remove();
+    bridgeIframe = null;
+  }
+  bridgeInitialized = false;
 }

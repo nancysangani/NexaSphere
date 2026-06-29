@@ -26,7 +26,7 @@ public class CorsConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         List<String> allowedOrigins = Arrays.stream(corsOrigins.split(","))
-                .map(String::trim)
+                .map(s -> s.trim())
                 .filter(s -> !s.isBlank())
                 .collect(Collectors.toList());
 

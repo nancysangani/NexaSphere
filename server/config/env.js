@@ -4,7 +4,7 @@ import { secretsManager } from '../services/secretsManager.js';
 const envSchema = z.object({
   PORT: z.coerce.number().default(8787),
   NODE_ENV: z.string().default('development'),
-  CORS_ORIGIN: z.string().optional(),
+  CORS_ORIGIN: z.string(),
   DATABASE_URL: z.string().optional(),
 });
 

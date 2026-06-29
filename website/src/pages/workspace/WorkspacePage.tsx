@@ -19,13 +19,22 @@ function getOrCreateAnonUser() {
     const stored = sessionStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
+      // Guard against malformed stored objects (e.g. missing `name` from a
+      // future schema change) so we don't lose the user's existing color/id
+      // and silently regenerate a brand new identity for a recoverable case.
+      const safeName =
+        typeof parsed?.name === 'string' && parsed.name.length > 0
+          ? parsed.name
+          : `User-${Math.floor(Math.random() * 9000) + 1000}`;
       return {
         ...parsed,
-        initials: parsed.name.substring(0, 2).toUpperCase(),
+        name: safeName,
+        initials: safeName.substring(0, 2).toUpperCase(),
       };
     }
   } catch {
-    // sessionStorage unavailable (private browsing) — fall through to create
+    // sessionStorage unavailable (private browsing), or stored value is not
+    // valid JSON — fall through to create
   }
   const id = Math.floor(Math.random() * 9000) + 1000;
   const hue = Math.floor(Math.random() * 360);

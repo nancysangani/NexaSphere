@@ -1,6 +1,7 @@
-import React, { lazy, useState, useEffect, useParams, memo, useLayoutEffect } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
+import React, { lazy, useState, useEffect, memo, useLayoutEffect } from 'react';
+import { Route, Routes, Navigate, useParams } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 
 // Lazy-loaded heavy pages
 const RecruitmentPage = lazy(() => import('../pages/recruitment/RecruitmentPage'));
@@ -370,7 +371,11 @@ export function AppRoutes({
       {/* ── Event Planning (collaborative) ── */}
       <Route
         path="/events/:eventId/planning"
-        element={<EventPlanningWrapper onBack={() => nav('/events')} />}
+        element={
+          <ErrorBoundary>
+            <EventPlanningWrapper onBack={() => nav('/events')} />
+          </ErrorBoundary>
+        }
       />
 
       {/* ── Live Streaming ── */}

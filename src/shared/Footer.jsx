@@ -41,7 +41,19 @@ export default function Footer({ onAdmin }) {
               style={{ display: 'inline', verticalAlign: '-1px' }}
             />{' '}
             {t('footer.by_team')}{' '}
-            <span onClick={onAdmin} style={{ cursor: 'pointer', textDecoration: 'underline' }}>
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={onAdmin}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onAdmin();
+                }
+              }}
+              style={{ cursor: 'pointer', textDecoration: 'underline' }}
+              aria-label="Open Admin Dashboard"
+            >
               {t('footer.admin_dashboard')}
             </span>
           </p>

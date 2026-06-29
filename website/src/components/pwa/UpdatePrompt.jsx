@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import './UpdatePrompt.css';
+import '../../styles/pwa.css';
 
 export default function UpdatePrompt() {
   const [updateSW, setUpdateSW] = useState(null);

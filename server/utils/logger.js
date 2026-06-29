@@ -7,6 +7,7 @@ import winston from 'winston';
 import path from 'path';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { getLogContext } from './logContext.js';
+import SentryTransport from './sentryTransport.js';
 
 // Create logs directory if it doesn't exist (with permission handling)
 import fs from 'fs';
@@ -131,6 +132,14 @@ const activeTransports = [
           ),
   }),
 ];
+
+if (process.env.SENTRY_DSN) {
+  activeTransports.push(
+    new SentryTransport({
+      level: 'warn' // This will process warn and error levels
+    })
+  );
+}
 
 if (isStorageWritable) {
   activeTransports.push(

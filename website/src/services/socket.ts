@@ -29,7 +29,7 @@ export const initializeSocket = (
 
     socketInstance = io(url, {
       reconnection: true,
-      reconnectionAttempts: 10,
+      reconnectionAttempts: 8,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       timeout: 20000,

@@ -17,7 +17,11 @@ class SecretsManager {
     if (!fs.existsSync(VAULT_SECRETS_PATH)) {
       if (env === 'production') {
         throw new Error(
-          `FATAL: Vault file not found at ${VAULT_SECRETS_PATH}. Production requires a properly configured vault-secrets.json file.`
+          `FATAL: Vault file not found at ${VAULT_SECRETS_PATH}. ` +
+            'Production requires a vault-secrets.json file with the following structure:\n' +
+            '{ "environment": "production", "secrets": { "JWT_SECRET": "...", "DATABASE_URL": "...", ... }, ' +
+            '"metadata": { "JWT_SECRET": { "lastRotated": "2024-01-01T00:00:00Z" } } }\n' +
+            'Never commit this file to version control. See docs/deployment.md for details.'
         );
       }
       console.warn(

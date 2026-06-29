@@ -32,7 +32,7 @@ export default function BlogCard({ post, onClick }) {
               <DynamicIcon name="MessageCircle" size={14} /> {commentCount}
             </span>
           </div>
-          <button className="read-more-btn">
+          <button className="read-more-btn" aria-label={`Read more: ${title}`}>
             <DynamicIcon name="ArrowRight" size={16} />
           </button>
         </div>

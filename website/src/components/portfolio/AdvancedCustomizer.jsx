@@ -239,7 +239,7 @@ const AdvancedCustomizer = ({ currentConfig, onUpdate }) => {
                     value={currentConfig.spacing?.radius || 12}
                     onChange={(e) =>
                       updateConfig({
-                        spacing: { ...currentConfig.spacing, radius: parseInt(e.target.value) },
+                        spacing: { ...currentConfig.spacing, radius: parseInt(e.target.value, 10) },
                       })
                     }
                   />
@@ -267,7 +267,10 @@ const AdvancedCustomizer = ({ currentConfig, onUpdate }) => {
                     value={currentConfig.spacing?.padding || 28}
                     onChange={(e) =>
                       updateConfig({
-                        spacing: { ...currentConfig.spacing, padding: parseInt(e.target.value) },
+                        spacing: {
+                          ...currentConfig.spacing,
+                          padding: parseInt(e.target.value, 10),
+                        },
                       })
                     }
                   />

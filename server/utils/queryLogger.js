@@ -35,6 +35,7 @@ function normalizeQuery(text) {
 export function recordSlowQuery(queryText, durationMs, meta = {}) {
   const normalized = normalizeQuery(queryText);
 
+  // Track pattern
   if (!queryPatterns.has(normalized)) {
     if (queryPatterns.size >= MAX_PATTERNS) {
       const oldest = queryPatterns.keys().next().value;
@@ -48,6 +49,7 @@ export function recordSlowQuery(queryText, durationMs, meta = {}) {
   pattern.maxDuration = Math.max(pattern.maxDuration, durationMs);
   pattern.lastSeen = new Date().toISOString();
 
+  // Log slow queries
   if (durationMs >= SLOW_QUERY_THRESHOLD_MS) {
     const entry = {
       timestamp: new Date().toISOString(),

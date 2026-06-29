@@ -362,7 +362,7 @@ curl -X POST http://localhost:3000/api/monitoring/test-error
 
 ## Support & Documentation
 
-- Sentry Docs: https://docs.sentry.io/
-- Winston Docs: https://github.com/winstonjs/winston
-- Slack API: https://api.slack.com/
+- Sentry Docs: <https://docs.sentry.io/>
+- Winston Docs: <https://github.com/winstonjs/winston>
+- Slack API: <https://api.slack.com/>
 - Performance Monitoring: See API examples above

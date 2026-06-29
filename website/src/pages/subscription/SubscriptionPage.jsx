@@ -219,8 +219,8 @@ export default function SubscriptionPage({ onBack }) {
                 )}
               </div>
               <ul style={styles.featureList}>
-                {tier.features.map((f, i) => (
-                  <li key={i} style={styles.featureItem}>
+                {tier.features.map((f) => (
+                  <li key={f} style={styles.featureItem}>
                     <span style={{ color: '#22c55e' }}>✓</span> {f}
                   </li>
                 ))}

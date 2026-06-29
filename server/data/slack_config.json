@@ -1,0 +1,9 @@
+{
+  "bot_token": "",
+  "webhook_url": "",
+  "channel_name": "",
+  "channel_id": "",
+  "notify_new_events": true,
+  "notify_registrations": true,
+  "notify_announcements": true
+}

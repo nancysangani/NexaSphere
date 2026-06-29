@@ -63,9 +63,9 @@ console.log(`NexaSphere server listening on http://localhost:${port}`);
 // ============================================================================
 
 /_
-SOCKET_URL=http://localhost:3001
-CORS_ORIGIN=http://localhost:5173,http://localhost:3000
-FRONTEND_URL=http://localhost:5173
+SOCKET_URL=<http://localhost:3001>
+CORS_ORIGIN=<http://localhost:5173,http://localhost:3000>
+FRONTEND_URL=<http://localhost:5173>
 _/
 
 // ============================================================================
@@ -136,7 +136,7 @@ cd server
 npm run dev
 
 Expected output:
-NexaSphere server listening on http://localhost:3001
+NexaSphere server listening on <http://localhost:3001>
 Socket.IO server running on ws://localhost:3001
 
 Terminal 2: Start frontend
@@ -145,7 +145,7 @@ npm install
 npm run dev
 
 Expected output:
-Admin dashboard running on http://localhost:5173
+Admin dashboard running on <http://localhost:5173>
 \*/
 
 // ============================================================================
@@ -159,15 +159,15 @@ Admin dashboard running on http://localhost:5173
    You should see: "Socket connected: <socket-id>"
 
 2. Test Registration API:
-   curl -X POST http://localhost:3001/api/admin/analytics/events/kss-153/register \
+   curl -X POST <http://localhost:3001/api/admin/analytics/events/kss-153/register> \
     -H "Content-Type: application/json" \
-    -d '{"email": "test@example.com", "name": "Test User"}'
+    -d '{"email": "<test@example.com>", "name": "Test User"}'
 
 3. Check Metrics:
-   curl http://localhost:3001/api/admin/analytics/events/kss-153
+   curl <http://localhost:3001/api/admin/analytics/events/kss-153>
 
 4. View Dashboard:
-   Navigate to http://localhost:5173/analytics
+   Navigate to <http://localhost:5173/analytics>
    You should see live metrics updating
    \*/
 
@@ -181,7 +181,7 @@ Solution: Verify socket.js exists in server/config/socket.js
 
 Issue: WebSocket connection fails with CORS error
 Solution: Check CORS_ORIGIN env var matches your frontend URL
-CORS_ORIGIN=http://localhost:5173
+CORS_ORIGIN=<http://localhost:5173>
 
 Issue: "analyticsRouter is not defined"
 Solution: Ensure line 13+ has:
@@ -207,9 +207,9 @@ PORT=3002 npm run dev
 /\*
 Environment Variables (Production):
 PORT=3001
-SOCKET_URL=https://your-api-domain.com
-CORS_ORIGIN=https://your-app-domain.com
-FRONTEND_URL=https://your-app-domain.com
+SOCKET_URL=<https://your-api-domain.com>
+CORS_ORIGIN=<https://your-app-domain.com>
+FRONTEND_URL=<https://your-app-domain.com>
 NODE_ENV=production
 
 Database:

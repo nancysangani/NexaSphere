@@ -1,4 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
+
+// Validates a date value before formatting — avoids rendering literal
+// "Invalid Date" text when the API returns a null or malformed timestamp.
+function formatDate(value) {
+  if (!value) return 'Unknown';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return 'Unknown';
+  return d.toLocaleDateString();
+}
+function formatDateTime(value) {
+  if (!value) return 'Unknown';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return 'Unknown';
+  return d.toLocaleString();
+}
 import apiClient from '../../utils/apiClient';
 import { getApiBase, buildUrl } from '../../utils/runtimeConfig';
 import { initializeSocket, getSocket, joinRoom, leaveRoom } from '../../utils/socketClient';
@@ -282,7 +297,7 @@ export default function EventPlanningPage({ event, onBack }) {
                 )}
                 {task.deadline && (
                   <div style={{ fontSize: 11, color: 'var(--t3)' }}>
-                    Due: {new Date(task.deadline).toLocaleDateString()}
+                    Due: {formatDate(task.deadline)}
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
@@ -375,7 +390,7 @@ export default function EventPlanningPage({ event, onBack }) {
                     )}
                     {task.deadline && (
                       <span>
-                        Deadline: <strong>{new Date(task.deadline).toLocaleDateString()}</strong>
+                        Deadline: <strong>{formatDate(task.deadline)}</strong>
                       </span>
                     )}
                   </div>
@@ -392,7 +407,7 @@ export default function EventPlanningPage({ event, onBack }) {
                       >
                         <strong>{c.author || 'Anonymous'}</strong>: {c.content}
                         <div style={{ fontSize: 11, color: 'var(--t3)' }}>
-                          {new Date(c.createdAt).toLocaleString()}
+                          {formatDateTime(c.createdAt)}
                         </div>
                       </div>
                     ))}
@@ -482,7 +497,7 @@ export default function EventPlanningPage({ event, onBack }) {
                   >
                     <strong>{log.user}</strong> {log.details}
                     <div style={{ color: 'var(--t3)', fontSize: 11 }}>
-                      {new Date(log.timestamp).toLocaleString()}
+                      {formatDateTime(log.timestamp)}
                     </div>
                   </div>
                 ))}

@@ -438,4 +438,43 @@ export const forumRepository = {
       return { rows: rows.map(mapThreadRow), total: countResult.rows[0]?.total ?? 0 };
     });
   },
+  async countThreadsByEmail(email) {
+    return withDb(async (client) => {
+      const { rows } = await client.query(
+        `SELECT COUNT(*)::int AS count
+       FROM forum_threads
+       WHERE author_email = $1`,
+        [email]
+      );
+
+      return rows[0]?.count || 0;
+    });
+  },
+  async countRepliesByEmail(email) {
+    return withDb(async (client) => {
+      const { rows } = await client.query(
+        `SELECT COUNT(*)::int AS count
+       FROM forum_replies
+       WHERE author_email = $1`,
+        [email]
+      );
+
+      return rows[0]?.count || 0;
+    });
+  },
+  async getLeaderboardUsers() {
+    return withDb(async (client) => {
+      const { rows } = await client.query(`
+      SELECT
+        author_email,
+        author_name,
+        COUNT(*)::int AS thread_count
+      FROM forum_threads
+      WHERE author_email IS NOT NULL
+      GROUP BY author_email, author_name
+    `);
+
+      return rows;
+    });
+  },
 };

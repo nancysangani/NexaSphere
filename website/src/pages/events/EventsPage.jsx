@@ -21,6 +21,13 @@ export default function EventsPage({
   const [view, setView] = useState('timeline');
   const [recommendationView, setRecommendationView] = useState(false);
   const [now] = useState(() => Date.now());
+  const [filters, setFilters] = useState({
+    startDate: '',
+    endDate: '',
+    category: '',
+    location: '',
+    search: '',
+  });
 
   const getEffectiveStatus = (ev) => {
     if (ev.status === 'completed') return 'completed';
@@ -29,18 +36,59 @@ export default function EventsPage({
     return getEventCountdownStatus({ startDate, endDate });
   };
 
+  const filteredEvents = useMemo(() => {
+    return events.filter((ev) => {
+      const eventDate = new Date(ev.startDate ?? ev.date);
+
+      if (filters.startDate && eventDate < new Date(filters.startDate)) {
+        return false;
+      }
+
+      if (filters.endDate && eventDate > new Date(filters.endDate)) {
+        return false;
+      }
+
+      if (
+        filters.category &&
+        !(ev.tags || []).join(' ').toLowerCase().includes(filters.category.toLowerCase())
+      ) {
+        return false;
+      }
+
+      if (
+        filters.location &&
+        !(ev.description || '').toLowerCase().includes(filters.location.toLowerCase())
+      ) {
+        return false;
+      }
+
+      if (
+        filters.search &&
+        !(
+          ev.name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+          ev.description?.toLowerCase().includes(filters.search.toLowerCase())
+        )
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [events, filters]);
+
   const sortedEvents = useMemo(() => {
-    return [...events]
-      .map((ev) => ({ ...ev, status: getEffectiveStatus(ev) }))
+    return [...filteredEvents]
+      .map((ev) => ({
+        ...ev,
+        status: getEffectiveStatus(ev),
+      }))
       .sort((a, b) => {
-        const aIsUpcoming = a.status !== 'completed';
-        const bIsUpcoming = b.status !== 'completed';
-        if (aIsUpcoming !== bIsUpcoming) return bIsUpcoming ? 1 : -1;
         const da = parseDate(a.startDate ?? a.date)?.getTime() ?? 0;
         const db = parseDate(b.startDate ?? b.date)?.getTime() ?? 0;
-        return aIsUpcoming ? da - db : db - da;
+
+        return da - db;
       });
-  }, [events, now]);
+  }, [filteredEvents]);
 
   const { recommendations, loading: recsLoading } = useRecommendations(user?.sub || user?.id || '');
 
@@ -462,7 +510,77 @@ export default function EventsPage({
           <EventCalendarView events={sortedEvents} onEventClick={onEventClick} />
         )}
       </div>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '12px',
+          marginBottom: '28px',
+          alignItems: 'center',
+        }}
+      >
+        <input
+          type="date"
+          value={filters.startDate}
+          onChange={(e) =>
+            setFilters((p) => ({
+              ...p,
+              startDate: e.target.value,
+            }))
+          }
+        />
 
+        <input
+          type="date"
+          value={filters.endDate}
+          onChange={(e) =>
+            setFilters((p) => ({
+              ...p,
+              endDate: e.target.value,
+            }))
+          }
+        />
+
+        <select
+          value={filters.category}
+          onChange={(e) =>
+            setFilters((p) => ({
+              ...p,
+              category: e.target.value,
+            }))
+          }
+        >
+          <option value="">All Categories</option>
+          <option value="workshop">Workshop</option>
+          <option value="hackathon">Hackathon</option>
+          <option value="seminar">Seminar</option>
+          <option value="competition">Competition</option>
+        </select>
+
+        <input
+          type="text"
+          placeholder="Location"
+          value={filters.location}
+          onChange={(e) =>
+            setFilters((p) => ({
+              ...p,
+              location: e.target.value,
+            }))
+          }
+        />
+
+        <input
+          type="text"
+          placeholder="Search events..."
+          value={filters.search}
+          onChange={(e) =>
+            setFilters((p) => ({
+              ...p,
+              search: e.target.value,
+            }))
+          }
+        />
+      </div>
       <Footer />
     </div>
   );

@@ -1,5 +1,5 @@
 import { learningPathsRepository } from '../repositories/learningPathsRepository.js';
-import { supabaseRequest } from '../index.js';
+import { supabaseRequest } from '../storage/supabaseClient.js';
 import notificationsService from './notificationsService.js';
 
 /**

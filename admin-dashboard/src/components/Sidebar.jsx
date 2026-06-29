@@ -12,6 +12,7 @@ const links = [
   { to: '/dashboard', label: 'Dashboard', icon: 'Dashboard' },
   { to: '/dashboard/analytics', label: 'Analytics', icon: 'BarChart' },
   { to: '/dashboard/analytics/funnel', label: 'Funnel Analysis', icon: 'TrendingDown' },
+  { to: '/dashboard/analytics/custom-events', label: 'Custom Events', icon: 'Target' },
   { to: '/dashboard/events', label: 'Events', icon: 'Calendar', requiredScope: 'events:read' },
   {
     to: '/dashboard/waiting-room',
@@ -96,6 +97,15 @@ const links = [
     to: '/dashboard/audit-logs',
     label: 'Audit Logs',
     icon: 'FileText',
+    to: '/dashboard/audit-logs',
+    label: 'Audit Logs',
+    icon: 'FileText',
+    requiredScope: 'settings:admin',
+  },
+  {
+    to: '/dashboard/scheduled-tasks',
+    label: 'Scheduled Tasks',
+    icon: 'Clock',
     requiredScope: 'settings:admin',
   },
   {
@@ -108,6 +118,10 @@ const links = [
     to: '/dashboard/reports',
     label: 'Reports',
     icon: 'Target',
+    to: '/dashboard/settings',
+    label: 'Platform Settings',
+    icon: 'Settings',
+    requiredScope: 'settings:admin',
   },
 ];
 
@@ -337,3 +351,4 @@ export function Sidebar() {
     </>
   );
 }
+

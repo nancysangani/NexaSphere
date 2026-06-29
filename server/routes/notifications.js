@@ -333,7 +333,7 @@ router.get('/notifications', async (req, res) => {
           adminToken = req.cookies.ns_admin_token;
         }
         if (adminToken) {
-          const { getAdminSession } = await import('../repositories/adminSessionsRepository.js');
+          const { getAdminSession } = await import('./repositories/adminSessionsRepository.js');
           const session = await getAdminSession(adminToken);
           if (session) {
             authenticated = true;
@@ -355,42 +355,8 @@ router.get('/notifications', async (req, res) => {
   }
 });
 
-/**
- * POST /notifications — Create a new notification (admin).
- * Validates input against notificationSchema using Zod.
- */
-router.post(
-  '/notifications',
-  adminAuthMiddleware.requireAdmin,
-  notificationRateLimiter,
-  async (req, res) => {
-    try {
-      const validated = notificationSchema.safeParse(req.body);
-      if (!validated.success) {
-        return res.status(400).json({ error: validated.error.errors[0].message });
-      }
 
-      const { userId, title, message, type, link } = validated.data;
-
-      const note = await notificationsService.addNotification(userId || 'global', {
-        title,
-        message,
-        type,
-        link,
-      });
-      return res.json({ success: true, notification: note });
-    } catch (err) {
-      return res.status(500).json({ error: err.message });
-    }
-  }
-);
-
-// ── Notification Preferences Routes ─────────────────────────────────────────
-
-/**
- * GET /notifications/preferences — List notification preferences.
- */
-router.get('/notifications/preferences', async (req, res) => {
+router.get('/notifications/preferences', requireNotificationPrefAuth, async (req, res) => {
   try {
     const userId = req.query.userId || 'global';
     const prefs = await notificationPreferencesRepository.list(userId);
@@ -400,18 +366,21 @@ router.get('/notifications/preferences', async (req, res) => {
   }
 });
 
-/**
- * PUT /notifications/preferences — Set a single preference.
- */
-router.put('/notifications/preferences', async (req, res) => {
+
+router.put('/notifications/preferences', requireNotificationPrefAuth, async (req, res) => {
   try {
     const userId = req.body.userId || 'global';
-    const { category, email, push, in_app } = req.body;
+    const { category, email, push, in_app, sms, frequency, quiet_start, quiet_end, dnd } = req.body;
     if (!category) return res.status(400).json({ error: 'category is required' });
     const pref = await notificationPreferencesRepository.set(userId, category, {
       email,
       push,
       in_app,
+      sms,
+      frequency,
+      quiet_start,
+      quiet_end,
+      dnd,
     });
     return res.json({ preference: pref });
   } catch (err) {
@@ -419,10 +388,8 @@ router.put('/notifications/preferences', async (req, res) => {
   }
 });
 
-/**
- * PUT /notifications/preferences/bulk — Set multiple preferences at once.
- */
-router.put('/notifications/preferences/bulk', async (req, res) => {
+
+router.put('/notifications/preferences/bulk', requireNotificationPrefAuth, async (req, res) => {
   try {
     const userId = req.body.userId || 'global';
     const { preferences } = req.body;
@@ -435,5 +402,19 @@ router.put('/notifications/preferences/bulk', async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
+
+
+// Notification analytics (lightweight collector)
+router.post('/notifications/analytics', async (req, res) => {
+  try {
+    const event = req.body || {};
+    // Minimal validation — in future route can forward to analytics pipeline
+    console.log('[notification-analytics]', event.type || 'unknown', event);
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 
 export default router;

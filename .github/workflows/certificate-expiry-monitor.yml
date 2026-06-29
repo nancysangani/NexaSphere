@@ -1,0 +1,32 @@
+name: Certificate Expiry Monitor
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  check-expiry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check certificate expiry
+        run: |
+          EXPIRY=$(echo | openssl s_client -servername nexasphere.app -connect nexasphere.app:443 2>/dev/null | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+          EXPIRY_EPOCH=$(date -d "$EXPIRY" +%s 2>/dev/null)
+          NOW_EPOCH=$(date +%s)
+          DAYS_LEFT=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
+          echo "Days until expiry: $DAYS_LEFT"
+          echo "days_left=$DAYS_LEFT" >> $GITHUB_ENV
+
+      - name: Alert if expiring soon
+        if: env.days_left < 30 && env.days_left >= 0
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const daysLeft = parseInt(process.env.days_left);
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `⚠️ SSL Certificate Expiring in ${daysLeft} days`,
+              body: `The SSL certificate for nexasphere.app will expire in **${daysLeft} days**. Please renew manually or check the auto-renewal process.`
+            });

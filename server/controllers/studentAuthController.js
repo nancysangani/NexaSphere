@@ -9,10 +9,11 @@ export const googleAuth = passport.authenticate('google', {
 
 export const googleCallback = (req, res, next) => {
   passport.authenticate('google', { session: false }, (err, data, info) => {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5175';
     if (err) return next(err);
     if (!data) {
       return res.redirect(
-        `/login?error=${encodeURIComponent(info?.message || 'Authentication failed')}`
+        `${frontendUrl}/login?error=${encodeURIComponent(info?.message || 'Authentication failed')}`
       );
     }
     res.cookie('ns_student_token', data.token, {
@@ -21,7 +22,6 @@ export const googleCallback = (req, res, next) => {
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5175';
     return res.redirect(`${frontendUrl}/dashboard`);
   })(req, res, next);
 };
@@ -33,10 +33,11 @@ export const githubAuth = passport.authenticate('github', {
 
 export const githubCallback = (req, res, next) => {
   passport.authenticate('github', { session: false }, (err, data, info) => {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5175';
     if (err) return next(err);
     if (!data) {
       return res.redirect(
-        `/login?error=${encodeURIComponent(info?.message || 'Authentication failed')}`
+        `${frontendUrl}/login?error=${encodeURIComponent(info?.message || 'Authentication failed')}`
       );
     }
     res.cookie('ns_student_token', data.token, {
@@ -45,7 +46,6 @@ export const githubCallback = (req, res, next) => {
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5175';
     return res.redirect(`${frontendUrl}/dashboard`);
   })(req, res, next);
 };

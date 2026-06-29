@@ -293,7 +293,7 @@ import AnalyticsDashboard from '../components/AnalyticsDashboard';
 
 ### 4. Verify Setup
 
-- Open http://localhost:5173/analytics
+- Open <http://localhost:5173/analytics>
 - Check for live connection indicator (green dot)
 - Try registering a user via API
 - Verify metrics update in real-time

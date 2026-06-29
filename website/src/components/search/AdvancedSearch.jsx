@@ -46,7 +46,7 @@ const AdvancedSearch = () => {
     const parts = text.split(regex);
     return parts.map((part, i) =>
       regex.test(part) ? (
-        <span key={i} className="highlight">
+        <span key={`segment-${i}-${part}`} className="highlight">
           {part}
         </span>
       ) : (

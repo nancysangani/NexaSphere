@@ -1,4 +1,6 @@
+import NotFound from './pages/NotFound';
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { stateToUrl, urlToState } from './utils/routing';
 import './styles/themes.css';
 import './styles/globals.css';
 import './styles/animations.css';
@@ -70,8 +72,10 @@ const NAV_TABS = [
 
 export default function App() {
   const [cinDone, setCinDone] = useState(false);
-  const [activeTab, setActiveTab] = useState('Home');
-  const [page, setPage] = useState(null);
+  
+  // Use lazy initialization for state derived from the URL
+  const [activeTab, setActiveTab] = useState(() => urlToState(window.location.pathname).activeTab);
+  const [page, setPage] = useState(() => urlToState(window.location.pathname).page);
   const [mobile, setMobile] = useState(window.innerWidth <= 768);
 
   const { theme, toggleTheme } = useThemeManagement();
@@ -88,6 +92,27 @@ export default function App() {
     window.addEventListener('resize', handleResize, { passive: true });
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Sync state changes to browser history
+  useEffect(() => {
+    const url = stateToUrl(page);
+    if (window.location.pathname !== url) {
+      window.history.pushState(null, '', url);
+    }
+  }, [page]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const { page: newPage, activeTab: newTab } = urlToState(window.location.pathname);
+      performTransition(() => {
+        setPage(newPage);
+        setActiveTab(newTab);
+      });
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [performTransition]);
 
   useInteractionEffects(cinDone, page);
   useBackToTop();

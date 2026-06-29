@@ -33,7 +33,7 @@ cd server-java
 mvn spring-boot:run -Dmaven.test.skip=true
 ```
 
-_Accessible at: http://localhost:8080_
+_Accessible at: <http://localhost:8080>_
 
 ### Admin Portal (Vite)
 
@@ -42,7 +42,7 @@ cd admin-dashboard
 npm run dev
 ```
 
-_Accessible at: http://localhost:5174 (standard)_
+_Accessible at: <http://localhost:5174> (standard)_
 
 ### Main Website (Vite)
 
@@ -50,7 +50,7 @@ _Accessible at: http://localhost:5174 (standard)_
 npm run dev
 ```
 
-_Accessible at: http://localhost:5173_
+_Accessible at: <http://localhost:5173>_
 
 ## 3. Data Flow
 

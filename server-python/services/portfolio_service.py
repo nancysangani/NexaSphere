@@ -1,5 +1,6 @@
 import re
 import logging
+import httpx
 from typing import Any, Dict
 
 GITHUB_USERNAME_PATTERN = re.compile(r'^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$')

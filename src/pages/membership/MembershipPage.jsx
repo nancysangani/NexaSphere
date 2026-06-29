@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useFormDraft } from '../../hooks/useFormDraft';
 import {
   DynamicIcon,
   IconArrowLeft,
@@ -70,6 +71,7 @@ function Input({
   maxLength,
   inputMode: inputModeProp,
   onPaste,
+  'aria-label': ariaLabel,
 }) {
   return (
     <input
@@ -77,6 +79,7 @@ function Input({
       onChange={(e) => onChange(e.target.value)}
       onPaste={onPaste}
       placeholder={placeholder}
+      aria-label={ariaLabel || placeholder}
       type={type}
       maxLength={maxLength}
       inputMode={inputModeProp || (type === 'tel' ? 'numeric' : undefined)}
@@ -237,6 +240,23 @@ function MultiSelectChips({ options, values, onToggle }) {
   );
 }
 
+const INITIAL_FORM = {
+  fullName: '',
+  collegeEmail: '',
+  rollNumber: '',
+  course: '',
+  courseOther: '',
+  branch: '',
+  branchOther: '',
+  section: '',
+  sectionOther: '',
+  semester: '',
+  whatsapp: '',
+
+  groups: [],
+  whyJoin: '',
+};
+
 export default function MembershipPage({ onBack }) {
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -245,22 +265,16 @@ export default function MembershipPage({ onBack }) {
   const [submittedEmail, setSubmittedEmail] = useState('');
   const topRef = useRef(null);
 
-  const [form, setForm] = useState({
-    fullName: '',
-    collegeEmail: '',
-    rollNumber: '',
-    course: '',
-    courseOther: '',
-    branch: '',
-    branchOther: '',
-    section: '',
-    sectionOther: '',
-    semester: '',
-    whatsapp: '',
+  const [form, setForm] = useState(INITIAL_FORM);
 
-    groups: [],
-    whyJoin: '',
-  });
+  const { draftRestored, clearDraft, startOver, continueDraft } = useFormDraft(
+    'ns_membership_draft',
+    form,
+    step,
+    setForm,
+    setStep,
+    INITIAL_FORM
+  );
 
   function set(key, val) {
     setForm((f) => ({ ...f, [key]: val }));
@@ -337,6 +351,7 @@ export default function MembershipPage({ onBack }) {
       }
 
       setSubmittedEmail(payload.collegeEmail);
+      clearDraft();
       setDone(true);
       scrollTop();
     } catch (e) {
@@ -959,6 +974,28 @@ export default function MembershipPage({ onBack }) {
           </div>
 
           <div className="member-body">
+            {draftRestored && !done && (
+              <div style={{
+                background: 'rgba(0,212,255,.1)',
+                border: '1px solid var(--c1)',
+                borderRadius: 'var(--r2)',
+                padding: '12px 16px',
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12,
+              }}>
+                <div style={{ fontSize: '.9rem', color: 'var(--t1)' }}>
+                  We restored your unsaved progress from earlier.
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={continueDraft} className="btn btn-primary btn-sm">Continue</button>
+                  <button onClick={startOver} className="btn btn-outline btn-sm">Start Over</button>
+                </div>
+              </div>
+            )}
             {done ? (
               /* ── Success screen ── */
               <div style={{ display: 'grid', gap: 18 }}>
